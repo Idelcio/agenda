@@ -152,6 +152,7 @@
                     @include('agenda.partials.form', [
                         'appointment' => null,
                         'defaultWhatsapp' => $defaultWhatsapp,
+                        'usuarios' => $usuarios,
                         'submitLabel' => 'Salvar compromisso',
                         'action' => route('agenda.store'),
                         'httpMethod' => 'POST',
@@ -818,6 +819,14 @@
 
             const TOKEN = document.querySelector('meta[name="csrf-token"]').content;
             const INTERVALO_MS = 60 * 1000; // 1 minuto
+            const INTERVALO_ATUALIZACAO_MS = 30 * 1000; // 30 segundos
+
+            // Atualiza a página automaticamente a cada 2 minutos para refletir mudanças do WhatsApp
+            setInterval(() => {
+                const agora = new Date();
+                console.log(`🔄 Atualizando página (${agora.toLocaleTimeString()})...`);
+                window.location.reload();
+            }, 120 * 1000); // 2 minutos
 
             async function enviarLembretesPendentes() {
                 try {

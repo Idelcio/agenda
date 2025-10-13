@@ -37,7 +37,7 @@ class AppointmentPolicy
      */
     public function update(User $user, Appointment $appointment): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $this->owns($user, $appointment);
     }
 
     /**
@@ -45,7 +45,7 @@ class AppointmentPolicy
      */
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $this->owns($user, $appointment);
     }
 
     /**

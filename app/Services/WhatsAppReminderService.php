@@ -37,6 +37,9 @@ class WhatsAppReminderService
                 $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
             );
 
+        // Adiciona instruções para responder com 1 ou 2
+        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para marcar como concluído\n❌ Digite *2* para cancelar";
+
         $this->sendQuickMessage(
             $appointment,
             $destino,
@@ -117,12 +120,12 @@ class WhatsAppReminderService
     {
         return [
             [
-                'id' => 'confirm',
-                'text' => 'Confirmar',
+                'id' => '1',
+                'text' => '✅ 1 - Concluído',
             ],
             [
-                'id' => 'cancel',
-                'text' => 'Cancelar',
+                'id' => '2',
+                'text' => '❌ 2 - Cancelar',
             ],
         ];
     }
@@ -156,14 +159,14 @@ class WhatsAppReminderService
         ?int $userId = null
     ): void {
         $buttons = $this->buildConfirmationButtons();
-        $prompt = 'Voce pode confirmar ou cancelar este agendamento?';
+        $prompt = 'Responda com o número da sua escolha:';
 
         $options = [
             'useTemplateButtons' => true,
-            'title' => 'Confirme sua presenca',
+            'title' => '📋 Status do Compromisso',
             'footer' => $appointment && $appointment->inicio
                 ? $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
-                : 'Selecione uma opcao abaixo',
+                : 'Ou responda apenas 1 ou 2',
             'delay' => 0,
         ];
 

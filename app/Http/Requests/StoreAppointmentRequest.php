@@ -24,6 +24,7 @@ class StoreAppointmentRequest extends FormRequest
             'inicio' => ['required', 'date'],
             'fim' => ['nullable', 'date', 'after_or_equal:inicio'],
             'dia_inteiro' => ['boolean'],
+            'destinatario_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'notificar_whatsapp' => ['boolean'],
             'whatsapp_numero' => ['nullable', 'string', 'regex:/^\\+[0-9]{8,16}$/'],
             'whatsapp_mensagem' => ['nullable', 'string', 'max:500'],

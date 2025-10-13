@@ -6,10 +6,25 @@ use App\Http\Controllers\Webhook\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
 use App\Services\WhatsAppService;
 
+/*
+|--------------------------------------------------------------------------
+| Rota de Teste (envio manual de mensagem)
+|--------------------------------------------------------------------------
+| Usa o serviço de WhatsApp para enviar mensagem e testar a integração.
+| ⚠️ Recomendo usar sendMessage() (que já trata exceções e formato padrão),
+| a menos que seu WhatsAppService defina sendText() como método personalizado.
+*/
+
 Route::get('/teste-whatsapp', function (WhatsAppService $whatsApp) {
-    $resposta = $whatsApp->sendText('5551984871703', 'Mensagem de teste via API Brasil');
+    $resposta = $whatsApp->sendMessage('5551984871703', 'Mensagem de teste via API Brasil');
     dd($resposta);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Lembretes pendentes (rota autenticada)
+|--------------------------------------------------------------------------
+*/
 Route::get('/agenda/lembretes-pendentes', [AppointmentController::class, 'lembretesPendentes'])
     ->middleware(['auth'])
     ->name('agenda.lembretes-pendentes');
@@ -18,13 +33,7 @@ Route::get('/agenda/lembretes-pendentes', [AppointmentController::class, 'lembre
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -38,11 +47,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/agenda/whatsapp/rapido', [AppointmentController::class, 'sendQuickMessage'])->name('agenda.quick-whatsapp');
     Route::resource('agenda', AppointmentController::class)->except(['show']);
 
+    // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::post('/webhooks/whatsapp', WhatsAppWebhookController::class)->name('webhooks.whatsapp');
+/*
+|--------------------------------------------------------------------------
+| Webhook público do WhatsApp
+|--------------------------------------------------------------------------
+| ⚠️ Essa rota NÃO deve ter middleware de autenticação.
+| O provedor (ex: API Brasil) precisa conseguir acessá-la externamente.
+*/
+Route::post('/webhooks/whatsapp', WhatsAppWebhookController::class)
+    ->name('webhooks.whatsapp');
 
 require __DIR__ . '/auth.php';

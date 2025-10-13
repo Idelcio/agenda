@@ -6,6 +6,7 @@ use App\Http\Requests\SendQuickMessageRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
+use App\Models\User;
 use App\Services\WhatsAppReminderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -111,6 +112,9 @@ class AppointmentController extends Controller
             'lembretes_falharam' => $user->appointments()->where('status_lembrete', 'falhou')->count(),
         ];
 
+        // Busca todos os usuários para seleção de destinatário
+        $usuarios = User::orderBy('name')->get(['id', 'name', 'whatsapp_number']);
+
         return view('agenda.index', [
             'upcoming' => $upcoming,
             'recent' => $recent,
@@ -120,6 +124,7 @@ class AppointmentController extends Controller
             'stats' => $stats,
             'dueReminders' => $dueReminders,
             'defaultWhatsapp' => $user->whatsapp_number,
+            'usuarios' => $usuarios,
             'quickMessageDefaults' => [
                 'destinatario' => $user->whatsapp_number ?? config('services.whatsapp.test_number'),
             ],
@@ -136,8 +141,27 @@ class AppointmentController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
+        // Se selecionou destinatário, usa o número dele
+        if (!empty($data['destinatario_user_id'])) {
+            $destinatario = User::find($data['destinatario_user_id']);
+            if ($destinatario && $destinatario->whatsapp_number) {
+                $data['whatsapp_numero'] = $destinatario->whatsapp_number;
+            }
+        }
+
+        // Se não tem número, usa o do usuário logado
         if (empty($data['whatsapp_numero'])) {
             $data['whatsapp_numero'] = $user->whatsapp_number;
+        }
+
+        // Normaliza o número de WhatsApp removendo caracteres especiais e garantindo +55
+        if (!empty($data['whatsapp_numero'])) {
+            $numero = preg_replace('/\D+/', '', $data['whatsapp_numero']);
+            // Se não começar com 55, adiciona
+            if (!str_starts_with($numero, '55')) {
+                $numero = '55' . $numero;
+            }
+            $data['whatsapp_numero'] = $numero;
         }
 
         if (! ($data['dia_inteiro'] ?? false) && empty($data['fim'])) {
@@ -179,6 +203,16 @@ class AppointmentController extends Controller
 
         if (empty($data['whatsapp_numero'])) {
             $data['whatsapp_numero'] = $appointment->user->whatsapp_number;
+        }
+
+        // Normaliza o número de WhatsApp removendo caracteres especiais e garantindo +55
+        if (!empty($data['whatsapp_numero'])) {
+            $numero = preg_replace('/\D+/', '', $data['whatsapp_numero']);
+            // Se não começar com 55, adiciona
+            if (!str_starts_with($numero, '55')) {
+                $numero = '55' . $numero;
+            }
+            $data['whatsapp_numero'] = $numero;
         }
 
         if (($data['dia_inteiro'] ?? false) === true) {
@@ -269,6 +303,11 @@ class AppointmentController extends Controller
 
         // Se há appointment_id, busca o compromisso
         $appointment = $appointmentId ? Appointment::find($appointmentId) : null;
+
+        // Adiciona instruções se for um compromisso
+        if ($appointment && !$request->hasFile('attachment')) {
+            $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para marcar como concluído\n❌ Digite *2* para cancelar";
+        }
 
         try {
             $messageRecord = $this->reminderService->sendQuickMessage(

@@ -17,6 +17,7 @@ class Appointment extends Model
      */
     protected $fillable = [
         'user_id',
+        'destinatario_user_id',
         'titulo',
         'descricao',
         'inicio',
@@ -45,11 +46,19 @@ class Appointment extends Model
     ];
 
     /**
-     * Relacionamento com o usuário.
+     * Relacionamento com o usuário (quem criou).
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relacionamento com o destinatário (quem vai receber/responder).
+     */
+    public function destinatario(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'destinatario_user_id');
     }
 
     public function whatsappMessages()
@@ -112,5 +121,10 @@ class Appointment extends Model
     {
         $this->status_lembrete = 'falhou';
         $this->saveQuietly();
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(User::class, 'cliente_id');
     }
 }

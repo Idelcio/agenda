@@ -3,13 +3,16 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
+use App\Models\User;
+use App\Models\Appointment;
+use App\Models\ChatbotMessage;
 
 class WhatsAppService
 {
     private array $config;
-
     private string $baseUrl;
 
     public function __construct()
@@ -54,9 +57,6 @@ class WhatsAppService
         return $this->sendText($number, $text, $typingMs);
     }
 
-    /**
-     * Envia uma mensagem de texto simples.
-     */
     public function sendText(string $number, string $text, ?int $typingMs = null): array
     {
         $payload = array_filter([
@@ -103,14 +103,12 @@ class WhatsAppService
     }
 
     /**
-     * Envia um conjunto simples de botoes interativos.
-     *
-     * @param  array<int, array{id?: string, text: string}>  $buttons
+     * Envia um conjunto simples de botões interativos.
      */
     public function sendButtons(string $number, string $text, array $buttons, array $options = []): array
     {
         if (empty($buttons)) {
-            throw new RuntimeException('Defina ao menos um botao para a mensagem interativa.');
+            throw new RuntimeException('Defina ao menos um botão para a mensagem interativa.');
         }
 
         $payload = [
@@ -120,11 +118,9 @@ class WhatsAppService
                 'useTemplateButtons' => true,
                 'buttons' => array_map(function (array $button) {
                     $label = trim($button['text'] ?? '');
-
                     if ($label === '') {
-                        throw new RuntimeException('Texto do botao interativo obrigatorio.');
+                        throw new RuntimeException('Texto do botão interativo obrigatório.');
                     }
-
                     return $button;
                 }, $buttons),
             ], $options),
@@ -149,14 +145,102 @@ class WhatsAppService
     }
 
     /**
-     * Recupera novas mensagens (não lidas).
+     * 🔹 Busca novas mensagens (não lidas) e processa as respostas ("1" e "2")
      */
-    public function fetchNewMessages(): array
+    public function fetchNewMessagesAndProcess(): void
     {
         $response = $this->post('getAllNewMessages');
+        $data = $response['response']['contacts'] ?? [];
 
-        return $response['data'] ?? $response;
+        if (empty($data)) {
+            Log::info('📭 Nenhuma nova mensagem recebida.');
+            return;
+        }
+
+        foreach ($data as $msg) {
+            $from = $this->normalizeNumber(data_get($msg, 'from', ''));
+            $body = trim((string) data_get($msg, 'body', ''));
+
+            if ($from && $body !== '') {
+                $this->processIncomingMessage($from, $body, $msg);
+            }
+        }
     }
+
+    /**
+     * 🔹 Processa cada mensagem recebida
+     */
+    public function processIncomingMessage(string $from, string $body, array $payload): void
+    {
+        // 🔹 Busca o usuário (principal ou cliente vinculado)
+        $user = User::where('whatsapp_number', $from)->first();
+
+        // 🔹 Se não encontrou, verifica se é um cliente vinculado
+        if (!$user) {
+            $empresa = User::whereHas('clientes', function ($query) use ($from) {
+                $query->where('whatsapp_number', $from);
+            })->first();
+
+            if ($empresa) {
+                $user = $empresa->clientes()->where('whatsapp_number', $from)->first();
+            }
+        }
+
+        // 🔹 Registra a mensagem recebida no histórico
+        ChatbotMessage::create([
+            'user_id' => $user?->id,
+            'whatsapp_numero' => $from,
+            'direcao' => 'entrada',
+            'conteudo' => $body,
+            'payload' => $payload,
+        ]);
+
+        if (!$user) {
+            Log::warning('🚫 Mensagem recebida de número não registrado', ['from' => $from]);
+            return;
+        }
+
+        $normalized = strtoupper(trim($body));
+
+        // 🔍 Busca compromisso pendente vinculado ao número de WhatsApp recebido
+        $appointment = Appointment::query()
+            ->where(function ($query) use ($user, $from) {
+                $query->where('destinatario_user_id', $user->id)
+                    ->orWhere('whatsapp_numero', $from);
+            })
+            ->whereIn('status', ['pendente', 'confirmado'])
+            ->latest('inicio')
+            ->first();
+
+
+        if (! $appointment) {
+            Log::info('⚠️ Nenhum compromisso pendente encontrado para este usuário.', [
+                'whatsapp' => $from,
+                'user_id' => $user->id,
+            ]);
+            return;
+        }
+
+        // ✅ 1 → concluído | 2 → cancelado
+        if ($normalized === '1') {
+            $appointment->update(['status' => 'concluido']);
+            $this->sendText($from, "✅ Seu atendimento foi marcado como *CONCLUÍDO* com sucesso!");
+            Log::info('✅ Compromisso concluído via WhatsApp', [
+                'user_id' => $user->id,
+                'appointment_id' => $appointment->id,
+            ]);
+        } elseif ($normalized === '2') {
+            $appointment->update(['status' => 'cancelado']);
+            $this->sendText($from, "❌ Seu atendimento foi *CANCELADO*. Caso queira reagendar, envie 'Agendar'.");
+            Log::info('❌ Compromisso cancelado via WhatsApp', [
+                'user_id' => $user->id,
+                'appointment_id' => $appointment->id,
+            ]);
+        } else {
+            Log::info('ℹ️ Mensagem ignorada (não é comando)', ['conteudo' => $body]);
+        }
+    }
+
 
     /**
      * Recupera as mensagens de um chat específico.
@@ -170,17 +254,15 @@ class WhatsAppService
         ], fn($value) => $value !== null && $value !== '');
 
         $response = $this->post('getMessagesChat', $payload);
-
         return $response['data'] ?? $response;
     }
 
     /**
-     * Executa a chamada para a API Brasil.
+     * 🔧 Execução padrão de requisição à API Brasil
      */
     private function post(string $endpoint, array $payload = []): array
     {
         $this->ensureCredentials();
-
         $url = $this->baseUrl . '/' . ltrim($endpoint, '/');
 
         $headers = array_filter([
@@ -200,13 +282,12 @@ class WhatsAppService
         try {
             $response = $http->post($url, $payload);
         } catch (\Illuminate\Http\Client\ConnectionException $exception) {
-            throw new RuntimeException('API Brasil nao respondeu dentro do tempo limite.', 0, $exception);
+            throw new RuntimeException('API Brasil não respondeu dentro do tempo limite.', 0, $exception);
         }
 
         if ($response->failed()) {
             $body = $response->json();
             $error = $body['message'] ?? $body['error'] ?? $response->body();
-
             throw new RuntimeException('API Brasil retornou erro: ' . $error);
         }
 
@@ -216,16 +297,30 @@ class WhatsAppService
     private function ensureCredentials(): void
     {
         if (empty($this->config['token']) || empty($this->config['device_token'])) {
-            throw new RuntimeException('Credenciais do API Brasil/WhatsApp nao configuradas.');
+            throw new RuntimeException('Credenciais da API Brasil/WhatsApp não configuradas.');
         }
     }
 
     private function normalizeNumber(string $number): string
     {
+        // Remove tudo que não for número
         $digits = preg_replace('/\D+/', '', $number);
 
-        if ($digits === '') {
-            throw new RuntimeException('Numero de WhatsApp invalido.');
+        // Garante que tenha o código do Brasil no início
+        if (!str_starts_with($digits, '55')) {
+            $digits = '55' . $digits;
+        }
+
+        // Detecta DDD + número com ou sem o 9
+        // Exemplo: 555196244848 → faltando o 9
+        // Exemplo: 5551996244848 → já tem o 9
+        if (strlen($digits) === 12) {
+            // Inserir o 9 após o DDD (depois de 4 dígitos)
+            $digits = substr($digits, 0, 4) . '9' . substr($digits, 4);
+        }
+
+        if ($digits === '' || strlen($digits) < 12) {
+            throw new RuntimeException('Número de WhatsApp inválido: ' . $number);
         }
 
         return $digits;

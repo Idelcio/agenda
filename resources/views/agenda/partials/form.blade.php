@@ -29,6 +29,29 @@
         </div>
 
         <div>
+            <x-input-label for="destinatario_user_id" value="Destinatário (quem vai receber)" />
+            <select
+                id="destinatario_user_id"
+                name="destinatario_user_id"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+                <option value="">Selecionar usuário...</option>
+                @if(isset($usuarios))
+                    @foreach($usuarios as $usuario)
+                        <option
+                            value="{{ $usuario->id }}"
+                            @selected((int) old('destinatario_user_id', $model->destinatario_user_id ?? '') === $usuario->id)
+                        >
+                            {{ $usuario->name }} @if($usuario->whatsapp_number) ({{ $usuario->whatsapp_number }}) @endif
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+            <x-input-error class="mt-2" :messages="$errors->get('destinatario_user_id')" />
+            <p class="mt-1 text-xs text-gray-500">Quando este usuário responder pelo WhatsApp, o compromisso será atualizado</p>
+        </div>
+
+        <div>
             <x-input-label for="inicio" value="Início" />
             <x-text-input
                 id="inicio"
@@ -98,15 +121,22 @@
             </div>
 
             <div>
-                <x-input-label for="whatsapp_numero" :value="__('WhatsApp number')" />
-                <x-text-input
-                    id="whatsapp_numero"
-                    name="whatsapp_numero"
-                    type="text"
-                    class="mt-1 block w-full"
-                    :value="$defaultWhatsappValue"
-                    placeholder="+5511999999999"
-                />
+                <x-input-label for="whatsapp_numero" value="Número do WhatsApp" />
+                <div class="relative mt-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">+55</span>
+                    </div>
+                    <input
+                        id="whatsapp_numero"
+                        name="whatsapp_numero"
+                        type="text"
+                        class="pl-12 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value="{{ $defaultWhatsappValue }}"
+                        placeholder="51999999999"
+                        maxlength="13"
+                    />
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Digite apenas os números (DDD + telefone)</p>
                 <x-input-error class="mt-2" :messages="$errors->get('whatsapp_numero')" />
             </div>
         </div>
@@ -134,3 +164,46 @@
         @endif
     </div>
 </form>
+
+@if(isset($usuarios))
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const destinatarioSelect = document.getElementById('destinatario_user_id');
+    const whatsappInput = document.getElementById('whatsapp_numero');
+
+    if (whatsappInput) {
+        // Remove tudo que não for número e o +55 se existir
+        const cleanNumber = (value) => {
+            return value.replace(/\D/g, '').replace(/^55/, '');
+        };
+
+        // Formata o número enquanto digita
+        whatsappInput.addEventListener('input', (e) => {
+            let value = e.target.value;
+            e.target.value = cleanNumber(value);
+        });
+
+        // Remove +55 do valor inicial se existir
+        if (whatsappInput.value) {
+            whatsappInput.value = cleanNumber(whatsappInput.value);
+        }
+    }
+
+    if (destinatarioSelect && whatsappInput) {
+        // Mapa de usuários
+        const usuarios = {
+            @foreach($usuarios as $usuario)
+                {{ $usuario->id }}: '{{ $usuario->whatsapp_number ? preg_replace('/\D/', '', str_replace('+55', '', $usuario->whatsapp_number)) : '' }}',
+            @endforeach
+        };
+
+        destinatarioSelect.addEventListener('change', (e) => {
+            const userId = e.target.value;
+            if (userId && usuarios[userId]) {
+                whatsappInput.value = usuarios[userId];
+            }
+        });
+    }
+});
+</script>
+@endif

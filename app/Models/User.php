@@ -68,4 +68,16 @@ class User extends Authenticatable
     {
         return (bool) $this->is_admin;
     }
+
+    public function empresa()
+    {
+        // Usuário pai (empresa)
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function clientes()
+    {
+        // Usuários filhos (clientes vinculados à empresa)
+        return $this->hasMany(User::class, 'user_id');
+    }
 }
