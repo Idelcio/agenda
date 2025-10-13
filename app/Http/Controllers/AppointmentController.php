@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
 class AppointmentController extends Controller
@@ -24,17 +25,76 @@ class AppointmentController extends Controller
         $this->middleware(['auth', 'verified']);
     }
 
+    public function lembretesPendentes(): JsonResponse
+    {
+        $user = Auth::user();
+        $agora = now();
+        $inicio = $agora->copy()->subMinutes(5);
+        $fim = $agora->copy()->addMinutes(5);
+
+        $lembretes = Appointment::where('user_id', $user->id)
+            ->whereBetween('lembrar_em', [$inicio, $fim])
+            ->where('notificar_whatsapp', true)
+            ->where('status_lembrete', 'pendente')
+            ->whereNull('lembrete_enviado_em')
+            ->orderBy('lembrar_em')
+            ->get([
+                'id',
+                'titulo',
+                'whatsapp_numero',
+                'whatsapp_mensagem',
+                'lembrar_em',
+            ]);
+
+        return response()->json($lembretes);
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
+        $now = now();
+
+        $dueReminderIds = $user->appointments()
+            ->where('notificar_whatsapp', true)
+            ->where('status_lembrete', 'pendente')
+            ->whereNotNull('lembrar_em')
+            ->where('lembrar_em', '<=', $now)
+            ->pluck('id');
+
+        $dueReminders = $dueReminderIds->isEmpty()
+            ? collect()
+            : $user->appointments()
+            ->whereIn('id', $dueReminderIds)
+            ->orderBy('lembrar_em')
+            ->get();
 
         $upcoming = $user->appointments()
-            ->where('inicio', '>=', now()->startOfDay())
+            ->where('inicio', '>=', $now->copy()->startOfDay())
+            ->when($dueReminderIds->isNotEmpty(), fn($query) => $query->whereNotIn('id', $dueReminderIds))
             ->orderBy('inicio')
             ->get();
 
+        // Separar compromissos por status
+        $concluidos = $user->appointments()
+            ->where('status', 'concluido')
+            ->orderByDesc('inicio')
+            ->limit(20)
+            ->get();
+
+        $pendentes = $user->appointments()
+            ->where('status', 'pendente')
+            ->orderByDesc('inicio')
+            ->limit(20)
+            ->get();
+
+        $cancelados = $user->appointments()
+            ->where('status', 'cancelado')
+            ->orderByDesc('inicio')
+            ->limit(20)
+            ->get();
+
         $recent = $user->appointments()
-            ->where('inicio', '<', now()->startOfDay())
+            ->where('inicio', '<', $now->copy()->startOfDay())
             ->orderByDesc('inicio')
             ->limit(10)
             ->get();
@@ -46,12 +106,19 @@ class AppointmentController extends Controller
             'cancelados' => $user->appointments()->where('status', 'cancelado')->count(),
             'concluidos' => $user->appointments()->where('status', 'concluido')->count(),
             'com_lembrete' => $user->appointments()->where('notificar_whatsapp', true)->count(),
+            'lembretes_enviados' => $user->appointments()->where('status_lembrete', 'enviado')->count(),
+            'lembretes_pendentes' => $user->appointments()->where('status_lembrete', 'pendente')->where('notificar_whatsapp', true)->count(),
+            'lembretes_falharam' => $user->appointments()->where('status_lembrete', 'falhou')->count(),
         ];
 
         return view('agenda.index', [
             'upcoming' => $upcoming,
             'recent' => $recent,
+            'concluidos' => $concluidos,
+            'pendentes' => $pendentes,
+            'cancelados' => $cancelados,
             'stats' => $stats,
+            'dueReminders' => $dueReminders,
             'defaultWhatsapp' => $user->whatsapp_number,
             'quickMessageDefaults' => [
                 'destinatario' => $user->whatsapp_number ?? config('services.whatsapp.test_number'),
@@ -91,7 +158,10 @@ class AppointmentController extends Controller
 
     public function edit(Appointment $appointment): View
     {
-        $this->authorize('update', $appointment);
+        // Permitir que o usuário edite seus próprios compromissos
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Você não tem permissão para editar este compromisso.');
+        }
 
         return view('agenda.edit', [
             'appointment' => $appointment,
@@ -100,7 +170,10 @@ class AppointmentController extends Controller
 
     public function update(UpdateAppointmentRequest $request, Appointment $appointment): RedirectResponse
     {
-        $this->authorize('update', $appointment);
+        // Permitir que o usuário atualize seus próprios compromissos
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Você não tem permissão para atualizar este compromisso.');
+        }
 
         $data = $request->validated();
 
@@ -121,7 +194,10 @@ class AppointmentController extends Controller
 
     public function destroy(Request $request, Appointment $appointment): RedirectResponse
     {
-        $this->authorize('delete', $appointment);
+        // Permitir que o usuário delete seus próprios compromissos
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Você não tem permissão para excluir este compromisso.');
+        }
 
         $appointment->delete();
 
@@ -130,7 +206,10 @@ class AppointmentController extends Controller
 
     public function toggleStatus(Appointment $appointment): RedirectResponse
     {
-        $this->authorize('update', $appointment);
+        // Permitir que o usuário atualize seus próprios compromissos
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Você não tem permissão para modificar este compromisso.');
+        }
 
         $appointment->status = $appointment->isCompleted() ? 'pendente' : 'concluido';
         $appointment->save();
@@ -138,9 +217,29 @@ class AppointmentController extends Controller
         return Redirect::back()->with('status', 'appointment-status-updated');
     }
 
+    public function updateStatus(Appointment $appointment, string $status): RedirectResponse
+    {
+        // Permitir que qualquer usuário autenticado atualize o status de seus próprios compromissos
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Você não tem permissão para modificar este compromisso.');
+        }
+
+        // Validar status permitidos
+        $allowedStatuses = ['pendente', 'confirmado', 'concluido', 'cancelado'];
+
+        if (!in_array($status, $allowedStatuses)) {
+            return Redirect::back()->withErrors(['status' => 'Status inválido.']);
+        }
+
+        $appointment->status = $status;
+        $appointment->save();
+
+        return Redirect::back()->with('status', 'appointment-status-updated');
+    }
+
     public function sendReminder(Appointment $appointment): RedirectResponse
     {
-        $this->authorize('update', $appointment);
+        $this->authorize('remind', $appointment);
 
         try {
             $this->reminderService->sendAppointmentReminder($appointment);
@@ -156,7 +255,9 @@ class AppointmentController extends Controller
             ]);
         }
 
-        return Redirect::back()->with('status', 'appointment-reminder-sent');
+        return Redirect::back()
+            ->with('status', 'appointment-reminder-sent')
+            ->with('reminder_sent', $appointment->id);
     }
 
     public function sendQuickMessage(SendQuickMessageRequest $request): RedirectResponse
@@ -164,15 +265,25 @@ class AppointmentController extends Controller
         $dados = $request->validated();
         $destino = $dados['destinatario'];
         $mensagem = $dados['mensagem'] ?? '';
+        $appointmentId = $request->input('appointment_id');
+
+        // Se há appointment_id, busca o compromisso
+        $appointment = $appointmentId ? Appointment::find($appointmentId) : null;
 
         try {
-            $this->reminderService->sendQuickMessage(
-                null,
+            $messageRecord = $this->reminderService->sendQuickMessage(
+                $appointment,
                 $destino,
                 $mensagem,
                 $request->file('attachment'),
-                auth()->id()
+                auth()->id(),
+                withConfirmationButtons: false
             );
+
+            // Se for um lembrete de compromisso, marca como enviado
+            if ($appointment && $appointment->notificar_whatsapp) {
+                $appointment->markAsReminded();
+            }
         } catch (RuntimeException $exception) {
             return Redirect::back()->withErrors([
                 'quick_whatsapp' => $exception->getMessage(),
@@ -185,7 +296,10 @@ class AppointmentController extends Controller
             ]);
         }
 
-        return Redirect::back()->with('status', 'quick-message-sent');
+        return Redirect::back()
+            ->with('status', 'quick-message-sent')
+            ->with('quick_message_sent', $messageRecord->phone ?? $destino)
+            ->with('reminder_sent', $appointment?->id);
     }
 
     public function events(Request $request): JsonResponse

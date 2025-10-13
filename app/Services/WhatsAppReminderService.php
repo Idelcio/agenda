@@ -30,49 +30,19 @@ class WhatsAppReminderService
             throw new RuntimeException('Informe um numero de WhatsApp valido no perfil ou no compromisso.');
         }
 
-        $mensagem = sprintf(
-            'Ola! Voce tem um agendamento de %s em %s.',
-            $appointment->titulo,
-            $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
-        );
+        $mensagem = $appointment->whatsapp_mensagem
+            ?: sprintf(
+                'Ola! Voce tem um agendamento de %s em %s.',
+                $appointment->titulo,
+                $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
+            );
 
-        $textResponse = $this->whatsApp->sendText($destino, $mensagem);
-        $this->storeWhatsappMessage(
+        $this->sendQuickMessage(
             $appointment,
-            'sent',
-            'text',
             $destino,
-            [
-                'message' => $mensagem,
-                'response' => $textResponse,
-            ],
-            $this->extractMessageId($textResponse)
-        );
-
-        $buttons = $this->buildConfirmationButtons($appointment);
-        $buttonResponse = $this->whatsApp->sendButtons(
-            $destino,
-            'Confirme ou cancele este horario.',
-            $buttons,
-            [
-                'time_typing' => 1200,
-                'title' => 'Confirme sua presenca',
-                'footer' => $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i'),
-                'use_template_buttons' => false,
-            ]
-        );
-
-        $this->storeWhatsappMessage(
-            $appointment,
-            'sent',
-            'buttons',
-            $destino,
-            [
-                'message' => 'Confirme ou cancele o agendamento.',
-                'buttons' => $buttons,
-                'response' => $buttonResponse,
-            ],
-            $this->extractMessageId($buttonResponse)
+            $mensagem,
+            userId: $appointment->user_id,
+            withConfirmationButtons: false
         );
 
         $appointment->markAsReminded();
@@ -82,19 +52,22 @@ class WhatsAppReminderService
      * Envia mensagem manual (com ou sem anexo).
      *
      * @throws RuntimeException
+     *
+     * @return WhatsAppMessage
      */
     public function sendQuickMessage(
         ?Appointment $appointment,
         string $destino,
         ?string $mensagem = null,
         ?UploadedFile $attachment = null,
-        ?int $userId = null
-    ): void {
+        ?int $userId = null,
+        bool $withConfirmationButtons = false
+    ): WhatsAppMessage {
         if ($attachment) {
             $base64 = $this->encodeAttachment($attachment);
             $mediaResponse = $this->whatsApp->sendMediaFromBase64($destino, $base64, $mensagem ?: null);
 
-            $this->storeWhatsappMessage(
+            $mediaMessage = $this->storeWhatsappMessage(
                 $appointment,
                 'sent',
                 'media',
@@ -107,7 +80,11 @@ class WhatsAppReminderService
                 userId: $userId
             );
 
-            return;
+            if ($withConfirmationButtons) {
+                $this->sendConfirmationButtons($appointment, $destino, $mediaMessage, $userId);
+            }
+
+            return $mediaMessage;
         }
 
         if ($mensagem === null || trim($mensagem) === '') {
@@ -116,7 +93,7 @@ class WhatsAppReminderService
 
         $textResponse = $this->whatsApp->sendText($destino, $mensagem);
 
-        $this->storeWhatsappMessage(
+        $textMessage = $this->storeWhatsappMessage(
             $appointment,
             'sent',
             'text',
@@ -128,9 +105,15 @@ class WhatsAppReminderService
             $this->extractMessageId($textResponse),
             userId: $userId
         );
+
+        if ($withConfirmationButtons) {
+            $this->sendConfirmationButtons($appointment, $destino, $textMessage, $userId);
+        }
+
+        return $textMessage;
     }
 
-    private function buildConfirmationButtons(Appointment $appointment): array
+    private function buildConfirmationButtons(): array
     {
         return [
             [
@@ -164,6 +147,60 @@ class WhatsAppReminderService
             'context_id' => $contextId,
             'payload' => $payload,
         ]);
+    }
+
+    private function sendConfirmationButtons(
+        ?Appointment $appointment,
+        string $destino,
+        WhatsAppMessage $originMessage,
+        ?int $userId = null
+    ): void {
+        $buttons = $this->buildConfirmationButtons();
+        $prompt = 'Voce pode confirmar ou cancelar este agendamento?';
+
+        $options = [
+            'useTemplateButtons' => true,
+            'title' => 'Confirme sua presenca',
+            'footer' => $appointment && $appointment->inicio
+                ? $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
+                : 'Selecione uma opcao abaixo',
+            'delay' => 0,
+        ];
+
+        try {
+            $buttonResponse = $this->whatsApp->sendButtons(
+                $destino,
+                $prompt,
+                $buttons,
+                $options
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return;
+        }
+
+        $stored = $this->storeWhatsappMessage(
+            $appointment,
+            'sent',
+            'buttons',
+            $destino,
+            [
+                'message' => $prompt,
+                'buttons' => $buttons,
+                'response' => $buttonResponse,
+            ],
+            $this->extractMessageId($buttonResponse),
+            $originMessage->external_id,
+            $userId ?? $originMessage->user_id
+        );
+
+        if (config('app.debug')) {
+            \Log::info('WhatsApp buttons response stored', [
+                'buttons_response' => $buttonResponse,
+                'stored_message_id' => $stored->id ?? null,
+            ]);
+        }
     }
 
     private function extractMessageId(array $response): ?string

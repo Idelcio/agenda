@@ -99,7 +99,15 @@ class SyncWhatsappReplies extends Command
 
     private function applyInteractiveResponse(WhatsAppMessage $message): void
     {
+        $appointment = Appointment::find($message->appointment_id);
+
+        if (! $appointment) {
+            return;
+        }
+
         $payload = $message->payload ?? [];
+
+        // Verifica se é uma resposta interativa (botão ou lista)
         $selectedRow = data_get($payload, 'message.listResponse.singleSelectReply.selectedRowId')
             ?? data_get($payload, 'message.interactive.single_select_reply.selected_row_id')
             ?? data_get($payload, 'selectedRowId');
@@ -116,26 +124,37 @@ class SyncWhatsappReplies extends Command
 
         $selection = $selectedRow ?? $selectedButton;
 
-        if (! $selection) {
-            return;
+        // Se houver seleção de botão, processa
+        if ($selection) {
+            $normalized = strtolower((string) $selection);
+
+            if ($normalized === 'confirm') {
+                $appointment->status = 'confirmado';
+                $appointment->save();
+                $message->status = 'confirmado';
+            } elseif ($normalized === 'cancel') {
+                $appointment->status = 'cancelado';
+                $appointment->save();
+                $message->status = 'cancelado';
+            }
         }
 
-        $appointment = Appointment::find($message->appointment_id);
+        // Se for qualquer resposta de texto (não apenas botões), marca como concluído
+        $hasTextReply = !empty(data_get($payload, 'message.conversation'))
+            || !empty(data_get($payload, 'message.extendedTextMessage.text'))
+            || !empty(data_get($payload, 'text'))
+            || !empty(data_get($payload, 'message.text'));
 
-        if (! $appointment) {
-            return;
-        }
-
-        $normalized = strtolower((string) $selection);
-
-        if ($normalized === 'confirm') {
-            $appointment->status = 'confirmado';
+        if ($hasTextReply || $selection) {
+            // Marca o compromisso como concluído quando há qualquer resposta
+            $appointment->status = 'concluido';
             $appointment->save();
-            $message->status = 'confirmado';
-        } elseif ($normalized === 'cancel') {
-            $appointment->status = 'cancelado';
-            $appointment->save();
-            $message->status = 'cancelado';
+
+            Log::info('Compromisso marcado como concluido por resposta WhatsApp', [
+                'appointment_id' => $appointment->id,
+                'titulo' => $appointment->titulo,
+                'resposta_tipo' => $selection ? 'botao' : 'texto',
+            ]);
         }
 
         $message->processed_at = now();

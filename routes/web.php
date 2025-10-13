@@ -10,6 +10,9 @@ Route::get('/teste-whatsapp', function (WhatsAppService $whatsApp) {
     $resposta = $whatsApp->sendText('5551984871703', 'Mensagem de teste via API Brasil');
     dd($resposta);
 });
+Route::get('/agenda/lembretes-pendentes', [AppointmentController::class, 'lembretesPendentes'])
+    ->middleware(['auth'])
+    ->name('agenda.lembretes-pendentes');
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'index'])->name('dashboard');
     Route::get('/agenda/eventos', [AppointmentController::class, 'events'])->name('agenda.events');
     Route::patch('/agenda/{appointment}/status', [AppointmentController::class, 'toggleStatus'])->name('agenda.status');
+    Route::patch('/agenda/{appointment}/status/{status}', [AppointmentController::class, 'updateStatus'])->name('agenda.update-status');
     Route::post('/agenda/{appointment}/lembrar', [AppointmentController::class, 'sendReminder'])->name('agenda.reminder');
     Route::post('/agenda/whatsapp/rapido', [AppointmentController::class, 'sendQuickMessage'])->name('agenda.quick-whatsapp');
     Route::resource('agenda', AppointmentController::class)->except(['show']);
@@ -41,4 +45,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::post('/webhooks/whatsapp', WhatsAppWebhookController::class)->name('webhooks.whatsapp');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

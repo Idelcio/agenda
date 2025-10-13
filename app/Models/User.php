@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'whatsapp_number',
+        'is_admin',
     ];
 
     /**
@@ -41,6 +42,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
     ];
 
     /**
@@ -57,5 +59,13 @@ class User extends Authenticatable
     public function chatbotMessages()
     {
         return $this->hasMany(ChatbotMessage::class);
+    }
+
+    /**
+     * Indica se o usuario possui privilegios de administrador.
+     */
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 }

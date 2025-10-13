@@ -22,29 +22,42 @@ class SendDueReminders extends Command
     public function handle(): int
     {
         try {
-            $total = 0;
+            $totalEnviados = 0;
+            $totalFalhas = 0;
 
-            Appointment::dueForReminder()->chunkById(50, function ($appointments) use (&$total) {
+            Appointment::dueForReminder()->chunkById(50, function ($appointments) use (&$totalEnviados, &$totalFalhas) {
                 /** @var Appointment $appointment */
                 foreach ($appointments as $appointment) {
                     try {
                         $this->reminderService->sendAppointmentReminder($appointment);
-                        $total++;
+                        $totalEnviados++;
+                        $this->info("✓ Lembrete enviado: {$appointment->titulo} (ID: {$appointment->id})");
                     } catch (RuntimeException $exception) {
+                        $appointment->markReminderAsFailed();
+                        $totalFalhas++;
                         Log::warning('Lembrete nao enviado', [
                             'appointment_id' => $appointment->id,
                             'exception' => $exception->getMessage(),
                         ]);
+                        $this->warn("✗ Falha: {$appointment->titulo} - {$exception->getMessage()}");
                     } catch (\Throwable $exception) {
+                        $appointment->markReminderAsFailed();
+                        $totalFalhas++;
                         Log::error('Falha ao enviar lembrete automatico.', [
                             'appointment_id' => $appointment->id,
                             'exception' => $exception->getMessage(),
                         ]);
+                        $this->error("✗ Erro: {$appointment->titulo} - {$exception->getMessage()}");
                     }
                 }
             });
 
-            $this->info("Lembretes enviados: {$total}");
+            $this->newLine();
+            $this->info("===== RESUMO =====");
+            $this->info("Lembretes enviados: {$totalEnviados}");
+            if ($totalFalhas > 0) {
+                $this->warn("Falhas: {$totalFalhas}");
+            }
 
             return Command::SUCCESS;
         } catch (RuntimeException $exception) {

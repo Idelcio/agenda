@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class WhatsAppService
@@ -99,6 +100,37 @@ class WhatsAppService
         }
 
         return $this->post('sendList', $payload);
+    }
+
+    /**
+     * Envia um conjunto simples de botoes interativos.
+     *
+     * @param  array<int, array{id?: string, text: string}>  $buttons
+     */
+    public function sendButtons(string $number, string $text, array $buttons, array $options = []): array
+    {
+        if (empty($buttons)) {
+            throw new RuntimeException('Defina ao menos um botao para a mensagem interativa.');
+        }
+
+        $payload = [
+            'number' => $this->normalizeNumber($number),
+            'text' => $text,
+            'options' => array_merge([
+                'useTemplateButtons' => true,
+                'buttons' => array_map(function (array $button) {
+                    $label = trim($button['text'] ?? '');
+
+                    if ($label === '') {
+                        throw new RuntimeException('Texto do botao interativo obrigatorio.');
+                    }
+
+                    return $button;
+                }, $buttons),
+            ], $options),
+        ];
+
+        return $this->post('sendButtons', $payload);
     }
 
     /**

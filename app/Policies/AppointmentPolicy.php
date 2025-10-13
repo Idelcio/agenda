@@ -37,7 +37,7 @@ class AppointmentPolicy
      */
     public function update(User $user, Appointment $appointment): bool
     {
-        return $this->owns($user, $appointment);
+        return $user->isAdmin();
     }
 
     /**
@@ -45,7 +45,15 @@ class AppointmentPolicy
      */
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $this->owns($user, $appointment);
+        return $user->isAdmin();
+    }
+
+    /**
+     * Determina se o usuario pode reenviar lembrete.
+     */
+    public function remind(User $user, Appointment $appointment): bool
+    {
+        return $user->isAdmin() || $this->owns($user, $appointment);
     }
 
     /**

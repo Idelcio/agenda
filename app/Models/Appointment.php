@@ -29,6 +29,7 @@ class Appointment extends Model
         'antecedencia_minutos',
         'lembrar_em',
         'lembrete_enviado_em',
+        'status_lembrete',
     ];
 
     /**
@@ -78,7 +79,7 @@ class Appointment extends Model
     public function scopeDueForReminder($query)
     {
         return $query->where('notificar_whatsapp', true)
-            ->whereNull('lembrete_enviado_em')
+            ->where('status_lembrete', 'pendente')
             ->whereNotNull('lembrar_em')
             ->where('lembrar_em', '<=', now());
     }
@@ -100,6 +101,16 @@ class Appointment extends Model
     public function markAsReminded(): void
     {
         $this->lembrete_enviado_em = Carbon::now();
+        $this->status_lembrete = 'enviado';
+        $this->saveQuietly();
+    }
+
+    /**
+     * Marca o lembrete como falhou no envio.
+     */
+    public function markReminderAsFailed(): void
+    {
+        $this->status_lembrete = 'falhou';
         $this->saveQuietly();
     }
 }

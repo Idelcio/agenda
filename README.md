@@ -1,4 +1,4 @@
-# Agenda Digital
+﻿# Agenda Digital
 
 Aplicacao Laravel localizada em portugues, com autenticacao Breeze, agenda multiusuario, lembretes via WhatsApp e chatbot integrado.
 
@@ -14,7 +14,7 @@ Aplicacao Laravel localizada em portugues, com autenticacao Breeze, agenda multi
 - PHP 8.1+
 - Composer
 - Node.js 18+ e npm
-- MySQL 8 (ou compatível)
+- MySQL 8 (ou compatÃ­vel)
 
 ## Instalacao
 1. Clone o projeto e acesse a pasta.
@@ -63,36 +63,41 @@ Aplicacao Laravel localizada em portugues, com autenticacao Breeze, agenda multi
 > **Dica:** use `php artisan agenda:whatsapp-teste` para enviar uma mensagem rapida ao numero configurado.
 
 ## Chatbot: comandos disponiveis
-- `MENU` ou `AJUDA` — mostra os comandos.
-- `LISTAR` — lista os proximos compromissos.
-- `CRIAR Titulo; 25/12/2025; 14:00` — cria um compromisso rapido.
+- `MENU` ou `AJUDA` â€” mostra os comandos.
+- `LISTAR` â€” lista os proximos compromissos.
+- `CRIAR Titulo; 25/12/2025; 14:00` â€” cria um compromisso rapido.
 
 Todos os registros ficam na tabela `chatbot_messages`.
 
-## Lembretes automaticos
-- Execute manualmente: `php artisan agenda:disparar-lembretes`.
-- Para producao, agende no cron:
+## Lembretes por WhatsApp
+- Quando o horÃ¡rio de `lembrar_em` chega, o compromisso passa para a seÃ§Ã£o â€œLembretes pendentesâ€ e exibe o botÃ£o **Enviar lembrete agora**.
+- O mesmo botÃ£o aparece na tabela principal como **Reenviar lembrete** para quem criou o compromisso (ou administradores). Ao clicar, o lembrete Ã© disparado e o registro sai da fila.
+- O comando `php artisan agenda:disparar-lembretes` continua disponÃ­vel caso queira disparar vÃ¡rios de uma sÃ³ vez.
+- Ajuste os timeouts da API Brasil no `.env` se necessÃ¡rio:
   ```
-  * * * * * php /caminho/para/artisan schedule:run >> /dev/null 2>&1
+  API_BRASIL_TIMEOUT=60
+  API_BRASIL_CONNECT_TIMEOUT=15
+  API_BRASIL_RETRY_TIMES=3
+  API_BRASIL_RETRY_SLEEP=2000
   ```
-- O agendador roda a cada 5 minutos e dispara lembretes cujo campo `lembrar_em` ja venceu.
+  ApÃ³s mudar, execute `php artisan config:clear`.
 
 ## Scripts uteis
-- `php artisan serve` — servidor local.
-- `npm run dev` — Vite em modo desenvolvimento.
-- `npm run build` — build de producao.
-- `php artisan test` — executa a suite de testes.
+- `php artisan serve` â€” servidor local.
+- `npm run dev` â€” Vite em modo desenvolvimento.
+- `npm run build` â€” build de producao.
+- `php artisan test` â€” executa a suite de testes.
 
 ## Proximos passos sugeridos
 - Configurar filas (Redis ou database) para envio assincrono das mensagens.
 - Expandir o chatbot (concluir compromisso, cancelar, reatribuir etc.).
 - Personalizar os layouts Blade conforme a identidade visual do projeto.
-## Fluxo de confirmacoes via WhatsApp
-- Lembretes enviam uma mensagem de texto resumindo o compromisso e, em seguida, um conjunto de botoes com as opcoes `Confirmar` e `Cancelar`.
-- As respostas sao processadas pelo comando `php artisan agenda:sincronizar-respostas`, que atualiza o status do compromisso (confirmado/cancelado).
-- Voce pode ajustar os textos e as opcoes em `App\Services\WhatsAppReminderService::buildConfirmationButtons()`.
 
+## Acesso administrativo
+- Apenas usuarios com `is_admin = true` podem editar, concluir, remover e reenviar lembretes de compromissos.
+- Para promover um usuario existente, utilize o Tinker: `php artisan tinker -q` e execute `App\Models\User::find(1)->update(['is_admin' => true]);`.
+- Caso crie usuarios via seed, lembre-se de informar o campo `is_admin`.
 ## Envio manual na agenda
-- O bloco "WhatsApp rápido" permite enviar mensagens individuais com ou sem anexos (imagens e PDF).
-- Para enviar arquivos, o campo de anexo converte automaticamente em base64 e utiliza o endpoint `sendFile64`.
-- Todas as mensagens enviadas e recebidas são registradas na tabela `whatsapp_messages`.
+- O bloco "WhatsApp rapido" permite enviar mensagens individuais com ou sem anexos (imagens e PDF).
+- Apos o texto, a aplicacao dispara os botoes `Confirmar` e `Cancelar` para testes de resposta.
+- Todas as mensagens enviadas e recebidas sao registradas na tabela `whatsapp_messages`.
