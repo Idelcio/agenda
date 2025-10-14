@@ -12,9 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('agenda:disparar-lembretes')->everyFiveMinutes();
+        $schedule->command('agenda:disparar-lembretes')->everyMinute();
         $schedule->command('agenda:sincronizar-respostas')->everyFiveMinutes();
-        $schedule->command('app:enviar-lembretes-whatsapp')->everyMinute();
     }
 
     /**

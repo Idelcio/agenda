@@ -267,7 +267,7 @@ class WhatsAppService
                         ->orWhere('whatsapp_numero', $from);
                 }
             })
-            ->whereIn('status', ['pendente', 'confirmado'])
+            ->whereIn('status', ['pendente', 'confirmado', 'cancelado'])
             ->latest('inicio')
             ->first();
 
@@ -286,6 +286,31 @@ class WhatsAppService
             'status_atual' => $appointment->status,
         ]);
 
+        if ($appointment->status === 'cancelado') {
+            $wantsReschedule = ['SIM', 'S', 'YES', '1'];
+            $doesNotWant = ['NAO', 'NÃO', 'N', 'NO', '2'];
+
+            if (in_array($normalized, $wantsReschedule, true)) {
+                // 🔹 Cliente respondeu SIM após cancelamento
+                $this->sendText($from, "✅ Em breve entraremos em contato para reagendar seu atendimento.");
+                Log::info('📅 Cliente deseja remarcar após cancelamento', [
+                    'user_id' => $user->id,
+                    'appointment_id' => $appointment->id,
+                ]);
+                return;
+            }
+
+            if (in_array($normalized, $doesNotWant, true)) {
+                // 🔹 Cliente respondeu NÃO após cancelamento
+                $this->sendText($from, "👋 Obrigado! Até breve.");
+                Log::info('🙌 Cliente encerrou conversa após cancelamento', [
+                    'user_id' => $user->id,
+                    'appointment_id' => $appointment->id,
+                ]);
+                return;
+            }
+        }
+
         // 🔹 Interpreta comandos conhecidos
         $isConfirm = in_array($normalized, ['1', 'UM', 'CONFIRMAR', 'SIM', 'OK', 'CONCLUIR']);
         $isCancel  = in_array($normalized, ['2', 'DOIS', 'CANCELAR', 'NÃO', 'NAO', 'CANCEL']);
@@ -298,8 +323,12 @@ class WhatsAppService
                 'appointment_id' => $appointment->id,
             ]);
         } elseif ($isCancel) {
+            // 🔸 Atualiza o status para cancelado
             $appointment->update(['status' => 'cancelado']);
-            $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Envie *Sim* ou *Não*.");
+
+            // 🔸 Envia mensagem de cancelamento com opções
+            $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (Não).");
+
             Log::info('❌ Compromisso cancelado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,

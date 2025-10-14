@@ -4,7 +4,10 @@
       "Bash(php artisan:*)",
       "Bash(taskkill:*)",
       "Bash(tasklist)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(Get-Content storage/logs/laravel.log -Tail 100)",
+      "Bash(cat:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []
