@@ -4,17 +4,21 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name', 'Agenda Digital') }}</title>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
         <style>
             :root {
                 color-scheme: light;
-                --bg-gradient: linear-gradient(135deg, #1d4ed8, #9333ea);
+                --bg-gradient: linear-gradient(135deg, #25D366, #128C7E, #075E54);
                 --text-primary: #0f172a;
                 --text-secondary: #64748b;
-                --card-bg: rgba(255, 255, 255, 0.9);
-                --shadow: 0 25px 50px -12px rgba(30, 64, 175, 0.35);
-                --accent: #1d4ed8;
-                --accent-hover: #1e40af;
-                --highlight: rgba(79, 70, 229, 0.12);
+                --card-bg: rgba(255, 255, 255, 0.95);
+                --shadow: 0 25px 50px -12px rgba(37, 211, 102, 0.4);
+                --accent: #25D366;
+                --accent-hover: #1fb855;
+                --accent-secondary: #128C7E;
+                --highlight: rgba(37, 211, 102, 0.12);
+                --whatsapp-green: #25D366;
             }
 
             * {
@@ -34,13 +38,14 @@
             }
 
             .landing {
-                width: min(1100px, 100%);
+                width: min(1200px, 100%);
                 background: var(--card-bg);
-                border-radius: 28px;
-                padding: 3.5rem;
+                border-radius: 32px;
+                padding: 4rem;
                 display: grid;
-                gap: 3rem;
+                gap: 3.5rem;
                 box-shadow: var(--shadow);
+                backdrop-filter: blur(20px);
             }
 
             header {
@@ -53,13 +58,22 @@
                 font-size: clamp(1.8rem, 4vw, 2.4rem);
                 margin: 0;
                 font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+            }
+
+            header h1::before {
+                content: "📱";
+                font-size: 2.5rem;
             }
 
             header span {
-                font-size: 0.95rem;
+                font-size: 1rem;
                 color: var(--text-secondary);
                 display: block;
                 margin-top: 0.5rem;
+                font-weight: 500;
             }
 
             .hero {
@@ -163,10 +177,99 @@
             }
 
             .feature-card li::before {
-                content: "✔";
+                content: "✓";
                 color: var(--accent);
                 font-weight: bold;
                 margin-top: 0.1rem;
+                font-size: 1.2rem;
+            }
+
+            .steps-section {
+                background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(18, 140, 126, 0.08));
+                border-radius: 24px;
+                padding: 3rem;
+                display: grid;
+                gap: 2rem;
+            }
+
+            .steps-section h2 {
+                text-align: center;
+                font-size: clamp(1.8rem, 3vw, 2.2rem);
+                margin: 0 0 1rem 0;
+                color: var(--text-primary);
+            }
+
+            .steps-section > p {
+                text-align: center;
+                color: var(--text-secondary);
+                font-size: 1.05rem;
+                margin: 0 0 2rem 0;
+            }
+
+            .steps-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem;
+            }
+
+            .step-card {
+                background: white;
+                border-radius: 20px;
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border: 2px solid transparent;
+            }
+
+            .step-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(37, 211, 102, 0.2);
+                border-color: var(--accent);
+            }
+
+            .step-number {
+                width: 50px;
+                height: 50px;
+                background: var(--accent);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: 700;
+            }
+
+            .step-card h3 {
+                margin: 0;
+                font-size: 1.3rem;
+                color: var(--text-primary);
+            }
+
+            .step-card p {
+                margin: 0;
+                color: var(--text-secondary);
+                line-height: 1.6;
+                font-size: 0.98rem;
+            }
+
+            .whatsapp-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: var(--whatsapp-green);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 999px;
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+            .whatsapp-badge::before {
+                content: "💬";
             }
 
             footer {
@@ -177,17 +280,34 @@
 
             @media (max-width: 720px) {
                 body {
-                    padding: 1.5rem;
+                    padding: 1rem;
                 }
 
                 .landing {
-                    padding: 2.5rem;
+                    padding: 2rem;
+                    gap: 2.5rem;
                 }
 
                 header {
                     flex-direction: column;
                     align-items: flex-start;
                     gap: 1rem;
+                }
+
+                header h1 {
+                    font-size: 1.8rem;
+                }
+
+                header h1::before {
+                    font-size: 2rem;
+                }
+
+                .hero {
+                    grid-template-columns: 1fr;
+                }
+
+                .hero-text h2 {
+                    font-size: 1.6rem;
                 }
 
                 .cta-group {
@@ -198,6 +318,23 @@
                     text-align: center;
                     width: 100%;
                 }
+
+                .feature-card {
+                    padding: 2rem;
+                }
+
+                .steps-section {
+                    padding: 2rem;
+                }
+
+                .steps-grid {
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                }
+
+                .step-card {
+                    padding: 1.5rem;
+                }
             }
         </style>
     </head>
@@ -206,7 +343,7 @@
             <header>
                 <div>
                     <h1>{{ config('app.name') }}</h1>
-                    <span>Organize seus compromissos, lembretes e conversas com um fluxo inteligente e seguro.</span>
+                    <span>Agenda inteligente com WhatsApp integrado</span>
                 </div>
                 @auth
                     <a href="{{ route('dashboard') }}" class="cta-secondary">Ir para a minha agenda</a>
@@ -215,38 +352,70 @@
 
             <section class="hero">
                 <div class="hero-text">
-                    <h2>Uma central completa para agendas profissionais e pessoais.</h2>
+                    <h2>Gerencie seus clientes e lembretes com envios automáticos via WhatsApp</h2>
                     <p>
-                        Cadastre compromissos, configure lembretes automáticos via WhatsApp, converse com o chatbot e mantenha todo o time sincronizado em um único lugar.
+                        A solução completa para cadastrar clientes, criar lembretes e receber respostas automaticamente.
+                        Tudo sincronizado em uma agenda organizada e fácil de consultar.
                     </p>
                     @guest
                         <div class="cta-group">
-                            <a href="{{ route('register') }}" class="cta-primary">Criar minha conta</a>
-                            <a href="{{ route('login') }}" class="cta-secondary">Já tenho login</a>
+                            <a href="{{ route('register') }}" class="cta-primary">Começar agora</a>
+                            <a href="{{ route('login') }}" class="cta-secondary">Já tenho conta</a>
                         </div>
                     @else
                         <div class="cta-group">
-                            <a href="{{ route('dashboard') }}" class="cta-primary">Acessar agenda</a>
+                            <a href="{{ route('dashboard') }}" class="cta-primary">Acessar minha agenda</a>
                         </div>
                     @endguest
                 </div>
                 <div class="feature-card">
                     <h3>
-                        <span>Por que usar?</span>
-                        Benefícios do {{ config('app.name') }}
+                        <span class="whatsapp-badge">WhatsApp</span>
+                        Recursos principais
                     </h3>
                     <ul>
-                        <li>Agenda multiusuário com visualização intuitiva de compromissos pendentes e concluídos.</li>
-                        <li>Lembretes automatizados por WhatsApp com mensagens personalizadas e confirmação de envio.</li>
-                        <li>Chatbot inteligente para criar e listar compromissos diretamente pelo aplicativo de mensagens.</li>
-                        <li>Autenticação segura com Breeze e Painel totalmente traduzido para português.</li>
-                        <li>Registro completo das interações para auditoria e gestão da equipe.</li>
+                        <li>Cadastre seus clientes uma única vez com nome, telefone e informações relevantes</li>
+                        <li>Crie lembretes personalizados que são enviados automaticamente pelo WhatsApp</li>
+                        <li>Receba as respostas dos clientes direto na agenda, sem precisar checar o celular</li>
+                        <li>Visualize tudo em uma tabela organizada: quem confirmou, quem cancelou, quem ainda não respondeu</li>
+                        <li>Sistema 100% automatizado: você só cadastra, cria o lembrete e acompanha os resultados</li>
                     </ul>
                 </div>
             </section>
 
+            <section class="steps-section">
+                <h2>Como funciona?</h2>
+                <p>Simples, rápido e totalmente automatizado</p>
+
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Cadastre o cliente</h3>
+                        <p>Adicione o nome, telefone e outras informações do seu cliente no sistema. Faça isso apenas uma vez.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>Crie o lembrete</h3>
+                        <p>Defina a data, horário e mensagem do lembrete. O sistema envia automaticamente via WhatsApp no momento certo.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Aguarde a resposta</h3>
+                        <p>O cliente recebe o lembrete e responde pelo WhatsApp. A resposta é capturada automaticamente pelo sistema.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3>Confira na tabela</h3>
+                        <p>Acesse sua agenda e veja todos os lembretes, respostas e status em uma tabela organizada e fácil de gerenciar.</p>
+                    </div>
+                </div>
+            </section>
+
             <footer>
-                Desenvolvido com Laravel. Conecte sua agenda, seu time e seus clientes em minutos.
+                Desenvolvido com Laravel e integração Evolution API. Sua agenda profissional totalmente automatizada.
             </footer>
         </div>
     </body>
