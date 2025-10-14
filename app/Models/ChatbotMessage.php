@@ -14,6 +14,7 @@ class ChatbotMessage extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'external_id',       // 🔹 Novo campo para evitar duplicados
         'user_id',
         'whatsapp_numero',
         'direcao',

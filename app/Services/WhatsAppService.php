@@ -158,12 +158,46 @@ class WhatsAppService
         }
 
         foreach ($data as $msg) {
-            $from = $this->normalizeNumber(data_get($msg, 'from', ''));
+            $fromRaw = data_get($msg, 'from', '');
             $body = trim((string) data_get($msg, 'body', ''));
 
+            // 🚫 Ignorar grupos, broadcasts, status, comunidades, etc.
+            if (
+                str_contains($fromRaw, '@g.us') ||
+                str_contains($fromRaw, '@broadcast') ||
+                str_contains($fromRaw, '@status') ||
+                str_contains($fromRaw, '@newsletter')
+            ) {
+                Log::info('📢 Ignorando mensagem de grupo/broadcast/newsletter', ['from' => $fromRaw]);
+                continue;
+            }
+
+            // 🔹 Extrai só os dígitos numéricos
+            $from = preg_replace('/\D+/', '', $fromRaw);
+
+            // 🚫 Bloqueia números absurdamente longos (grupos com ID numérico)
+            if (strlen($from) > 13 || strlen($from) < 11) {
+                Log::info('🚫 Ignorando número inválido detectado', ['from' => $fromRaw, 'length' => strlen($from)]);
+                continue;
+            }
+
+            // 🔧 Normaliza o número (adiciona prefixo 55 e o 9º dígito se necessário)
+            if (!str_starts_with($from, '55')) {
+                $from = '55' . $from;
+            }
+
+            // Adiciona o 9 após o DDD se faltar (12 dígitos → 13 dígitos)
+            if (strlen($from) === 12) {
+                $from = substr($from, 0, 4) . '9' . substr($from, 4);
+            }
+
+            // 🧩 Só processa se existir corpo da mensagem
             if ($from && $body !== '') {
                 $this->processIncomingMessage($from, $body, $msg);
             }
+
+            // 💤 Pequena pausa entre mensagens (evita flood)
+            usleep(300000); // 0.3s
         }
     }
 
@@ -172,10 +206,26 @@ class WhatsAppService
      */
     public function processIncomingMessage(string $from, string $body, array $payload): void
     {
-        // 🔹 Busca o usuário (principal ou cliente vinculado)
+        // 🔹 Extrai ID único da mensagem (API Brasil envia isso em vários níveis)
+        $externalId =
+            data_get($payload, 'id') ??
+            data_get($payload, 'message.id') ??
+            data_get($payload, 'data.id') ??
+            data_get($payload, 'response.id') ??
+            Str::uuid()->toString(); // fallback seguro
+
+        // 🔹 Evita processar a mesma mensagem duas vezes
+        if (ChatbotMessage::where('external_id', $externalId)->exists()) {
+            Log::info('⚠️ Mensagem duplicada ignorada (já processada)', [
+                'from' => $from,
+                'id' => $externalId,
+            ]);
+            return;
+        }
+
+        // 🔹 Busca o usuário (empresa ou cliente vinculado)
         $user = User::where('whatsapp_number', $from)->first();
 
-        // 🔹 Se não encontrou, verifica se é um cliente vinculado
         if (!$user) {
             $empresa = User::whereHas('clientes', function ($query) use ($from) {
                 $query->where('whatsapp_number', $from);
@@ -193,6 +243,7 @@ class WhatsAppService
             'direcao' => 'entrada',
             'conteudo' => $body,
             'payload' => $payload,
+            'external_id' => $externalId, // 🔸 novo campo
         ]);
 
         if (!$user) {
@@ -200,46 +251,68 @@ class WhatsAppService
             return;
         }
 
+        // 🔹 Normaliza corpo da mensagem
         $normalized = strtoupper(trim($body));
+        $normalized = preg_replace('/[\s\n\r\t\x{200B}-\x{200D}\x{FEFF}]+/u', '', $normalized);
+        $normalized = str_replace(['️⃣', '⃣', '✖️', '✔️', '1️⃣', '2️⃣'], '', $normalized);
+        $normalized = preg_replace('/[^\p{L}\p{N}]/u', '', $normalized);
 
-        // 🔍 Busca compromisso pendente vinculado ao número de WhatsApp recebido
+        // 🔹 Busca compromisso pendente/confirmado vinculado ao usuário
         $appointment = Appointment::query()
             ->where(function ($query) use ($user, $from) {
-                $query->where('destinatario_user_id', $user->id)
-                    ->orWhere('whatsapp_numero', $from);
+                if ($user->tipo === 'cliente') {
+                    $query->where('destinatario_user_id', $user->id);
+                } else {
+                    $query->where('user_id', $user->id)
+                        ->orWhere('whatsapp_numero', $from);
+                }
             })
             ->whereIn('status', ['pendente', 'confirmado'])
             ->latest('inicio')
             ->first();
 
-
         if (! $appointment) {
             Log::info('⚠️ Nenhum compromisso pendente encontrado para este usuário.', [
                 'whatsapp' => $from,
-                'user_id' => $user->id,
+                'user_id' => $user->id ?? null,
             ]);
             return;
         }
 
-        // ✅ 1 → concluído | 2 → cancelado
-        if ($normalized === '1') {
-            $appointment->update(['status' => 'concluido']);
-            $this->sendText($from, "✅ Seu atendimento foi marcado como *CONCLUÍDO* com sucesso!");
-            Log::info('✅ Compromisso concluído via WhatsApp', [
+        Log::info('📩 Mensagem recebida normalizada', [
+            'original' => $body,
+            'normalizada' => $normalized,
+            'appointment_id' => $appointment->id,
+            'status_atual' => $appointment->status,
+        ]);
+
+        // 🔹 Interpreta comandos conhecidos
+        $isConfirm = in_array($normalized, ['1', 'UM', 'CONFIRMAR', 'SIM', 'OK', 'CONCLUIR']);
+        $isCancel  = in_array($normalized, ['2', 'DOIS', 'CANCELAR', 'NÃO', 'NAO', 'CANCEL']);
+
+        if ($isConfirm) {
+            $appointment->update(['status' => 'confirmado']);
+            $this->sendText($from, "✅ Seu atendimento foi *CONFIRMADO* com sucesso!");
+            Log::info('✅ Compromisso confirmado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
-        } elseif ($normalized === '2') {
+        } elseif ($isCancel) {
             $appointment->update(['status' => 'cancelado']);
-            $this->sendText($from, "❌ Seu atendimento foi *CANCELADO*. Caso queira reagendar, envie 'Agendar'.");
+            $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Envie *Sim* ou *Não*.");
             Log::info('❌ Compromisso cancelado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
         } else {
-            Log::info('ℹ️ Mensagem ignorada (não é comando)', ['conteudo' => $body]);
+            Log::info('ℹ️ Mensagem ignorada (não é comando conhecido)', [
+                'conteudo' => $body,
+                'normalizada' => $normalized,
+                'appointment_id' => $appointment->id,
+            ]);
         }
     }
+
 
 
     /**
@@ -277,7 +350,11 @@ class WhatsAppService
         $http = Http::withHeaders($headers)
             ->timeout(config('services.api_brasil.timeout', 25))
             ->connectTimeout(config('services.api_brasil.connect_timeout', 10))
-            ->retry(config('services.api_brasil.retry_times', 1), config('services.api_brasil.retry_sleep', 1000));
+            ->retry(
+                config('services.api_brasil.retry_times', 1),
+                config('services.api_brasil.retry_sleep', 1000),
+                throw: false // Don't throw exception automatically, we'll handle errors manually
+            );
 
         try {
             $response = $http->post($url, $payload);
@@ -287,8 +364,19 @@ class WhatsAppService
 
         if ($response->failed()) {
             $body = $response->json();
+            $statusCode = $response->status();
             $error = $body['message'] ?? $body['error'] ?? $response->body();
-            throw new RuntimeException('API Brasil retornou erro: ' . $error);
+
+            Log::error('API Brasil retornou erro', [
+                'endpoint' => $endpoint,
+                'status' => $statusCode,
+                'error' => $error,
+                'body' => $body,
+            ]);
+
+            throw new RuntimeException(
+                sprintf('API Brasil retornou erro %d: %s', $statusCode, $error)
+            );
         }
 
         return $response->json() ?? [];

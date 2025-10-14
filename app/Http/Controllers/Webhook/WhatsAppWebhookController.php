@@ -112,28 +112,28 @@ class WhatsAppWebhookController extends Controller
             ->latest('inicio')
             ->first();
 
-        // 🔹 Cliente respondeu "1" → marcar como CONCLUÍDO
-        if (in_array($normalized, ['1', 'CONCLUIR', 'FINALIZAR', 'OK'])) {
+        // 🔹 Cliente respondeu "1" → marcar como CONFIRMADO
+        if (in_array($normalized, ['1', 'CONFIRMAR', 'SIM', 'OK'])) {
             if ($appointment) {
-                $appointment->update(['status' => 'concluido']);
+                $appointment->update(['status' => 'confirmado']);
 
-                Log::info('✅ Compromisso concluído via WhatsApp', [
+                Log::info('✅ Compromisso confirmado via WhatsApp', [
                     'appointment_id' => $appointment->id,
                     'user_id' => $user->id,
                     'titulo' => $appointment->titulo,
                 ]);
 
                 return [
-                    "✅ O compromisso *{$appointment->titulo}* foi marcado como concluído com sucesso.",
-                    ['command' => 'concluir', 'appointment_id' => $appointment->id],
+                    "✅ Seu atendimento foi *CONFIRMADO* com sucesso!",
+                    ['command' => 'confirmar', 'appointment_id' => $appointment->id],
                 ];
             }
 
-            return ['⚠️ Nenhum compromisso pendente encontrado para concluir.', ['command' => 'concluir_vazio']];
+            return ['⚠️ Nenhum compromisso pendente encontrado para confirmar.', ['command' => 'confirmar_vazio']];
         }
 
         // 🔹 Cliente respondeu "2" → marcar como CANCELADO
-        if (in_array($normalized, ['2', 'CANCELAR', 'NAO'])) {
+        if (in_array($normalized, ['2', 'CANCELAR', 'NAO', 'NÃO'])) {
             if ($appointment) {
                 $appointment->update(['status' => 'cancelado']);
 
@@ -144,7 +144,7 @@ class WhatsAppWebhookController extends Controller
                 ]);
 
                 return [
-                    "❌ O compromisso *{$appointment->titulo}* foi cancelado com sucesso.",
+                    "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Envie *Sim* ou *Não*.",
                     ['command' => 'cancelar', 'appointment_id' => $appointment->id],
                 ];
             }

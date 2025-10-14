@@ -6,12 +6,12 @@ use App\Models\Appointment;
 use App\Models\WhatsAppMessage;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
+use Illuminate\Support\Facades\Log;
+
 
 class WhatsAppReminderService
 {
-    public function __construct(private WhatsAppService $whatsApp)
-    {
-    }
+    public function __construct(private WhatsAppService $whatsApp) {}
 
     /**
      * Envia mensagem de lembrete com op����es de confirma��ǜo/cancelamento.
@@ -199,7 +199,7 @@ class WhatsAppReminderService
         );
 
         if (config('app.debug')) {
-            \Log::info('WhatsApp buttons response stored', [
+            Log::info('WhatsApp buttons response stored', [
                 'buttons_response' => $buttonResponse,
                 'stored_message_id' => $stored->id ?? null,
             ]);

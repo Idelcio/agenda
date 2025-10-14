@@ -160,7 +160,7 @@
                 </div>
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg">
+            {{-- <div class="bg-white shadow sm:rounded-lg">
                 <div class="p-6">
                     <h3 class="text-lg font-medium text-gray-900">WhatsApp rapido</h3>
                     <p class="text-sm text-gray-600 mb-4">
@@ -223,7 +223,7 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </div> --}}
 
             @if ($dueReminders->isNotEmpty())
                 <div

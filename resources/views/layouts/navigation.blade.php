@@ -15,6 +15,9 @@
                     <x-nav-link :href="route('agenda.index')" :active="request()->routeIs('agenda.*') || request()->routeIs('dashboard')">
                         Agenda
                     </x-nav-link>
+                    <x-nav-link :href="route('clientes.index')" :active="request()->routeIs('clientes.*')">
+                        Clientes
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -69,6 +72,9 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('agenda.index')" :active="request()->routeIs('agenda.*') || request()->routeIs('dashboard')">
                 Agenda
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('clientes.index')" :active="request()->routeIs('clientes.*')">
+                Clientes
             </x-responsive-nav-link>
         </div>
 

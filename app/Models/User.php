@@ -23,6 +23,8 @@ class User extends Authenticatable
         'password',
         'whatsapp_number',
         'is_admin',
+        'tipo',
+        'user_id',
     ];
 
     /**
@@ -67,6 +69,22 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
+    }
+
+    /**
+     * Indica se o usuário é um cliente.
+     */
+    public function isCliente(): bool
+    {
+        return $this->tipo === 'cliente';
+    }
+
+    /**
+     * Scope para filtrar apenas clientes.
+     */
+    public function scopeClientes($query)
+    {
+        return $query->where('tipo', 'cliente');
     }
 
     public function empresa()

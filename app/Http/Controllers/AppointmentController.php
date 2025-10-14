@@ -306,7 +306,7 @@ class AppointmentController extends Controller
 
         // Adiciona instruções se for um compromisso
         if ($appointment && !$request->hasFile('attachment')) {
-            $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para marcar como concluído\n❌ Digite *2* para cancelar";
+            $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para confirmar\n❌ Digite *2* para cancelar";
         }
 
         try {
