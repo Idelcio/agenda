@@ -261,6 +261,16 @@
                                             <p class="text-base font-bold text-gray-900">
                                                 {{ $appointment->titulo }}
                                             </p>
+                                            @if ($appointment->contact_name)
+                                                <p class="text-sm text-gray-600">
+                                                    <strong>Cliente:</strong> {{ $appointment->contact_name }}
+                                                </p>
+                                            @endif
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs text-gray-500">
+                                                    <strong>WhatsApp:</strong> {{ $appointment->contact_phone }}
+                                                </p>
+                                            @endif
                                             <p class="text-sm text-gray-700 mt-1">
                                                 <strong>Compromisso:</strong>
                                                 {{ $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y \à\s H:i') }}
@@ -451,14 +461,17 @@
                                                 @endif
                                             </td>
                                             <td class="px-3 py-2">
-                                                @if ($appointment->whatsapp_numero || $appointment->user->whatsapp_number)
-                                                    <p class="text-xs font-mono text-gray-700">
-                                                        {{ $appointment->whatsapp_numero ?? $appointment->user->whatsapp_number }}
-                                                    </p>
-                                                @else
-                                                    <span class="text-xs text-gray-400">-</span>
-                                                @endif
-                                                @if ($appointment->whatsapp_mensagem)
+                                                <p class="text-sm font-semibold text-gray-900">
+                                                {{ $appointment->contact_name ?? 'Sem cadastro' }}
+                                            </p>
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs font-mono text-gray-700">
+                                                    {{ $appointment->contact_phone }}
+                                                </p>
+                                            @else
+                                                <span class="text-xs text-gray-400">Sem telefone</span>
+                                            @endif
+                                            @if ($appointment->whatsapp_mensagem)
                                                     <p class="text-xs text-gray-500 mt-1 italic">
                                                         "{{ Str::limit($appointment->whatsapp_mensagem, 40) }}"
                                                     </p>
@@ -560,6 +573,16 @@
                                                 <p class="text-xs text-gray-600 mt-1">
                                                     {{ Str::limit($appointment->descricao, 60) }}</p>
                                             @endif
+                                            @if ($appointment->contact_name)
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    <strong>Cliente:</strong> {{ $appointment->contact_name }}
+                                                </p>
+                                            @endif
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs text-gray-500">
+                                                    <strong>WhatsApp:</strong> {{ $appointment->contact_phone }}
+                                                </p>
+                                            @endif
                                         </div>
 
                                         <div class="flex items-center gap-2">
@@ -625,6 +648,16 @@
                                             @if ($appointment->descricao)
                                                 <p class="text-xs text-gray-600 mt-1">
                                                     {{ Str::limit($appointment->descricao, 60) }}</p>
+                                            @endif
+                                            @if ($appointment->contact_name)
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    <strong>Cliente:</strong> {{ $appointment->contact_name }}
+                                                </p>
+                                            @endif
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs text-gray-500">
+                                                    <strong>WhatsApp:</strong> {{ $appointment->contact_phone }}
+                                                </p>
                                             @endif
                                         </div>
 
@@ -692,6 +725,16 @@
                                                 <p class="text-xs text-gray-600 mt-1">
                                                     {{ Str::limit($appointment->descricao, 60) }}</p>
                                             @endif
+                                            @if ($appointment->contact_name)
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    <strong>Cliente:</strong> {{ $appointment->contact_name }}
+                                                </p>
+                                            @endif
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs text-gray-500">
+                                                    <strong>WhatsApp:</strong> {{ $appointment->contact_phone }}
+                                                </p>
+                                            @endif
                                         </div>
 
                                         <div class="flex items-center gap-2">
@@ -746,6 +789,16 @@
                                             @if ($appointment->descricao)
                                                 <p class="text-xs text-gray-600 mt-1">
                                                     {{ Str::limit($appointment->descricao, 60) }}</p>
+                                            @endif
+                                            @if ($appointment->contact_name)
+                                                <p class="text-xs text-gray-600 mt-1">
+                                                    <strong>Cliente:</strong> {{ $appointment->contact_name }}
+                                                </p>
+                                            @endif
+                                            @if ($appointment->contact_phone)
+                                                <p class="text-xs text-gray-500">
+                                                    <strong>WhatsApp:</strong> {{ $appointment->contact_phone }}
+                                                </p>
                                             @endif
                                         </div>
 

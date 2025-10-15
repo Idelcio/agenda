@@ -38,7 +38,7 @@ class WhatsAppReminderService
             );
 
         // Adiciona instruções para responder com 1 ou 2
-        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para marcar como concluído\n❌ Digite *2* para cancelar";
+        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para confirmar\n❌ Digite *2* para cancelar";
 
         $this->sendQuickMessage(
             $appointment,

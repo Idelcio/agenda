@@ -54,6 +54,10 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         $now = now();
+        $relations = [
+            'destinatario:id,name,whatsapp_number',
+            'user:id,name,whatsapp_number',
+        ];
 
         $dueReminderIds = $user->appointments()
             ->where('notificar_whatsapp', true)
@@ -65,11 +69,13 @@ class AppointmentController extends Controller
         $dueReminders = $dueReminderIds->isEmpty()
             ? collect()
             : $user->appointments()
-            ->whereIn('id', $dueReminderIds)
-            ->orderBy('lembrar_em')
-            ->get();
+                ->with($relations)
+                ->whereIn('id', $dueReminderIds)
+                ->orderBy('lembrar_em')
+                ->get();
 
         $upcoming = $user->appointments()
+            ->with($relations)
             ->where('inicio', '>=', $now->copy()->startOfDay())
             ->when($dueReminderIds->isNotEmpty(), fn($query) => $query->whereNotIn('id', $dueReminderIds))
             ->orderBy('inicio')
@@ -77,24 +83,28 @@ class AppointmentController extends Controller
 
         // Separar compromissos por status
         $concluidos = $user->appointments()
+            ->with($relations)
             ->where('status', 'concluido')
             ->orderByDesc('inicio')
             ->limit(20)
             ->get();
 
         $pendentes = $user->appointments()
+            ->with($relations)
             ->where('status', 'pendente')
             ->orderByDesc('inicio')
             ->limit(20)
             ->get();
 
         $cancelados = $user->appointments()
+            ->with($relations)
             ->where('status', 'cancelado')
             ->orderByDesc('inicio')
             ->limit(20)
             ->get();
 
         $recent = $user->appointments()
+            ->with($relations)
             ->where('inicio', '<', $now->copy()->startOfDay())
             ->orderByDesc('inicio')
             ->limit(10)
@@ -140,6 +150,10 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
+
+        if (! array_key_exists('notificar_whatsapp', $data)) {
+            $data['notificar_whatsapp'] = true;
+        }
 
         // Se selecionou destinatário, usa o número dele
         if (!empty($data['destinatario_user_id'])) {
@@ -200,6 +214,10 @@ class AppointmentController extends Controller
         }
 
         $data = $request->validated();
+
+        if (! array_key_exists('notificar_whatsapp', $data)) {
+            $data['notificar_whatsapp'] = true;
+        }
 
         if (empty($data['whatsapp_numero'])) {
             $data['whatsapp_numero'] = $appointment->user->whatsapp_number;
@@ -383,12 +401,15 @@ class AppointmentController extends Controller
         if (! $appointment->notificar_whatsapp) {
             $appointment->lembrar_em = null;
             $appointment->antecedencia_minutos = null;
+            $appointment->status_lembrete = null;
+            $appointment->lembrete_enviado_em = null;
             return;
         }
 
         $intervalo = $antecedenciaMinutos ?? $appointment->antecedencia_minutos ?? self::DEFAULT_REMINDER_MINUTES;
 
         $appointment->computeReminderTime($intervalo);
+        $appointment->status_lembrete = 'pendente';
         $appointment->lembrete_enviado_em = null;
 
         if (! $appointment->whatsapp_mensagem) {

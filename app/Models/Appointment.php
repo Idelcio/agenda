@@ -66,6 +66,34 @@ class Appointment extends Model
         return $this->hasMany(WhatsAppMessage::class);
     }
 
+    public function getContactNameAttribute(): ?string
+    {
+        return $this->destinatario?->name ?? $this->user?->name;
+    }
+
+    public function getContactPhoneAttribute(): ?string
+    {
+        $number = $this->whatsapp_numero
+            ?? $this->destinatario?->whatsapp_number
+            ?? $this->user?->whatsapp_number;
+
+        if (! $number) {
+            return null;
+        }
+
+        $digits = preg_replace('/\\D+/', '', $number);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        if (! str_starts_with($digits, '55')) {
+            $digits = '55' . $digits;
+        }
+
+        return '+' . $digits;
+    }
+
     /**
      * Define se o compromisso está concluído.
      */

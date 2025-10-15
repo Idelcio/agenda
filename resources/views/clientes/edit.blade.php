@@ -39,6 +39,19 @@
                         </div>
                     @endif
 
+                    @php
+                        $whatsappDefault = old('whatsapp_number', $cliente->whatsapp_number ?? '55');
+                        $whatsappDefault = preg_replace('/\D+/', '', $whatsappDefault);
+
+                        if ($whatsappDefault === '') {
+                            $whatsappDefault = '55';
+                        }
+
+                        if (! str_starts_with($whatsappDefault, '55')) {
+                            $whatsappDefault = '55' . $whatsappDefault;
+                        }
+                    @endphp
+
                     <form method="POST" action="{{ route('clientes.update', $cliente) }}" class="space-y-6">
                         @csrf
                         @method('PUT')
@@ -54,10 +67,10 @@
                         <div>
                             <x-input-label for="whatsapp_number" value="WhatsApp *" />
                             <x-text-input id="whatsapp_number" name="whatsapp_number" type="text"
-                                class="mt-1 block w-full" :value="old('whatsapp_number', $cliente->whatsapp_number)" required
-                                placeholder="+5511999999999" />
+                                class="mt-1 block w-full" :value="$whatsappDefault" required
+                                placeholder="5511999999999" />
                             <p class="mt-1 text-xs text-gray-500">
-                                Formato: código do país + DDD + número (ex: +5511999999999)
+                                Digite apenas números. O código do Brasil (55) já está selecionado; complete com DDD + telefone.
                             </p>
                             <x-input-error class="mt-2" :messages="$errors->get('whatsapp_number')" />
                         </div>

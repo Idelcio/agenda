@@ -16,19 +16,6 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-            <x-input-label for="titulo" value="Título" />
-            <x-text-input
-                id="titulo"
-                name="titulo"
-                type="text"
-                class="mt-1 block w-full"
-                :value="old('titulo', $model->titulo ?? '')"
-                required
-            />
-            <x-input-error class="mt-2" :messages="$errors->get('titulo')" />
-        </div>
-
-        <div>
             <x-input-label for="destinatario_user_id" value="Destinatário (quem vai receber)" />
             <select
                 id="destinatario_user_id"
@@ -49,6 +36,19 @@
             </select>
             <x-input-error class="mt-2" :messages="$errors->get('destinatario_user_id')" />
             <p class="mt-1 text-xs text-gray-500">Quando este usuário responder pelo WhatsApp, o compromisso será atualizado</p>
+        </div>
+
+        <div>
+            <x-input-label for="titulo" value="Título" />
+            <x-text-input
+                id="titulo"
+                name="titulo"
+                type="text"
+                class="mt-1 block w-full"
+                :value="old('titulo', $model->titulo ?? '')"
+                required
+            />
+            <x-input-error class="mt-2" :messages="$errors->get('titulo')" />
         </div>
 
         <div>
@@ -98,7 +98,8 @@
         <p class="text-sm text-gray-600">Opcional: envie um lembrete automático pelo WhatsApp antes do compromisso.</p>
 
         <div class="mt-3 flex items-center space-x-2">
-            <input id="notificar_whatsapp" name="notificar_whatsapp" type="checkbox" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" @checked(old('notificar_whatsapp', $model->notificar_whatsapp ?? false)) />
+            <input type="hidden" name="notificar_whatsapp" value="0">
+            <input id="notificar_whatsapp" name="notificar_whatsapp" type="checkbox" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" @checked(old('notificar_whatsapp', $model->notificar_whatsapp ?? true)) />
             <x-input-label for="notificar_whatsapp" value="Ativar lembrete por WhatsApp" />
         </div>
 
@@ -170,6 +171,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const destinatarioSelect = document.getElementById('destinatario_user_id');
     const whatsappInput = document.getElementById('whatsapp_numero');
+    const tituloInput = document.getElementById('titulo');
 
     if (whatsappInput) {
         // Remove tudo que não for número e o +55 se existir
@@ -189,18 +191,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (destinatarioSelect && whatsappInput) {
-        // Mapa de usuários
+    if (destinatarioSelect && whatsappInput && tituloInput) {
+        // Mapa de usuários com nome e telefone
         const usuarios = {
             @foreach($usuarios as $usuario)
-                {{ $usuario->id }}: '{{ $usuario->whatsapp_number ? preg_replace('/\D/', '', str_replace('+55', '', $usuario->whatsapp_number)) : '' }}',
+                {{ $usuario->id }}: {
+                    nome: '{{ $usuario->name }}',
+                    telefone: '{{ $usuario->whatsapp_number ? preg_replace('/^55/', '', preg_replace('/\D/', '', $usuario->whatsapp_number)) : '' }}'
+                },
             @endforeach
         };
 
         destinatarioSelect.addEventListener('change', (e) => {
             const userId = e.target.value;
             if (userId && usuarios[userId]) {
-                whatsappInput.value = usuarios[userId];
+                // Preenche o telefone
+                whatsappInput.value = usuarios[userId].telefone;
+
+                // Preenche o título com o nome do usuário se o título estiver vazio
+                if (!tituloInput.value || tituloInput.value.trim() === '') {
+                    tituloInput.value = usuarios[userId].nome;
+                }
             }
         });
     }

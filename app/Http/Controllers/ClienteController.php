@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ClienteController extends Controller
 {
@@ -44,11 +45,13 @@ class ClienteController extends Controller
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 
+        $whatsappNumber = $this->normalizeWhatsappNumber($validated['whatsapp_number']);
+
         // Criação da empresa filha
         $usuario = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'] ?? null,
-            'whatsapp_number' => $validated['whatsapp_number'],
+            'whatsapp_number' => $whatsappNumber,
             'password' => isset($validated['password'])
                 ? Hash::make($validated['password'])
                 : Hash::make('empresa123'),
@@ -122,10 +125,12 @@ class ClienteController extends Controller
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 
+        $whatsappNumber = $this->normalizeWhatsappNumber($validated['whatsapp_number']);
+
         $usuario->fill([
             'name' => $validated['name'],
             'email' => $validated['email'] ?? null,
-            'whatsapp_number' => $validated['whatsapp_number'],
+            'whatsapp_number' => $whatsappNumber,
         ]);
 
         if (!empty($validated['password'])) {
@@ -136,6 +141,31 @@ class ClienteController extends Controller
 
         return redirect()->route('clientes.index')
             ->with('success', 'Empresa atualizada com sucesso!');
+    }
+
+    private function normalizeWhatsappNumber(?string $value): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $value);
+
+        if ($digits === '') {
+            throw ValidationException::withMessages([
+                'whatsapp_number' => 'Informe um número de WhatsApp válido.',
+            ]);
+        }
+
+        if (! str_starts_with($digits, '55')) {
+            $digits = '55' . $digits;
+        }
+
+        $length = strlen($digits);
+
+        if ($length < 12 || $length > 13) {
+            throw ValidationException::withMessages([
+                'whatsapp_number' => 'O número deve conter o DDD e o telefone (12 ou 13 dígitos após o 55).',
+            ]);
+        }
+
+        return $digits;
     }
 
     /**

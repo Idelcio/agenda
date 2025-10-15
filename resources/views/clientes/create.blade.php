@@ -52,10 +52,10 @@
                         <div>
                             <x-input-label for="whatsapp_number" value="WhatsApp *" />
                             <x-text-input id="whatsapp_number" name="whatsapp_number" type="text"
-                                class="mt-1 block w-full" :value="old('whatsapp_number')" required
-                                placeholder="+5511999999999" />
+                                class="mt-1 block w-full" :value="old('whatsapp_number', '55')" required
+                                placeholder="5511999999999" />
                             <p class="mt-1 text-xs text-gray-500">
-                                Formato: código do país + DDD + número (ex: +5511999999999)
+                                Digite apenas números. O código do Brasil (55) já está selecionado; complete com DDD + telefone.
                             </p>
                             <x-input-error class="mt-2" :messages="$errors->get('whatsapp_number')" />
                         </div>
