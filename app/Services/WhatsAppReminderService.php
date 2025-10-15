@@ -8,37 +8,34 @@ use Illuminate\Http\UploadedFile;
 use RuntimeException;
 use Illuminate\Support\Facades\Log;
 
-
 class WhatsAppReminderService
 {
     public function __construct(private WhatsAppService $whatsApp) {}
 
     /**
-     * Envia mensagem de lembrete com op����es de confirma��ǜo/cancelamento.
-     *
-     * @throws RuntimeException
+     * Envia mensagem de lembrete com opções de confirmação/cancelamento.
      */
     public function sendAppointmentReminder(Appointment $appointment): void
     {
         if (! $appointment->notificar_whatsapp) {
-            throw new RuntimeException('Notificacoes por WhatsApp desativadas para este compromisso.');
+            throw new RuntimeException('Notificações por WhatsApp desativadas para este compromisso.');
         }
 
         $destino = $appointment->whatsapp_numero ?? $appointment->user->whatsapp_number;
 
         if (! $destino) {
-            throw new RuntimeException('Informe um numero de WhatsApp valido no perfil ou no compromisso.');
+            throw new RuntimeException('Informe um número de WhatsApp válido no perfil ou no compromisso.');
         }
 
         $mensagem = $appointment->whatsapp_mensagem
             ?: sprintf(
-                'Ola! Voce tem um agendamento de %s em %s.',
+                'Olá! Você tem um agendamento de %s em %s.',
                 $appointment->titulo,
                 $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
             );
 
-        // Adiciona instruções para responder com 1 ou 2
-        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para confirmar\n❌ Digite *2* para cancelar";
+        // Adiciona instruções para resposta 1 ou 2
+        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para CONFIRMAR\n❌ Digite *2* para CANCELAR";
 
         $this->sendQuickMessage(
             $appointment,
@@ -53,10 +50,6 @@ class WhatsAppReminderService
 
     /**
      * Envia mensagem manual (com ou sem anexo).
-     *
-     * @throws RuntimeException
-     *
-     * @return WhatsAppMessage
      */
     public function sendQuickMessage(
         ?Appointment $appointment,
@@ -116,17 +109,33 @@ class WhatsAppReminderService
         return $textMessage;
     }
 
+    /**
+     * Processa automaticamente uma resposta recebida (1 ou 2).
+     * Pode ser chamado diretamente no webhook da API Brasil.
+     */
+    public function handleIncomingReply(string $from, string $body, array $payload = []): void
+    {
+        try {
+            Log::info('📨 Recebendo resposta via WhatsAppReminderService', [
+                'from' => $from,
+                'body' => $body,
+            ]);
+
+            $this->whatsApp->processIncomingMessage($from, $body, $payload);
+        } catch (\Throwable $e) {
+            Log::error('❌ Erro ao processar resposta do cliente via WhatsApp', [
+                'from' => $from,
+                'body' => $body,
+                'exception' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function buildConfirmationButtons(): array
     {
         return [
-            [
-                'id' => '1',
-                'text' => '✅ 1 - Concluído',
-            ],
-            [
-                'id' => '2',
-                'text' => '❌ 2 - Cancelar',
-            ],
+            ['id' => '1', 'text' => '✅ 1 - CONFIRMAR'],
+            ['id' => '2', 'text' => '❌ 2 - CANCELAR'],
         ];
     }
 
@@ -171,15 +180,9 @@ class WhatsAppReminderService
         ];
 
         try {
-            $buttonResponse = $this->whatsApp->sendButtons(
-                $destino,
-                $prompt,
-                $buttons,
-                $options
-            );
+            $buttonResponse = $this->whatsApp->sendButtons($destino, $prompt, $buttons, $options);
         } catch (\Throwable $exception) {
             report($exception);
-
             return;
         }
 
@@ -219,7 +222,6 @@ class WhatsAppReminderService
     private function encodeAttachment(UploadedFile $file): string
     {
         $mime = $file->getMimeType() ?: 'application/octet-stream';
-
         return 'data:' . $mime . ';base64,' . base64_encode($file->get());
     }
 

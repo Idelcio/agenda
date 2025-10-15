@@ -81,26 +81,23 @@ class AppointmentController extends Controller
             ->orderBy('inicio')
             ->get();
 
-        // Separar compromissos por status
+        // Separar compromissos por status com todos os registros (não limitado)
         $concluidos = $user->appointments()
             ->with($relations)
             ->where('status', 'concluido')
             ->orderByDesc('inicio')
-            ->limit(20)
             ->get();
 
         $pendentes = $user->appointments()
             ->with($relations)
             ->where('status', 'pendente')
             ->orderByDesc('inicio')
-            ->limit(20)
             ->get();
 
         $cancelados = $user->appointments()
             ->with($relations)
             ->where('status', 'cancelado')
             ->orderByDesc('inicio')
-            ->limit(20)
             ->get();
 
         $recent = $user->appointments()
@@ -196,20 +193,28 @@ class AppointmentController extends Controller
 
     public function edit(Appointment $appointment): View
     {
-        // Permitir que o usuário edite seus próprios compromissos
-        if ($appointment->user_id !== auth()->id()) {
+        /** @var User $user */
+        $user = auth()->user();
+        // Permitir que o usuário edite seus próprios compromissos OU que admins editem qualquer compromisso
+        if ($appointment->user_id !== $user->id && !$user->isAdmin()) {
             abort(403, 'Você não tem permissão para editar este compromisso.');
         }
 
+        // Busca todos os usuários para seleção de destinatário
+        $usuarios = User::orderBy('name')->get(['id', 'name', 'whatsapp_number']);
+
         return view('agenda.edit', [
             'appointment' => $appointment,
+            'usuarios' => $usuarios,
         ]);
     }
 
     public function update(UpdateAppointmentRequest $request, Appointment $appointment): RedirectResponse
     {
-        // Permitir que o usuário atualize seus próprios compromissos
-        if ($appointment->user_id !== auth()->id()) {
+        /** @var User $user */
+        $user = auth()->user();
+        // Permitir que o usuário atualize seus próprios compromissos OU que admins atualizem qualquer compromisso
+        if ($appointment->user_id !== $user->id && !$user->isAdmin()) {
             abort(403, 'Você não tem permissão para atualizar este compromisso.');
         }
 
@@ -246,8 +251,10 @@ class AppointmentController extends Controller
 
     public function destroy(Request $request, Appointment $appointment): RedirectResponse
     {
-        // Permitir que o usuário delete seus próprios compromissos
-        if ($appointment->user_id !== auth()->id()) {
+        /** @var User $user */
+        $user = auth()->user();
+        // Permitir que o usuário delete seus próprios compromissos OU que admins deletem qualquer compromisso
+        if ($appointment->user_id !== $user->id && !$user->isAdmin()) {
             abort(403, 'Você não tem permissão para excluir este compromisso.');
         }
 
@@ -258,8 +265,10 @@ class AppointmentController extends Controller
 
     public function toggleStatus(Appointment $appointment): RedirectResponse
     {
-        // Permitir que o usuário atualize seus próprios compromissos
-        if ($appointment->user_id !== auth()->id()) {
+        /** @var User $user */
+        $user = auth()->user();
+        // Permitir que o usuário atualize seus próprios compromissos OU que admins modifiquem qualquer compromisso
+        if ($appointment->user_id !== $user->id && !$user->isAdmin()) {
             abort(403, 'Você não tem permissão para modificar este compromisso.');
         }
 
@@ -271,8 +280,10 @@ class AppointmentController extends Controller
 
     public function updateStatus(Appointment $appointment, string $status): RedirectResponse
     {
-        // Permitir que qualquer usuário autenticado atualize o status de seus próprios compromissos
-        if ($appointment->user_id !== auth()->id()) {
+        /** @var User $user */
+        $user = auth()->user();
+        // Permitir que qualquer usuário autenticado atualize o status de seus próprios compromissos OU que admins modifiquem qualquer compromisso
+        if ($appointment->user_id !== $user->id && !$user->isAdmin()) {
             abort(403, 'Você não tem permissão para modificar este compromisso.');
         }
 

@@ -11,12 +11,14 @@
                 <div class="p-6 space-y-4">
                     <div>
                         <h3 class="text-lg font-medium text-gray-900">{{ $appointment->titulo }}</h3>
-                        <p class="text-sm text-gray-600">
-                            Início: {{ $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
-                            @if ($appointment->fim)
-                                · Fim: {{ $appointment->fim->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
-                            @endif
-                        </p>
+                        @if ($appointment->inicio)
+                            <p class="text-sm text-gray-600">
+                                Início: {{ $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
+                                @if ($appointment->fim)
+                                    · Fim: {{ $appointment->fim->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
+                                @endif
+                            </p>
+                        @endif
                     </div>
 
                     @if ($errors->any())
@@ -26,13 +28,22 @@
                         </div>
                     @endif
 
-                    @include('agenda.partials.form', [
-                        'appointment' => $appointment,
-                        'defaultWhatsapp' => $appointment->user->whatsapp_number,
-                        'submitLabel' => 'Atualizar compromisso',
-                        'httpMethod' => 'PUT',
-                        'action' => route('agenda.update', $appointment),
-                    ])
+                    @if (!$appointment || !$appointment->id)
+                        <div class="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
+                            <strong>Erro!</strong>
+                            <p class="mt-2 text-sm">Compromisso não encontrado ou ID inválido.</p>
+                            <p class="text-xs mt-1">Debug: ID = {{ $appointment?->id ?? 'NULL' }}</p>
+                        </div>
+                    @else
+                        @include('agenda.partials.form', [
+                            'appointment' => $appointment,
+                            'defaultWhatsapp' => $appointment->user?->whatsapp_number ?? $appointment->whatsapp_numero ?? auth()->user()->whatsapp_number,
+                            'usuarios' => $usuarios,
+                            'submitLabel' => 'Atualizar compromisso',
+                            'httpMethod' => 'PUT',
+                            'action' => route('agenda.update', $appointment),
+                        ])
+                    @endif
                 </div>
             </div>
         </div>

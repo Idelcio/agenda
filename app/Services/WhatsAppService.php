@@ -257,6 +257,12 @@ class WhatsAppService
         $normalized = str_replace(['️⃣', '⃣', '✖️', '✔️', '1️⃣', '2️⃣'], '', $normalized);
         $normalized = preg_replace('/[^\p{L}\p{N}]/u', '', $normalized);
 
+        if (str_starts_with($normalized, '1')) {
+            $normalized = '1';
+        } elseif (str_starts_with($normalized, '2')) {
+            $normalized = '2';
+        }
+
         // 🔹 Busca compromisso pendente/confirmado vinculado ao usuário
         $appointment = Appointment::query()
             ->where(function ($query) use ($user, $from) {
@@ -300,15 +306,15 @@ class WhatsAppService
                 return;
             }
 
-            if (in_array($normalized, $doesNotWant, true)) {
-                // 🔹 Cliente respondeu NÃO após cancelamento
-                $this->sendText($from, "👋 Obrigado! Até breve.");
-                Log::info('🙌 Cliente encerrou conversa após cancelamento', [
-                    'user_id' => $user->id,
-                    'appointment_id' => $appointment->id,
-                ]);
-                return;
-            }
+            // if (in_array($normalized, $doesNotWant, true)) {
+            //     // 🔹 Cliente respondeu NÃO após cancelamento
+            //     $this->sendText($from, "👋 Obrigado! Até breve.");
+            //     Log::info('🙌 Cliente encerrou conversa após cancelamento', [
+            //         'user_id' => $user->id,
+            //         'appointment_id' => $appointment->id,
+            //     ]);
+            //     return;
+            // }
         }
 
         // 🔹 Interpreta comandos conhecidos

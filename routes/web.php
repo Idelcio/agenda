@@ -46,7 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/agenda/{appointment}/status/{status}', [AppointmentController::class, 'updateStatus'])->name('agenda.update-status');
     Route::post('/agenda/{appointment}/lembrar', [AppointmentController::class, 'sendReminder'])->name('agenda.reminder');
     Route::post('/agenda/whatsapp/rapido', [AppointmentController::class, 'sendQuickMessage'])->name('agenda.quick-whatsapp');
-    Route::resource('agenda', AppointmentController::class)->except(['show']);
+    Route::resource('agenda', AppointmentController::class)
+        ->parameters(['agenda' => 'appointment'])
+        ->except(['show']);
 
     // Clientes
     Route::resource('clientes', ClienteController::class);

@@ -143,17 +143,32 @@
                 </div>
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg">
+            <div class="bg-white shadow sm:rounded-lg border-t-4 border-indigo-500">
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900">Novo compromisso</h3>
-                    <p class="text-sm text-gray-600 mb-4">Preencha as informacoes abaixo para registrar um compromisso
-                        na agenda.</p>
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="bg-indigo-100 p-2 rounded-lg">
+                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900">Novo Compromisso Interno</h3>
+                            <p class="text-sm text-gray-600 mt-1">
+                                <span class="font-semibold text-indigo-600">📋 Para uso da empresa:</span> Registre o compromisso no seu sistema interno.
+                            </p>
+                            <p class="text-sm text-gray-500 mt-1">
+                                💡 <span class="font-medium">Importante:</span> Este formulário apenas <strong>salva na sua agenda</strong>.
+                                Para <strong>notificar o cliente</strong>, configure o lembrete por WhatsApp abaixo.
+                            </p>
+                        </div>
+                    </div>
 
                     @include('agenda.partials.form', [
                         'appointment' => null,
                         'defaultWhatsapp' => $defaultWhatsapp,
                         'usuarios' => $usuarios,
-                        'submitLabel' => 'Salvar compromisso',
+                        'submitLabel' => 'Salvar no Sistema',
                         'action' => route('agenda.store'),
                         'httpMethod' => 'POST',
                     ])
@@ -543,26 +558,51 @@
                 </div>
             </div>
 
-            {{-- Seção Concluídos --}}
+            {{-- Seção Concluídos com Filtros --}}
             <div class="bg-white shadow sm:rounded-lg border-l-4 border-green-500">
                 <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 class="text-lg font-bold text-gray-900">Concluídos</h3>
-                        <span class="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                            {{ $concluidos->count() }}
-                        </span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-bold text-gray-900">Concluídos</h3>
+                            <span class="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                {{ $concluidos->count() }}
+                            </span>
+                        </div>
                     </div>
+
+                    {{-- Abas de Filtro --}}
+                    <div class="mb-4 border-b border-gray-200">
+                        <nav class="flex space-x-2" aria-label="Filtros de período">
+                            <button data-filter="hoje" data-section="concluidos"
+                                class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
+                                Hoje
+                            </button>
+                            <button data-filter="semana" data-section="concluidos"
+                                class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
+                                Esta Semana
+                            </button>
+                            <button data-filter="mes" data-section="concluidos"
+                                class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
+                                Este Mês
+                            </button>
+                            <button data-filter="todos" data-section="concluidos"
+                                class="filter-tab-concluidos active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-green-600 text-green-600 transition">
+                                Todos
+                            </button>
+                        </nav>
+                    </div>
+
                     @if ($concluidos->isEmpty())
                         <p class="text-sm text-gray-600">Nenhum compromisso concluído.</p>
                     @else
-                        <ul class="divide-y divide-gray-200 text-sm text-gray-700">
+                        <ul class="divide-y divide-gray-200 text-sm text-gray-700" id="concluidos-list">
                             @foreach ($concluidos as $appointment)
-                                <li class="py-3">
+                                <li class="py-3 appointment-item" data-date="{{ $appointment->inicio->format('Y-m-d') }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex-1">
                                             <p class="font-semibold text-gray-900">{{ $appointment->titulo }}</p>
@@ -695,26 +735,51 @@
                 </div>
             </div>
 
-            {{-- Seção Cancelados --}}
+            {{-- Seção Cancelados com Filtros --}}
             <div class="bg-white shadow sm:rounded-lg border-l-4 border-red-500">
                 <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 class="text-lg font-bold text-gray-900">Cancelados</h3>
-                        <span class="ml-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                            {{ $cancelados->count() }}
-                        </span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-bold text-gray-900">Cancelados</h3>
+                            <span class="ml-2 bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                {{ $cancelados->count() }}
+                            </span>
+                        </div>
                     </div>
+
+                    {{-- Abas de Filtro --}}
+                    <div class="mb-4 border-b border-gray-200">
+                        <nav class="flex space-x-2" aria-label="Filtros de período">
+                            <button data-filter="hoje" data-section="cancelados"
+                                class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
+                                Hoje
+                            </button>
+                            <button data-filter="semana" data-section="cancelados"
+                                class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
+                                Esta Semana
+                            </button>
+                            <button data-filter="mes" data-section="cancelados"
+                                class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
+                                Este Mês
+                            </button>
+                            <button data-filter="todos" data-section="cancelados"
+                                class="filter-tab-cancelados active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-red-600 text-red-600 transition">
+                                Todos
+                            </button>
+                        </nav>
+                    </div>
+
                     @if ($cancelados->isEmpty())
                         <p class="text-sm text-gray-600">Nenhum compromisso cancelado.</p>
                     @else
-                        <ul class="divide-y divide-gray-200 text-sm text-gray-700">
+                        <ul class="divide-y divide-gray-200 text-sm text-gray-700" id="cancelados-list">
                             @foreach ($cancelados as $appointment)
-                                <li class="py-3">
+                                <li class="py-3 appointment-item" data-date="{{ $appointment->inicio->format('Y-m-d') }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex-1">
                                             <p class="font-semibold text-gray-900">{{ $appointment->titulo }}</p>
@@ -922,6 +987,89 @@
 
             enviarLembretesPendentes();
             setInterval(enviarLembretesPendentes, INTERVALO_MS);
+
+            // Sistema de filtros por período
+            function setupPeriodFilters(section, borderColor, textColor) {
+                const tabs = document.querySelectorAll(`.filter-tab-${section}`);
+                const list = document.getElementById(`${section}-list`);
+
+                if (!list) return;
+
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const filter = tab.dataset.filter;
+
+                        // Atualiza estilo das abas
+                        tabs.forEach(t => {
+                            t.classList.remove('active', `border-${borderColor}`, `text-${textColor}`);
+                            t.classList.add('border-transparent');
+                        });
+                        tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
+                        tab.classList.remove('border-transparent');
+
+                        // Filtra os itens
+                        const items = list.querySelectorAll('.appointment-item');
+                        const hoje = new Date();
+                        hoje.setHours(0, 0, 0, 0);
+
+                        const inicioSemana = new Date(hoje);
+                        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+
+                        const fimSemana = new Date(inicioSemana);
+                        fimSemana.setDate(inicioSemana.getDate() + 6);
+
+                        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+                        let visibleCount = 0;
+
+                        items.forEach(item => {
+                            const itemDate = new Date(item.dataset.date + 'T00:00:00');
+                            let shouldShow = false;
+
+                            switch(filter) {
+                                case 'hoje':
+                                    shouldShow = itemDate.getTime() === hoje.getTime();
+                                    break;
+                                case 'semana':
+                                    shouldShow = itemDate >= inicioSemana && itemDate <= fimSemana;
+                                    break;
+                                case 'mes':
+                                    shouldShow = itemDate >= inicioMes && itemDate <= fimMes;
+                                    break;
+                                case 'todos':
+                                    shouldShow = true;
+                                    break;
+                            }
+
+                            if (shouldShow) {
+                                item.style.display = '';
+                                visibleCount++;
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+
+                        // Mostra mensagem se não há itens
+                        let emptyMessage = list.parentElement.querySelector('.empty-message');
+                        if (visibleCount === 0) {
+                            if (!emptyMessage) {
+                                emptyMessage = document.createElement('p');
+                                emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
+                                emptyMessage.textContent = 'Nenhum compromisso encontrado para este período.';
+                                list.parentElement.appendChild(emptyMessage);
+                            }
+                            emptyMessage.style.display = '';
+                        } else if (emptyMessage) {
+                            emptyMessage.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Configura filtros para concluídos e cancelados
+            setupPeriodFilters('concluidos', 'green-600', 'green-600');
+            setupPeriodFilters('cancelados', 'red-600', 'red-600');
         });
     </script>
 
