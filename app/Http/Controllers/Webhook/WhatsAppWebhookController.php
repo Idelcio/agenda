@@ -105,12 +105,29 @@ class WhatsAppWebhookController extends Controller
     {
         $normalized = Str::upper(Str::of($body)->trim());
 
-        // 🔹 Localiza o compromisso mais recente (pendente ou confirmado) pelo destinatário
+        // 🔹 Normaliza o número removendo caracteres especiais
+        $cleanNumber = preg_replace('/\D+/', '', $whatsappNumber);
+
+        Log::info('🔍 Buscando compromisso', [
+            'whatsapp_original' => $whatsappNumber,
+            'whatsapp_limpo' => $cleanNumber,
+            'comando' => $normalized,
+        ]);
+
+        // 🔹 Localiza o compromisso mais recente com lembrete enviado para este número de WhatsApp
+        // Não filtra por status para sempre pegar o lembrete mais recente enviado
         $appointment = Appointment::query()
-            ->where('destinatario_user_id', $user->id)
-            ->whereIn('status', ['pendente', 'confirmado'])
-            ->latest('inicio')
+            ->where('whatsapp_numero', $cleanNumber)
+            ->where('status_lembrete', 'enviado')
+            ->latest('lembrete_enviado_em')
             ->first();
+
+        Log::info('📋 Resultado da busca', [
+            'encontrado' => $appointment ? 'sim' : 'não',
+            'appointment_id' => $appointment?->id,
+            'titulo' => $appointment?->titulo,
+            'status_atual' => $appointment?->status,
+        ]);
 
         // 🔹 Cliente respondeu "1" → marcar como CONFIRMADO
         if (in_array($normalized, ['1', 'CONFIRMAR', 'SIM', 'OK'])) {
@@ -138,7 +155,7 @@ class WhatsAppWebhookController extends Controller
                 $oldStatus = $appointment->status;
                 $appointment->update(['status' => 'cancelado']);
 
-                $mensagemCancelamento = "❌ Seu atendimento de *{$appointment->titulo}* foi *CANCELADO* com sucesso!\n\n📅 Data: {$appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y H:i')}\n\n💬 Deseja remarcar? Responda:\n✅ *Sim* - para remarcar\n❌ *Não* - para encerrar";
+                $mensagemCancelamento = "❌ Seu atendimento de *{$appointment->titulo}* foi *CANCELADO* com sucesso!\n\n📅 Data: {$appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y H:i')}\n\n💬 Para remarcar, entre em contato conosco.";
 
                 Log::info('❌ Compromisso cancelado via WhatsApp', [
                     'appointment_id' => $appointment->id,

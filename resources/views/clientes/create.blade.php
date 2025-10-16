@@ -52,29 +52,12 @@
                         <div>
                             <x-input-label for="whatsapp_number" value="WhatsApp *" />
                             <x-text-input id="whatsapp_number" name="whatsapp_number" type="text"
-                                class="mt-1 block w-full" :value="old('whatsapp_number', '55')" required
-                                placeholder="5511999999999" />
+                                class="mt-1 block w-full" :value="old('whatsapp_number', '+55')" required
+                                placeholder="+5511999999999" />
                             <p class="mt-1 text-xs text-gray-500">
-                                Digite apenas números. O código do Brasil (55) já está selecionado; complete com DDD + telefone.
+                                Digite com o código do país (+55) + DDD + número. Exemplo: +5511999999999
                             </p>
                             <x-input-error class="mt-2" :messages="$errors->get('whatsapp_number')" />
-                        </div>
-
-                        <div>
-                            <x-input-label for="email" value="Email (opcional)" />
-                            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full"
-                                :value="old('email')" placeholder="email@exemplo.com" />
-                            <x-input-error class="mt-2" :messages="$errors->get('email')" />
-                        </div>
-
-                        <div>
-                            <x-input-label for="password" value="Senha (opcional)" />
-                            <x-text-input id="password" name="password" type="password" class="mt-1 block w-full"
-                                placeholder="Deixe em branco para senha padrão (cliente123)" />
-                            <p class="mt-1 text-xs text-gray-500">
-                                Se não informar uma senha, será gerada a senha padrão: cliente123
-                            </p>
-                            <x-input-error class="mt-2" :messages="$errors->get('password')" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4 pt-4 border-t">

@@ -2,14 +2,14 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Minhas Empresas
+                Meus Clientes
             </h2>
             <a href="{{ route('clientes.create') }}"
                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                Nova Empresa
+                Novo Cliente
             </a>
         </div>
     </x-slot>
@@ -22,14 +22,14 @@
                 </div>
             @endif
 
-            {{-- Estatísticas de Empresas --}}
+            {{-- Estatísticas de Clientes --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                     class="bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-md sm:rounded-lg border-l-4 border-green-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs uppercase font-semibold text-green-600">Total de Empresas</p>
-                            <p class="text-3xl font-bold text-green-900 mt-2">{{ $empresas->total() }}</p>
+                            <p class="text-xs uppercase font-semibold text-green-600">Total de Clientes</p>
+                            <p class="text-3xl font-bold text-green-900 mt-2">{{ $clientes->total() }}</p>
                         </div>
                         <div class="bg-green-500 p-3 rounded-full">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,15 +44,15 @@
                     class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-md sm:rounded-lg border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs uppercase font-semibold text-blue-600">Com Email</p>
+                            <p class="text-xs uppercase font-semibold text-blue-600">Cadastrados Hoje</p>
                             <p class="text-3xl font-bold text-blue-900 mt-2">
-                                {{ $empresas->where('email', '!=', null)->count() }}
+                                {{ $clientes->where('created_at', '>=', now()->startOfDay())->count() }}
                             </p>
                         </div>
                         <div class="bg-blue-500 p-3 rounded-full">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
                     </div>
@@ -64,7 +64,7 @@
                         <div>
                             <p class="text-xs uppercase font-semibold text-emerald-600">Com WhatsApp</p>
                             <p class="text-3xl font-bold text-emerald-900 mt-2">
-                                {{ $empresas->where('whatsapp_number', '!=', null)->count() }}
+                                {{ $clientes->where('whatsapp_number', '!=', null)->count() }}
                             </p>
                         </div>
                         <div class="bg-emerald-500 p-3 rounded-full">
@@ -77,20 +77,20 @@
                 </div>
             </div>
 
-            {{-- Tabela de Empresas --}}
+            {{-- Tabela de Clientes --}}
             <div class="bg-white shadow sm:rounded-lg">
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Lista de Empresas</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Lista de Clientes</h3>
 
-                    @if ($empresas->isEmpty())
+                    @if ($clientes->isEmpty())
                         <div class="text-center py-12">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0z" />
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma empresa cadastrada</h3>
-                            <p class="mt-1 text-sm text-gray-500">Comece cadastrando sua primeira empresa.</p>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum cliente cadastrado</h3>
+                            <p class="mt-1 text-sm text-gray-500">Comece cadastrando seu primeiro cliente.</p>
                             <div class="mt-6">
                                 <a href="{{ route('clientes.create') }}"
                                     class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
@@ -98,7 +98,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Cadastrar Empresa
+                                    Cadastrar Cliente
                                 </a>
                             </div>
                         </div>
@@ -108,30 +108,19 @@
                                 <thead>
                                     <tr class="text-left text-xs uppercase text-gray-500">
                                         <th class="px-3 py-2">Nome</th>
-                                        <th class="px-3 py-2">Email</th>
                                         <th class="px-3 py-2">WhatsApp</th>
-                                        <th class="px-3 py-2">Cadastrada em</th>
+                                        <th class="px-3 py-2">Cadastrado em</th>
                                         <th class="px-3 py-2 text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
-                                    @foreach ($empresas as $empresa)
+                                    @foreach ($clientes as $cliente)
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-3 font-semibold text-gray-900">{{ $empresa->name }}</td>
+                                            <td class="px-3 py-3 font-semibold text-gray-900">{{ $cliente->name }}</td>
                                             <td class="px-3 py-3">
-                                                @if ($empresa->email)
-                                                    <a href="mailto:{{ $empresa->email }}"
-                                                        class="text-blue-600 hover:text-blue-800 hover:underline">
-                                                        {{ $empresa->email }}
-                                                    </a>
-                                                @else
-                                                    <span class="text-gray-400 text-xs">Não informado</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-3 py-3">
-                                                @if ($empresa->whatsapp_number)
+                                                @if ($cliente->whatsapp_number)
                                                     <span class="font-mono text-green-700">
-                                                        {{ $empresa->whatsapp_number }}
+                                                        +{{ $cliente->whatsapp_number }}
                                                     </span>
                                                 @else
                                                     <span class="text-gray-400 text-xs">Não informado</span>
@@ -139,18 +128,18 @@
                                             </td>
                                             <td class="px-3 py-3">
                                                 <span
-                                                    class="text-xs text-gray-500">{{ $empresa->created_at->format('d/m/Y') }}</span>
+                                                    class="text-xs text-gray-500">{{ $cliente->created_at->format('d/m/Y H:i') }}</span>
                                             </td>
                                             <td class="px-3 py-3 text-right">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="{{ route('clientes.edit', $empresa) }}"
+                                                    <a href="{{ route('clientes.edit', $cliente) }}"
                                                         class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 border border-blue-300 rounded text-xs font-medium hover:bg-blue-200">
                                                         Editar
                                                     </a>
 
                                                     <form method="POST"
-                                                        action="{{ route('clientes.destroy', $empresa) }}"
-                                                        onsubmit="return confirm('Tem certeza que deseja excluir esta empresa? Esta ação não pode ser desfeita.');">
+                                                        action="{{ route('clientes.destroy', $cliente) }}"
+                                                        onsubmit="return confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit"
@@ -168,7 +157,7 @@
 
                         {{-- Paginação --}}
                         <div class="mt-4">
-                            {{ $empresas->links() }}
+                            {{ $clientes->links() }}
                         </div>
                     @endif
                 </div>

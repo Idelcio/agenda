@@ -13,15 +13,16 @@ use Illuminate\Validation\ValidationException;
 class ClienteController extends Controller
 {
     /**
-     * Exibe todos os usuários (clientes e/ou empresas filhas) vinculados à empresa logada.
+     * Exibe todos os clientes vinculados à empresa logada.
      */
     public function index()
     {
-        $empresas = User::where('user_id', auth()->id())
+        $clientes = User::where('user_id', auth()->id())
+            ->where('tipo', 'cliente')
             ->orderBy('name')
             ->paginate(15);
 
-        return view('clientes.index', compact('empresas'));
+        return view('clientes.index', compact('clientes'));
     }
 
 
@@ -34,113 +35,102 @@ class ClienteController extends Controller
     }
 
     /**
-     * Armazena um novo usuário (empresa filha ou cliente).
+     * Armazena um novo cliente (somente nome e WhatsApp).
      */
     public function store(Request $request, WhatsAppService $whatsapp)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'whatsapp_number' => ['required', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:8'],
         ]);
 
         $whatsappNumber = $this->normalizeWhatsappNumber($validated['whatsapp_number']);
 
-        // Criação da empresa filha
-        $usuario = User::create([
+        // Criação do cliente (sem email nem senha)
+        $cliente = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
             'whatsapp_number' => $whatsappNumber,
-            'password' => isset($validated['password'])
-                ? Hash::make($validated['password'])
-                : Hash::make('empresa123'),
-            'tipo' => 'empresa', // ⚙️ define que é uma empresa filha
-            'user_id' => auth()->id(), // vincula à empresa logada
+            'tipo' => 'cliente', // Define como cliente
+            'user_id' => auth()->id(), // Vincula à empresa logada
             'is_admin' => false,
+            'email' => null,
+            'password' => null,
         ]);
 
-        // 🔹 Mensagem de boas-vindas via WhatsApp
+        // Mensagem de boas-vindas via WhatsApp
         try {
             $empresa = auth()->user();
-            $mensagem = "Olá *{$usuario->name}*! 👋\n\n"
+            $mensagem = "Olá *{$cliente->name}*! 👋\n\n"
                 . "Você foi cadastrado(a) no sistema de agendamentos de *{$empresa->name}*.\n\n"
-                . "A partir de agora você receberá lembretes e confirmações de seus atendimentos por aqui.\n\n"
+                . "A partir de agora você receberá lembretes e confirmações de seus atendamentos por aqui.\n\n"
                 . "Seja bem-vindo(a)! 😊";
 
-            $whatsapp->sendText($usuario->whatsapp_number, $mensagem);
+            $whatsapp->sendText($cliente->whatsapp_number, $mensagem);
 
-            Log::info('✅ Mensagem de boas-vindas enviada para nova empresa', [
-                'empresa_id' => $usuario->id,
-                'whatsapp' => $usuario->whatsapp_number,
+            Log::info('✅ Mensagem de boas-vindas enviada para novo cliente', [
+                'cliente_id' => $cliente->id,
+                'whatsapp' => $cliente->whatsapp_number,
             ]);
         } catch (\Exception $e) {
             Log::warning('⚠️ Não foi possível enviar mensagem de boas-vindas', [
-                'empresa_id' => $usuario->id,
+                'cliente_id' => $cliente->id,
                 'erro' => $e->getMessage(),
             ]);
         }
 
         return redirect()->route('clientes.index')
-            ->with('success', 'Empresa cadastrada com sucesso!');
+            ->with('success', 'Cliente cadastrado com sucesso!');
     }
 
     /**
-     * Exibe uma empresa específica.
+     * Exibe um cliente específico.
      */
-    public function show(User $usuario)
+    public function show(User $cliente)
     {
-        if ($usuario->user_id !== auth()->id()) {
+        if ($cliente->user_id !== auth()->id()) {
             abort(403, 'Acesso negado.');
         }
 
-        return view('clientes.show', compact('usuario'));
+        return view('clientes.show', compact('cliente'));
     }
 
     /**
-     * Formulário de edição de empresa.
+     * Formulário de edição de cliente.
      */
-    public function edit(User $usuario)
+    public function edit(User $cliente)
     {
-        if ($usuario->user_id !== auth()->id()) {
+        if ($cliente->user_id !== auth()->id()) {
             abort(403, 'Acesso negado.');
         }
 
-        return view('clientes.edit', compact('usuario'));
+        return view('clientes.edit', compact('cliente'));
     }
 
     /**
-     * Atualiza os dados de uma empresa.
+     * Atualiza os dados de um cliente (somente nome e WhatsApp).
      */
-    public function update(Request $request, User $usuario)
+    public function update(Request $request, User $cliente)
     {
-        if ($usuario->user_id !== auth()->id()) {
+        if ($cliente->user_id !== auth()->id()) {
             abort(403, 'Acesso negado.');
         }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users')->ignore($usuario->id)],
             'whatsapp_number' => ['required', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:8'],
         ]);
 
         $whatsappNumber = $this->normalizeWhatsappNumber($validated['whatsapp_number']);
 
-        $usuario->fill([
+        $cliente->fill([
             'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
             'whatsapp_number' => $whatsappNumber,
         ]);
 
-        if (!empty($validated['password'])) {
-            $usuario->password = Hash::make($validated['password']);
-        }
-
-        $usuario->save();
+        $cliente->save();
 
         return redirect()->route('clientes.index')
-            ->with('success', 'Empresa atualizada com sucesso!');
+            ->with('success', 'Cliente atualizado com sucesso!');
     }
 
     private function normalizeWhatsappNumber(?string $value): string
@@ -169,17 +159,17 @@ class ClienteController extends Controller
     }
 
     /**
-     * Exclui uma empresa filha.
+     * Exclui um cliente.
      */
-    public function destroy(User $usuario)
+    public function destroy(User $cliente)
     {
-        if ($usuario->user_id !== auth()->id()) {
+        if ($cliente->user_id !== auth()->id()) {
             abort(403, 'Acesso negado.');
         }
 
-        $usuario->delete();
+        $cliente->delete();
 
         return redirect()->route('clientes.index')
-            ->with('success', 'Empresa excluída com sucesso!');
+            ->with('success', 'Cliente excluído com sucesso!');
     }
 }

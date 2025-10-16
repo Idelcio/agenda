@@ -332,7 +332,7 @@
                                                     <x-text-input id="destinatario_{{ $appointment->id }}"
                                                         name="destinatario" type="text"
                                                         class="mt-1 block w-full text-sm"
-                                                        value="{{ old('destinatario', $appointment->whatsapp_numero ?? $appointment->user->whatsapp_number) }}"
+                                                        value="{{ old('destinatario', $appointment->contact_phone ?? '+' . ($appointment->whatsapp_numero ?? $appointment->user->whatsapp_number)) }}"
                                                         placeholder="+5511999999999" required />
                                                 </div>
 
@@ -531,22 +531,24 @@
                                                         Editar
                                                     </a>
 
-                                                    <form method="POST"
-                                                        action="{{ route('agenda.destroy', $appointment) }}"
-                                                        onsubmit="return confirm('Tem certeza que deseja excluir este compromisso?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 border border-red-300 rounded text-xs font-medium hover:bg-red-200">
-                                                            <svg class="w-3 h-3 mr-1" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                            Excluir
-                                                        </button>
-                                                    </form>
+                                                    @if(auth()->user()->isAdmin())
+                                                        <form method="POST"
+                                                            action="{{ route('agenda.destroy', $appointment) }}"
+                                                            onsubmit="return confirm('Tem certeza que deseja excluir este compromisso?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 border border-red-300 rounded text-xs font-medium hover:bg-red-200">
+                                                                <svg class="w-3 h-3 mr-1" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                                Excluir
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -933,60 +935,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('✅ Sistema de envio automático iniciado (modo servidor)...');
-
-            const TOKEN = document.querySelector('meta[name="csrf-token"]').content;
-            const INTERVALO_MS = 60 * 1000; // 1 minuto
-            const INTERVALO_ATUALIZACAO_MS = 30 * 1000; // 30 segundos
-
-            // Atualiza a página automaticamente a cada 2 minutos para refletir mudanças do WhatsApp
-            setInterval(() => {
-                const agora = new Date();
-                console.log(`🔄 Atualizando página (${agora.toLocaleTimeString()})...`);
-                window.location.reload();
-            }, 120 * 1000); // 2 minutos
-
-            async function enviarLembretesPendentes() {
-                try {
-                    const resp = await fetch('{{ route('agenda.lembretes-pendentes') }}');
-                    const lembretes = await resp.json();
-
-                    if (!lembretes.length) {
-                        console.log('⏸️ Nenhum lembrete pendente.');
-                        return;
-                    }
-
-                    console.log(`📦 ${lembretes.length} lembrete(s) encontrados.`);
-
-                    for (const lembrete of lembretes) {
-                        console.log(`🕐 Enviando lembrete ID=${lembrete.id} (${lembrete.titulo})`);
-
-                        const formData = new FormData();
-                        formData.append('_token', TOKEN);
-                        formData.append('appointment_id', lembrete.id);
-                        formData.append('destinatario', lembrete.whatsapp_numero);
-                        formData.append('mensagem', lembrete.whatsapp_mensagem ||
-                            `Olá! Você tem um agendamento de ${lembrete.titulo} em ${new Date(lembrete.lembrar_em).toLocaleString('pt-BR')}.`
-                        );
-
-                        const res = await fetch('{{ route('agenda.quick-whatsapp') }}', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (res.ok) {
-                            console.log(`✅ Lembrete ${lembrete.id} enviado com sucesso.`);
-                        } else {
-                            console.warn(`⚠️ Falha ao enviar lembrete ${lembrete.id}.`);
-                        }
-                    }
-                } catch (err) {
-                    console.error('❌ Erro ao buscar lembretes:', err);
-                }
-            }
-
-            enviarLembretesPendentes();
-            setInterval(enviarLembretesPendentes, INTERVALO_MS);
+            console.log('✅ Sistema de agenda carregado.');
 
             // Sistema de filtros por período
             function setupPeriodFilters(section, borderColor, textColor) {

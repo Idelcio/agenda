@@ -119,8 +119,11 @@ class AppointmentController extends Controller
             'lembretes_falharam' => $user->appointments()->where('status_lembrete', 'falhou')->count(),
         ];
 
-        // Busca todos os usuários para seleção de destinatário
-        $usuarios = User::orderBy('name')->get(['id', 'name', 'whatsapp_number']);
+        // Busca apenas os clientes cadastrados pela empresa logada
+        $usuarios = User::where('user_id', $user->id)
+            ->where('tipo', 'cliente')
+            ->orderBy('name')
+            ->get(['id', 'name', 'whatsapp_number']);
 
         return view('agenda.index', [
             'upcoming' => $upcoming,
@@ -200,8 +203,11 @@ class AppointmentController extends Controller
             abort(403, 'Você não tem permissão para editar este compromisso.');
         }
 
-        // Busca todos os usuários para seleção de destinatário
-        $usuarios = User::orderBy('name')->get(['id', 'name', 'whatsapp_number']);
+        // Busca apenas os clientes cadastrados pela empresa logada
+        $usuarios = User::where('user_id', $user->id)
+            ->where('tipo', 'cliente')
+            ->orderBy('name')
+            ->get(['id', 'name', 'whatsapp_number']);
 
         return view('agenda.edit', [
             'appointment' => $appointment,
