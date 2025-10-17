@@ -49,6 +49,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        // Redireciona para setup do WhatsApp ao invés da agenda
+        return redirect()->route('setup-whatsapp.index');
     }
 }

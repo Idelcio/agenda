@@ -85,8 +85,7 @@ class WhatsAppWebhookController extends Controller
 
         // 🔹 Caso o número não pertença a nenhum usuário
         if (! $user) {
-            $message = 'Olá! Não encontramos sua conta. Acesse o portal da Agenda Digital e informe este número na página de perfil.';
-            $this->sendReply($whatsApp, $from, $message, null, ['reason' => 'user-not-found']);
+            // Nenhuma mensagem será enviada
             return response('OK', Response::HTTP_OK);
         }
 

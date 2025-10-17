@@ -21,6 +21,9 @@ class WhatsAppReminderService
             throw new RuntimeException('Notificações por WhatsApp desativadas para este compromisso.');
         }
 
+        // Configura as credenciais da empresa antes de enviar
+        $this->whatsApp->useUserCredentials($appointment->user);
+
         $destino = $appointment->whatsapp_numero ?? $appointment->user->whatsapp_number;
 
         if (! $destino) {
@@ -59,6 +62,16 @@ class WhatsAppReminderService
         ?int $userId = null,
         bool $withConfirmationButtons = false
     ): WhatsAppMessage {
+        // Configura credenciais da empresa (se houver appointment ou userId)
+        if ($appointment && $appointment->user) {
+            $this->whatsApp->useUserCredentials($appointment->user);
+        } elseif ($userId) {
+            $user = \App\Models\User::find($userId);
+            if ($user) {
+                $this->whatsApp->useUserCredentials($user);
+            }
+        }
+
         if ($attachment) {
             $base64 = $this->encodeAttachment($attachment);
             $mediaResponse = $this->whatsApp->sendMediaFromBase64($destino, $base64, $mensagem ?: null);

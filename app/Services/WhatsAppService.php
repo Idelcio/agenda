@@ -448,4 +448,220 @@ class WhatsAppService
 
         return $digits;
     }
+
+    /**
+     * Cria um novo device/sessão na API Brasil (usando token mestre)
+     * Faz requisição direta sem validar device_token (pois ainda não existe)
+     */
+    public function createDevice(string $deviceName): array
+    {
+        try {
+            Log::info('Criando device na API Brasil', [
+                'device_name' => $deviceName,
+            ]);
+
+            $url = $this->baseUrl . '/start';
+
+            $headers = array_filter([
+                'Authorization' => 'Bearer ' . ($this->config['token'] ?? ''),
+                // NÃO envia DeviceToken aqui, pois estamos CRIANDO um novo
+                'ProfileId' => $this->config['profile_id'] ?? '',
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]);
+
+            $payload = array_filter([
+                'powered_by' => config('app.name', 'Agenda Digital'),
+                'device_name' => $deviceName,
+            ]);
+
+            $response = Http::withHeaders($headers)
+                ->timeout(30)
+                ->post($url, $payload);
+
+            $data = $response->json();
+
+            Log::info('Resposta da API Brasil ao criar device', [
+                'status' => $response->status(),
+                'data' => $data,
+            ]);
+
+            if ($response->failed()) {
+                $error = $data['message'] ?? $data['error'] ?? $response->body();
+                throw new RuntimeException('Erro ao criar device: ' . $error);
+            }
+
+            // A API Brasil retorna o device_token na resposta
+            $deviceToken = $data['device_token']
+                        ?? $data['response']['device_token']
+                        ?? $data['device']['device_token']
+                        ?? null;
+
+            $deviceId = $data['device_id']
+                     ?? $data['response']['device_id']
+                     ?? $data['device']['device_id']
+                     ?? null;
+
+            if (!$deviceToken) {
+                throw new RuntimeException('API Brasil não retornou device_token. Resposta: ' . json_encode($data));
+            }
+
+            return [
+                'device_token' => $deviceToken,
+                'device_id' => $deviceId,
+                'full_response' => $data,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Exceção ao criar device: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Obtém o QR Code de um device específico
+     */
+    public function getDeviceQrCode(string $deviceToken): ?string
+    {
+        $url = rtrim($this->config['url'] ?? 'https://gateway.apibrasil.io/api/v2/whatsapp', '/') . '/qrcode';
+
+        $headers = [
+            'Authorization' => 'Bearer ' . ($this->config['token'] ?? ''),
+            'DeviceToken' => $deviceToken,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+
+        try {
+            Log::info('Buscando QR Code', ['device_token' => substr($deviceToken, 0, 10) . '...']);
+
+            $response = Http::withHeaders($headers)
+                ->timeout(30)
+                ->post($url, []); // API Brasil usa POST para qrcode
+
+            if ($response->failed()) {
+                Log::error('Erro ao obter QR Code', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+
+            Log::info('Resposta QR Code recebida', [
+                'has_qrcode' => isset($data['qrcode']) || isset($data['data']['qrcode']) || isset($data['response']['qrcode']),
+                'keys' => array_keys($data),
+            ]);
+
+            // A API Brasil pode retornar o QR Code em diferentes formatos
+            $qrcode = $data['qrcode']
+                   ?? $data['data']['qrcode']
+                   ?? $data['response']['qrcode']
+                   ?? $data['base64']
+                   ?? null;
+
+            return $qrcode;
+
+        } catch (\Exception $e) {
+            Log::error('Exceção ao obter QR Code: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Verifica o status de conexão de um device específico
+     */
+    public function checkDeviceStatus(string $deviceToken): array
+    {
+        $url = rtrim($this->config['url'] ?? 'https://gateway.apibrasil.io/api/v2/whatsapp', '/') . '/status';
+
+        $headers = [
+            'Authorization' => 'Bearer ' . ($this->config['token'] ?? ''),
+            'DeviceToken' => $deviceToken,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+
+        try {
+            $response = Http::withHeaders($headers)
+                ->timeout(30)
+                ->post($url, []); // API Brasil geralmente usa POST
+
+            if ($response->failed()) {
+                Log::error('Erro ao verificar status do device', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return ['connected' => false];
+            }
+
+            $data = $response->json() ?? [];
+
+            Log::debug('Status do device verificado', [
+                'data' => $data,
+            ]);
+
+            // Verifica se está conectado baseado na resposta
+            $connected = ($data['connected'] ?? false)
+                      || ($data['status'] ?? '') === 'connected'
+                      || ($data['response']['connected'] ?? false)
+                      || ($data['state'] ?? '') === 'open';
+
+            return [
+                'connected' => $connected,
+                'full_response' => $data,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exceção ao verificar status: ' . $e->getMessage());
+            return ['connected' => false];
+        }
+    }
+
+    /**
+     * Configura o serviço para usar credenciais de um device específico
+     * (usado para enviar mensagens com credenciais da empresa)
+     */
+    public function setDeviceCredentials(?string $deviceToken, ?string $deviceId = null): void
+    {
+        if ($deviceToken) {
+            $this->config['device_token'] = $deviceToken;
+        }
+        if ($deviceId) {
+            $this->config['device_id'] = $deviceId;
+        }
+    }
+
+    /**
+     * Configura credenciais baseado em um usuário (empresa)
+     * Busca as credenciais do device da empresa no banco
+     */
+    public function useUserCredentials(User $user): void
+    {
+        // Se for cliente, busca a empresa pai
+        if ($user->tipo === 'cliente' && $user->user_id) {
+            $user = User::find($user->user_id);
+        }
+
+        // Se for empresa e tem credenciais configuradas, usa elas
+        if ($user && $user->tipo === 'empresa' && $user->apibrasil_device_token) {
+            $this->setDeviceCredentials(
+                $user->apibrasil_device_token,
+                $user->apibrasil_device_id
+            );
+
+            Log::info('Usando credenciais da empresa', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+            ]);
+        } else {
+            // Fallback: usa credenciais do .env (padrão)
+            Log::warning('Usando credenciais padrão do .env', [
+                'user_id' => $user->id ?? null,
+                'tipo' => $user->tipo ?? null,
+            ]);
+        }
+    }
 }

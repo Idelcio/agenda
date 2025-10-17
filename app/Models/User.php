@@ -25,6 +25,11 @@ class User extends Authenticatable
         'is_admin',
         'tipo',
         'user_id',
+        'apibrasil_device_token',
+        'apibrasil_device_name',
+        'apibrasil_device_id',
+        'apibrasil_qrcode_status',
+        'apibrasil_setup_completed',
     ];
 
     /**
@@ -45,6 +50,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_admin' => 'boolean',
+        'apibrasil_setup_completed' => 'boolean',
     ];
 
     /**

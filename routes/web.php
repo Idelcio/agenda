@@ -4,6 +4,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Webhook\WhatsAppWebhookController;
+use App\Http\Controllers\WhatsAppSetupController;
 use Illuminate\Support\Facades\Route;
 use App\Services\WhatsAppService;
 
@@ -39,7 +40,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Rotas de Setup do WhatsApp (autenticadas)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/setup-whatsapp', [WhatsAppSetupController::class, 'index'])->name('setup-whatsapp.index');
+    Route::post('/setup-whatsapp/save-credentials', [WhatsAppSetupController::class, 'saveDeviceCredentials'])->name('setup-whatsapp.save-credentials');
+    Route::get('/setup-whatsapp/check-connection', [WhatsAppSetupController::class, 'checkConnection'])->name('setup-whatsapp.check-connection');
+    Route::post('/setup-whatsapp/complete', [WhatsAppSetupController::class, 'completeSetup'])->name('setup-whatsapp.complete');
+});
+
+Route::middleware(['auth', 'verified', 'whatsapp.setup'])->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'index'])->name('dashboard');
     Route::get('/agenda/eventos', [AppointmentController::class, 'events'])->name('agenda.events');
     Route::patch('/agenda/{appointment}/status', [AppointmentController::class, 'toggleStatus'])->name('agenda.status');
