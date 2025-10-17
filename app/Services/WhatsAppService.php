@@ -321,24 +321,54 @@ class WhatsAppService
         $isConfirm = in_array($normalized, ['1', 'UM', 'CONFIRMAR', 'SIM', 'OK', 'CONCLUIR']);
         $isCancel  = in_array($normalized, ['2', 'DOIS', 'CANCELAR', 'NÃO', 'NAO', 'CANCEL']);
 
+        Log::info('🔍 Verificando comando', [
+            'normalized' => $normalized,
+            'isConfirm' => $isConfirm,
+            'isCancel' => $isCancel,
+            'appointment_id' => $appointment->id,
+            'status_atual' => $appointment->status,
+        ]);
+
         if ($isConfirm) {
             $appointment->update(['status' => 'confirmado']);
-            $this->sendText($from, "✅ Seu atendimento foi *CONFIRMADO* com sucesso!");
+
             Log::info('✅ Compromisso confirmado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
+
+            // Tenta enviar mensagem de confirmação (mas não bloqueia se der erro)
+            try {
+                $this->sendText($from, "✅ Seu atendimento foi *CONFIRMADO* com sucesso!");
+            } catch (\Exception $e) {
+                Log::warning('⚠️ Não foi possível enviar mensagem de confirmação', [
+                    'appointment_id' => $appointment->id,
+                    'erro' => $e->getMessage(),
+                ]);
+            }
         } elseif ($isCancel) {
+            Log::info('🔸 Entrando no cancelamento', [
+                'appointment_id' => $appointment->id,
+                'status_antes' => $appointment->status,
+            ]);
+
             // 🔸 Atualiza o status para cancelado
             $appointment->update(['status' => 'cancelado']);
-
-            // 🔸 Envia mensagem de cancelamento com opções
-            $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (Não).");
 
             Log::info('❌ Compromisso cancelado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
+
+            // 🔸 Tenta enviar mensagem de cancelamento (mas não bloqueia se der erro)
+            try {
+                $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (Não).");
+            } catch (\Exception $e) {
+                Log::warning('⚠️ Não foi possível enviar mensagem de cancelamento', [
+                    'appointment_id' => $appointment->id,
+                    'erro' => $e->getMessage(),
+                ]);
+            }
         } else {
             Log::info('ℹ️ Mensagem ignorada (não é comando conhecido)', [
                 'conteudo' => $body,

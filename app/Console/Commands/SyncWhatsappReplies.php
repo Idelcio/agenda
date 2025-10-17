@@ -42,14 +42,38 @@ class SyncWhatsappReplies extends Command
                     // 🔄 Renova o lock a cada ciclo
                     Cache::put(self::LOCK_KEY, getmypid(), self::LOCK_TTL);
 
-                    $this->whatsApp->fetchNewMessagesAndProcess();
+                    // 🔹 Busca todas as empresas com setup completo
+                    $empresas = \App\Models\User::where('tipo', 'empresa')
+                        ->where('apibrasil_setup_completed', true)
+                        ->whereNotNull('apibrasil_device_token')
+                        ->get();
+
+                    if ($empresas->isEmpty()) {
+                        $this->warn('⚠️ Nenhuma empresa com WhatsApp configurado encontrada.');
+                        Log::warning('Nenhuma empresa com WhatsApp configurado');
+                    }
+
+                    // 🔹 Processa mensagens de cada empresa
+                    foreach ($empresas as $empresa) {
+                        $this->info("📱 Verificando mensagens da empresa: {$empresa->name} (ID: {$empresa->id})");
+
+                        // Configura as credenciais da empresa atual
+                        $this->whatsApp->useUserCredentials($empresa);
+
+                        try {
+                            $this->whatsApp->fetchNewMessagesAndProcess();
+                        } catch (\RuntimeException $exception) {
+                            $this->error("❌ Erro ao consultar mensagens da empresa {$empresa->name}: " . $exception->getMessage());
+                            Log::error('❌ Erro ao consultar mensagens do WhatsApp', [
+                                'empresa_id' => $empresa->id,
+                                'empresa_nome' => $empresa->name,
+                                'erro' => $exception->getMessage(),
+                                'trace' => $exception->getTraceAsString(),
+                            ]);
+                        }
+                    }
+
                     $this->info('✅ Ciclo de verificação concluído: ' . now());
-                } catch (\RuntimeException $exception) {
-                    $this->error('❌ Não foi possível consultar mensagens: ' . $exception->getMessage());
-                    Log::error('❌ Erro ao consultar mensagens do WhatsApp', [
-                        'erro' => $exception->getMessage(),
-                        'trace' => $exception->getTraceAsString(),
-                    ]);
                 } catch (\Throwable $t) {
                     Log::error('💥 Erro inesperado no loop de sincronização WhatsApp', [
                         'erro' => $t->getMessage(),

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(php:*)",
       "Bash(cat:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout 60 php artisan:*)"
     ],
     "deny": [],
     "ask": []

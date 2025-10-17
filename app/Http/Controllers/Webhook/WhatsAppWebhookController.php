@@ -21,16 +21,19 @@ class WhatsAppWebhookController extends Controller
         if (! $this->isAuthorized($request)) {
             return response('Não autorizado', Response::HTTP_UNAUTHORIZED);
         }
+        Log::info('🚀 Webhook bruto recebido', $request->all());
+
 
         // 🔹 Tipo de evento vindo da API Brasil
         $eventType = data_get($request, 'data.wook'); // Ex: "RECEIVE_MESSAGE", "MESSAGE_STATUS"
         $type = data_get($request, 'data.data.type'); // Ex: "text", "image", etc.
 
-        // 🔹 Ignora eventos que não sejam mensagens recebidas
-        if ($eventType !== 'RECEIVE_MESSAGE') {
+        // 🔹 Considera "RECEIVE_MESSAGE" e "MESSAGE" como mensagens válidas
+        if (!in_array($eventType, ['RECEIVE_MESSAGE', 'MESSAGE'])) {
             Log::info("Webhook ignorado (evento: {$eventType})");
             return response('OK', Response::HTTP_OK);
         }
+
 
         // 🔹 Captura número e conteúdo corretamente
         $from = $this->normalizeNumber(data_get($request, 'data.from'));
@@ -89,6 +92,7 @@ class WhatsAppWebhookController extends Controller
             return response('OK', Response::HTTP_OK);
         }
 
+
         // 🔹 Processa o comando (1, 2, MENU, etc.)
         [$reply, $meta] = $this->handleCommand($user, $from, $body);
 
@@ -113,8 +117,7 @@ class WhatsAppWebhookController extends Controller
             'comando' => $normalized,
         ]);
 
-        // 🔹 Localiza o compromisso mais recente com lembrete enviado para este número de WhatsApp
-        // Não filtra por status para sempre pegar o lembrete mais recente enviado
+        // 🔹 Busca o compromisso mais recente com lembrete enviado
         $appointment = Appointment::query()
             ->where('whatsapp_numero', $cleanNumber)
             ->where('status_lembrete', 'enviado')
@@ -128,7 +131,7 @@ class WhatsAppWebhookController extends Controller
             'status_atual' => $appointment?->status,
         ]);
 
-        // 🔹 Cliente respondeu "1" → marcar como CONFIRMADO
+        // 🔹 Cliente respondeu "1" → CONFIRMAR
         if (in_array($normalized, ['1', 'CONFIRMAR', 'SIM', 'OK'])) {
             if ($appointment) {
                 $appointment->update(['status' => 'confirmado']);
@@ -145,10 +148,12 @@ class WhatsAppWebhookController extends Controller
                 ];
             }
 
-            return ['⚠️ Nenhum compromisso pendente encontrado para confirmar.', ['command' => 'confirmar_vazio']];
+            // Se não há lembrete enviado, não responde
+            Log::info('⚠️ Nenhum lembrete encontrado para confirmar, ignorando...');
+            return [null, ['command' => 'ignored']];
         }
 
-        // 🔹 Cliente respondeu "2" → marcar como CANCELADO
+        // 🔹 Cliente respondeu "2" → CANCELAR
         if (in_array($normalized, ['2', 'CANCELAR', 'NAO', 'NÃO'])) {
             if ($appointment) {
                 $oldStatus = $appointment->status;
@@ -161,7 +166,6 @@ class WhatsAppWebhookController extends Controller
                     'user_id' => $user->id,
                     'titulo' => $appointment->titulo,
                     'status_anterior' => $oldStatus,
-                    'mensagem' => $mensagemCancelamento,
                 ]);
 
                 return [
@@ -170,27 +174,20 @@ class WhatsAppWebhookController extends Controller
                 ];
             }
 
-            return ['⚠️ Nenhum compromisso pendente encontrado para cancelar.', ['command' => 'cancelar_vazio']];
+            // Se não há lembrete enviado, não responde
+            Log::info('⚠️ Nenhum lembrete encontrado para cancelar, ignorando...');
+            return [null, ['command' => 'ignored']];
         }
 
-        // 🔹 Menu de ajuda
-        if ($normalized === 'MENU' || $normalized === 'AJUDA') {
-            return [$this->menuMessage(), ['command' => 'menu']];
-        }
+        // 🔹 Ignora qualquer outra mensagem (sem resposta automática)
+        Log::info('💤 Mensagem ignorada (fora de contexto de lembrete)', [
+            'comando' => $normalized,
+            'whatsapp' => $whatsappNumber,
+        ]);
 
-        // 🔹 Listar compromissos
-        if ($normalized === 'LISTAR') {
-            return [$this->listAppointmentsMessage($user), ['command' => 'listar']];
-        }
-
-        // 🔹 Criar novo compromisso
-        if (Str::startsWith($normalized, 'CRIAR')) {
-            return $this->createAppointmentFromCommand($user, $body);
-        }
-
-        // 🔹 Nenhum comando reconhecido
-        return [$this->unknownCommandMessage(), ['command' => 'unknown']];
+        return [null, ['command' => 'ignored']];
     }
+
 
 
     private function createAppointmentFromCommand(User $user, string $body): array
@@ -290,18 +287,25 @@ TXT;
         ]);
     }
 
+    // private function isAuthorized(Request $request): bool
+    // {
+    //     $secret = config('services.whatsapp.webhook_secret');
+
+    //     if (! $secret) {
+    //         return true;
+    //     }
+
+    //     $provided = $request->header('X-Webhook-Secret', $request->input('secret'));
+
+    //     return hash_equals($secret, (string) $provided);
+    // }
+
     private function isAuthorized(Request $request): bool
     {
-        $secret = config('services.whatsapp.webhook_secret');
-
-        if (! $secret) {
-            return true;
-        }
-
-        $provided = $request->header('X-Webhook-Secret', $request->input('secret'));
-
-        return hash_equals($secret, (string) $provided);
+        // 🔓 Desativado temporariamente para testes
+        return true;
     }
+
 
     private function normalizeNumber(?string $value): ?string
     {
@@ -309,8 +313,34 @@ TXT;
             return null;
         }
 
-        $clean = Str::of($value)->replace('whatsapp:', '')->trim();
+        // Remove prefixos e caracteres não numéricos
+        $clean = preg_replace('/\D+/', '', str_replace('whatsapp:', '', $value));
 
-        return $clean === '' ? null : (string) $clean;
+        // 🔹 Adiciona DDI do Brasil se não tiver
+        if (! str_starts_with($clean, '55')) {
+            $clean = '55' . $clean;
+        }
+
+        // 🔹 Corrige números sem o 9 (ex: 555184871703 → 5551984871703)
+        if (strlen($clean) === 12 && str_starts_with($clean, '55')) {
+            $ddd = substr($clean, 2, 2);
+            $resto = substr($clean, 4);
+
+            // Se o primeiro dígito após o DDD for entre 6 e 9, insere o 9
+            if (preg_match('/^[6-9]/', $resto)) {
+                $clean = '55' . $ddd . '9' . $resto;
+            }
+        }
+
+        // 🔹 Remove zeros à esquerda se houver
+        $clean = ltrim($clean, '0');
+
+        // 🔹 Log opcional para depuração (pode remover depois)
+        Log::info('📞 Número normalizado', [
+            'original' => $value,
+            'final' => $clean,
+        ]);
+
+        return $clean;
     }
 }

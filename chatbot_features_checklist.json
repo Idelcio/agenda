@@ -1,0 +1,16 @@
+﻿{
+    "fluxos_condicionais":  true,
+    "respostas_predefinidas":  true,
+    "api_externa_endpoint":  true,
+    "webhook_respostas":  true,
+    "modo_atendimento_humano":  false,
+    "painel_conversas_crm":  false,
+    "relatorios_pdf_csv":  false,
+    "historico_conversas":  true,
+    "automacao_lembretes":  true,
+    "campanhas_personalizadas":  false,
+    "personalizacao_visual_logo":  false,
+    "base_conhecimento_palavras_chave":  false,
+    "estrutura_ia_futuro":  false,
+    "logs_erros":  true
+}
