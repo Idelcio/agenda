@@ -40,6 +40,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/termos', function () {
+    return view('terms');
+})->name('terms');
+
 /*
 |--------------------------------------------------------------------------
 | Rotas de Setup do WhatsApp (autenticadas)

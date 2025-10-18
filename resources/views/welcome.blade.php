@@ -279,6 +279,16 @@
             text-align: center;
         }
 
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 720px) {
             body {
                 padding: 1rem;
@@ -398,41 +408,52 @@
 
         <section class="steps-section">
             <h2>Como funciona?</h2>
-            <p>Simples, rápido e totalmente automatizado</p>
+            <p>Simples, rápido e totalmente automatizado - do cadastro até o acompanhamento</p>
 
             <div class="steps-grid">
                 <div class="step-card">
                     <div class="step-number">1</div>
-                    <h3>Cadastre o cliente</h3>
-                    <p>Adicione o nome, telefone e outras informações do seu cliente no sistema. Faça isso apenas uma
-                        vez.</p>
+                    <h3>Cadastre e conecte</h3>
+                    <p>Adicione seus clientes com nome e WhatsApp. No primeiro acesso, conecte sua conta usando QR Code. Ambos feitos apenas uma vez e seus dados ficam salvos.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">2</div>
-                    <h3>Crie o lembrete</h3>
-                    <p>Defina a data, horário e mensagem do lembrete. O sistema envia automaticamente via WhatsApp no
-                        momento certo.</p>
+                    <h3>Crie o agendamento</h3>
+                    <p>Selecione o cliente cadastrado, defina data, horário e escreva a mensagem personalizada. Tudo em poucos cliques na sua agenda.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">3</div>
-                    <h3>Aguarde a resposta</h3>
-                    <p>O cliente recebe o lembrete e responde pelo WhatsApp. A resposta é capturada automaticamente pelo
-                        sistema.</p>
+                    <h3>Envio automático</h3>
+                    <p>No horário marcado, o sistema envia automaticamente a mensagem via WhatsApp. Você não precisa fazer nada, é tudo automático.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">4</div>
-                    <h3>Confira na tabela</h3>
-                    <p>Acesse sua agenda e veja todos os lembretes, respostas e status em uma tabela organizada e fácil
-                        de gerenciar.</p>
+                    <h3>Cliente responde</h3>
+                    <p>Seu cliente recebe e responde pelo WhatsApp normalmente. Pode confirmar, reagendar ou cancelar de forma natural.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <h3>Chatbot processa</h3>
+                    <p>O chatbot inteligente identifica e processa a resposta automaticamente, atualizando o status do agendamento na sua agenda em tempo real.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">6</div>
+                    <h3>Acompanhe e gerencie</h3>
+                    <p>Visualize tudo no dashboard: status, horários, clientes e respostas organizados. Edite, reagende ou envie novos lembretes quando precisar.</p>
                 </div>
             </div>
         </section>
 
         <footer>
-            Desenvolvido com Laravel e integração Evolution API. Sua agenda profissional totalmente automatizada.
+            <p>Desenvolvido com Laravel e integração Evolution API. Sua agenda profissional totalmente automatizada.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="{{ route('terms') }}">Termos de Uso e Política de Privacidade</a>
+            </p>
         </footer>
     </div>
 </body>

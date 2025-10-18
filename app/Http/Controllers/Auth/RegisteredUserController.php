@@ -35,6 +35,9 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'whatsapp_number' => ['required', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'terms' => ['accepted'],
+        ], [
+            'terms.accepted' => 'Você deve aceitar os Termos de Uso e Política de Privacidade para se registrar.',
         ]);
 
         $user = User::create([
