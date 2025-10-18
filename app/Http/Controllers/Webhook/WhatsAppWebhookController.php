@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\ChatbotMessage;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use App\Support\WhatsAppMessageFingerprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +39,16 @@ class WhatsAppWebhookController extends Controller
         // 🔹 Captura número e conteúdo corretamente
         $from = $this->normalizeNumber(data_get($request, 'data.from'));
 
+        // 🔹 IGNORA MENSAGENS ENVIADAS PELO PRÓPRIO SISTEMA (fromMe = true)
+        $isFromMe = data_get($request, 'data.data.id.fromMe', false);
+
+        if ($isFromMe) {
+            Log::info('🚫 Mensagem ignorada (enviada pelo próprio sistema)', [
+                'from' => $from,
+            ]);
+            return response('OK', Response::HTTP_OK);
+        }
+
         // ✅ Corrigido: pega exatamente o body certo ("2" no teu exemplo)
         $body = trim((string)(
             data_get($request, 'data.data.body') ??
@@ -56,6 +67,18 @@ class WhatsAppWebhookController extends Controller
             'body' => $body,
             'raw' => $request->all(),
         ]);
+
+        // 🔹 Extrai ID único da mensagem para evitar duplicatas
+        $messageId = WhatsAppMessageFingerprint::forPayload($request->all(), $from, $body);
+
+        // 🔹 Verifica se esta mensagem já foi processada
+        if (ChatbotMessage::where('external_id', $messageId)->exists()) {
+            Log::info('⚠️ Mensagem duplicada detectada, ignorando', [
+                'message_id' => $messageId,
+                'from' => $from,
+            ]);
+            return response('OK', Response::HTTP_OK);
+        }
 
         // 🔹 Localiza o usuário pelo número do WhatsApp (principal ou cliente vinculado)
         $user = $from ? User::where('whatsapp_number', $from)->first() : null;
@@ -79,6 +102,7 @@ class WhatsAppWebhookController extends Controller
             'direcao' => 'entrada',
             'conteudo' => $body,
             'payload' => $request->all(),
+            'external_id' => $messageId, // 🔹 Armazena o ID para evitar duplicatas
         ]);
 
         // 🔹 Caso não tenha corpo de mensagem ou número
@@ -117,10 +141,11 @@ class WhatsAppWebhookController extends Controller
             'comando' => $normalized,
         ]);
 
-        // 🔹 Busca o compromisso mais recente com lembrete enviado
+        // 🔹 Busca o compromisso mais recente com lembrete enviado E QUE AINDA NÃO FOI RESPONDIDO
         $appointment = Appointment::query()
             ->where('whatsapp_numero', $cleanNumber)
-            ->where('status_lembrete', 'enviado')
+            ->where('status_lembrete', 'enviado') // Só lembretes enviados
+            ->where('status', 'pendente') // Só compromissos ainda pendentes (não confirmados nem cancelados)
             ->latest('lembrete_enviado_em')
             ->first();
 

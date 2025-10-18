@@ -88,6 +88,16 @@ Todos os registros ficam na tabela `chatbot_messages`.
 - `npm run build` â€” build de producao.
 - `php artisan test` â€” executa a suite de testes.
 
+## Geracao de PDF da Agenda Semanal
+- Clique no botao **Gerar PDF Semanal** localizado ao lado do titulo "Calendario de Agendamentos" na pagina principal da agenda.
+- O PDF gerado contem:
+  - Todos os compromissos da semana atual (domingo a sabado)
+  - Organizacao por dia da semana com totalizadores
+  - Informacoes detalhadas: horario, titulo, descricao, cliente, telefone/WhatsApp e status
+  - Layout profissional otimizado para impressao em A4
+- Ideal para profissionais que trabalham em campo (instaladores, tecnicos, etc.) e precisam levar a agenda impressa com os telefones dos clientes.
+- Rota: `GET /agenda/pdf-semanal`
+
 ## Proximos passos sugeridos
 - Configurar filas (Redis ou database) para envio assincrono das mensagens.
 - Expandir o chatbot (concluir compromisso, cancelar, reatribuir etc.).

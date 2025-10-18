@@ -4,11 +4,11 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use RuntimeException;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\ChatbotMessage;
+use App\Support\WhatsAppMessageFingerprint;
 
 class WhatsAppService
 {
@@ -145,60 +145,17 @@ class WhatsAppService
     }
 
     /**
-     * 🔹 Busca novas mensagens (não lidas) e processa as respostas ("1" e "2")
+     * 🔹 DESABILITADO - O webhook já processa mensagens em tempo real
+     *
+     * Esta função causava duplicatas porque processava as mesmas mensagens que o webhook.
+     * Como o webhook está funcionando corretamente, não precisamos mais buscar mensagens manualmente.
      */
     public function fetchNewMessagesAndProcess(): void
     {
-        $response = $this->post('getAllNewMessages');
-        $data = $response['response']['contacts'] ?? [];
+        Log::info('⚠️ fetchNewMessagesAndProcess() está DESABILITADO - usando webhook em tempo real');
 
-        if (empty($data)) {
-            Log::info('📭 Nenhuma nova mensagem recebida.');
-            return;
-        }
-
-        foreach ($data as $msg) {
-            $fromRaw = data_get($msg, 'from', '');
-            $body = trim((string) data_get($msg, 'body', ''));
-
-            // 🚫 Ignorar grupos, broadcasts, status, comunidades, etc.
-            if (
-                str_contains($fromRaw, '@g.us') ||
-                str_contains($fromRaw, '@broadcast') ||
-                str_contains($fromRaw, '@status') ||
-                str_contains($fromRaw, '@newsletter')
-            ) {
-                Log::info('📢 Ignorando mensagem de grupo/broadcast/newsletter', ['from' => $fromRaw]);
-                continue;
-            }
-
-            // 🔹 Extrai só os dígitos numéricos
-            $from = preg_replace('/\D+/', '', $fromRaw);
-
-            // 🚫 Bloqueia números absurdamente longos (grupos com ID numérico)
-            if (strlen($from) > 13 || strlen($from) < 11) {
-                Log::info('🚫 Ignorando número inválido detectado', ['from' => $fromRaw, 'length' => strlen($from)]);
-                continue;
-            }
-
-            // 🔧 Normaliza o número (adiciona prefixo 55 e o 9º dígito se necessário)
-            if (!str_starts_with($from, '55')) {
-                $from = '55' . $from;
-            }
-
-            // Adiciona o 9 após o DDD se faltar (12 dígitos → 13 dígitos)
-            if (strlen($from) === 12) {
-                $from = substr($from, 0, 4) . '9' . substr($from, 4);
-            }
-
-            // 🧩 Só processa se existir corpo da mensagem
-            if ($from && $body !== '') {
-                $this->processIncomingMessage($from, $body, $msg);
-            }
-
-            // 💤 Pequena pausa entre mensagens (evita flood)
-            usleep(300000); // 0.3s
-        }
+        // NÃO FAZ NADA - webhook processa tudo
+        return;
     }
 
     /**
@@ -206,13 +163,20 @@ class WhatsAppService
      */
     public function processIncomingMessage(string $from, string $body, array $payload): void
     {
+        // 🔹 IGNORA MENSAGENS ENVIADAS PELO PRÓPRIO SISTEMA (fromMe = true)
+        $isFromMe = data_get($payload, 'fromMe', false)
+                 ?? data_get($payload, 'data.fromMe', false)
+                 ?? data_get($payload, 'data.data.id.fromMe', false);
+
+        if ($isFromMe) {
+            Log::info('🚫 Mensagem ignorada em processIncomingMessage (enviada pelo próprio sistema)', [
+                'from' => $from,
+            ]);
+            return;
+        }
+
         // 🔹 Extrai ID único da mensagem (API Brasil envia isso em vários níveis)
-        $externalId =
-            data_get($payload, 'id') ??
-            data_get($payload, 'message.id') ??
-            data_get($payload, 'data.id') ??
-            data_get($payload, 'response.id') ??
-            Str::uuid()->toString(); // fallback seguro
+        $externalId = WhatsAppMessageFingerprint::forPayload($payload, $from, $body);
 
         // 🔹 Evita processar a mesma mensagem duas vezes
         if (ChatbotMessage::where('external_id', $externalId)->exists()) {
@@ -263,7 +227,7 @@ class WhatsAppService
             $normalized = '2';
         }
 
-        // 🔹 Busca compromisso pendente/confirmado vinculado ao usuário
+        // 🔹 Busca SOMENTE compromisso PENDENTE vinculado ao usuário (não processa confirmados/cancelados)
         $appointment = Appointment::query()
             ->where(function ($query) use ($user, $from) {
                 if ($user->tipo === 'cliente') {
@@ -273,8 +237,9 @@ class WhatsAppService
                         ->orWhere('whatsapp_numero', $from);
                 }
             })
-            ->whereIn('status', ['pendente', 'confirmado', 'cancelado'])
-            ->latest('inicio')
+            ->where('status', 'pendente') // 🔹 SÓ COMPROMISSOS PENDENTES (não confirmados nem cancelados)
+            ->where('status_lembrete', 'enviado') // 🔹 SÓ LEMBRETES JÁ ENVIADOS
+            ->latest('lembrete_enviado_em')
             ->first();
 
         if (! $appointment) {
@@ -285,37 +250,10 @@ class WhatsAppService
             return;
         }
 
-        Log::info('📩 Mensagem recebida normalizada', [
-            'original' => $body,
-            'normalizada' => $normalized,
-            'appointment_id' => $appointment->id,
-            'status_atual' => $appointment->status,
+        Log::info('📩 Mensagem recebida no processIncomingMessage', [
+            'from' => $from,
+            'body' => $body,
         ]);
-
-        if ($appointment->status === 'cancelado') {
-            $wantsReschedule = ['SIM', 'S', 'YES', '1'];
-            $doesNotWant = ['NAO', 'NÃO', 'N', 'NO', '2'];
-
-            if (in_array($normalized, $wantsReschedule, true)) {
-                // 🔹 Cliente respondeu SIM após cancelamento
-                $this->sendText($from, "✅ Em breve entraremos em contato para reagendar seu atendimento.");
-                Log::info('📅 Cliente deseja remarcar após cancelamento', [
-                    'user_id' => $user->id,
-                    'appointment_id' => $appointment->id,
-                ]);
-                return;
-            }
-
-            // if (in_array($normalized, $doesNotWant, true)) {
-            //     // 🔹 Cliente respondeu NÃO após cancelamento
-            //     $this->sendText($from, "👋 Obrigado! Até breve.");
-            //     Log::info('🙌 Cliente encerrou conversa após cancelamento', [
-            //         'user_id' => $user->id,
-            //         'appointment_id' => $appointment->id,
-            //     ]);
-            //     return;
-            // }
-        }
 
         // 🔹 Interpreta comandos conhecidos
         $isConfirm = in_array($normalized, ['1', 'UM', 'CONFIRMAR', 'SIM', 'OK', 'CONCLUIR']);
@@ -330,51 +268,21 @@ class WhatsAppService
         ]);
 
         if ($isConfirm) {
-            $appointment->update(['status' => 'confirmado']);
-
-            Log::info('✅ Compromisso confirmado via WhatsApp', [
-                'user_id' => $user->id,
-                'appointment_id' => $appointment->id,
+            $appointment->update([
+                'status' => 'confirmado',
+                'status_lembrete' => 'respondido', // 🔹 Marca como respondido para não processar novamente
             ]);
 
-            // Tenta enviar mensagem de confirmação (mas não bloqueia se der erro)
-            try {
-                $this->sendText($from, "✅ Seu atendimento foi *CONFIRMADO* com sucesso!");
-            } catch (\Exception $e) {
-                Log::warning('⚠️ Não foi possível enviar mensagem de confirmação', [
-                    'appointment_id' => $appointment->id,
-                    'erro' => $e->getMessage(),
-                ]);
-            }
+            Log::info('✅ Agendamento confirmado via WhatsApp para ' . $from);
         } elseif ($isCancel) {
-            Log::info('🔸 Entrando no cancelamento', [
-                'appointment_id' => $appointment->id,
-                'status_antes' => $appointment->status,
+            $appointment->update([
+                'status' => 'cancelado',
+                'status_lembrete' => 'respondido', // 🔹 Marca como respondido para não processar novamente
             ]);
 
-            // 🔸 Atualiza o status para cancelado
-            $appointment->update(['status' => 'cancelado']);
-
-            Log::info('❌ Compromisso cancelado via WhatsApp', [
-                'user_id' => $user->id,
-                'appointment_id' => $appointment->id,
-            ]);
-
-            // 🔸 Tenta enviar mensagem de cancelamento (mas não bloqueia se der erro)
-            try {
-                $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (Não).");
-            } catch (\Exception $e) {
-                Log::warning('⚠️ Não foi possível enviar mensagem de cancelamento', [
-                    'appointment_id' => $appointment->id,
-                    'erro' => $e->getMessage(),
-                ]);
-            }
+            Log::info('❌ Agendamento cancelado via WhatsApp para ' . $from);
         } else {
-            Log::info('ℹ️ Mensagem ignorada (não é comando conhecido)', [
-                'conteudo' => $body,
-                'normalizada' => $normalized,
-                'appointment_id' => $appointment->id,
-            ]);
+            Log::info('💬 Mensagem ignorada (não é resposta válida de confirmação): ' . $body);
         }
     }
 

@@ -18,6 +18,11 @@
                     <x-nav-link :href="route('clientes.index')" :active="request()->routeIs('clientes.*')">
                         Clientes
                     </x-nav-link>
+                    @if(Auth::user()->is_super_admin)
+                        <x-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
+                            Super Admin
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -76,6 +81,11 @@
             <x-responsive-nav-link :href="route('clientes.index')" :active="request()->routeIs('clientes.*')">
                 Clientes
             </x-responsive-nav-link>
+            @if(Auth::user()->is_super_admin)
+                <x-responsive-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.*')">
+                    Super Admin
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

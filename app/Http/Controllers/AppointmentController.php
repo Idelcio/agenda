@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\User;
 use App\Services\WhatsAppReminderService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -439,5 +440,45 @@ class AppointmentController extends Controller
         $inicio = $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y H:i');
 
         return "Lembrete: {$appointment->titulo} em {$inicio}.";
+    }
+
+    public function gerarPdfSemanal(Request $request)
+    {
+        $user = $request->user();
+        $hoje = now();
+
+        // Define início e fim da semana
+        $inicioSemana = $hoje->copy()->startOfWeek();
+        $fimSemana = $hoje->copy()->endOfWeek();
+
+        // Busca compromissos da semana
+        $compromissos = $user->appointments()
+            ->with(['destinatario:id,name,whatsapp_number'])
+            ->whereBetween('inicio', [$inicioSemana, $fimSemana])
+            ->orderBy('inicio')
+            ->get();
+
+        // Agrupa por dia da semana
+        $compromissosPorDia = $compromissos->groupBy(function ($compromisso) {
+            return $compromisso->inicio->timezone(config('app.timezone'))->format('Y-m-d');
+        });
+
+        // Dados para o PDF
+        $dados = [
+            'empresa' => $user->name,
+            'periodo' => $inicioSemana->format('d/m/Y') . ' - ' . $fimSemana->format('d/m/Y'),
+            'compromissosPorDia' => $compromissosPorDia,
+            'inicioSemana' => $inicioSemana,
+            'fimSemana' => $fimSemana,
+        ];
+
+        // Gera o PDF
+        $pdf = Pdf::loadView('agenda.pdf.semanal', $dados);
+        $pdf->setPaper('a4', 'portrait');
+
+        // Nome do arquivo
+        $nomeArquivo = 'agenda-semanal-' . $inicioSemana->format('d-m-Y') . '.pdf';
+
+        return $pdf->download($nomeArquivo);
     }
 }

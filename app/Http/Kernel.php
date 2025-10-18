@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'whatsapp.setup' => \App\Http\Middleware\EnsureWhatsAppSetupCompleted::class,
+        'super.admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
     ];
 }

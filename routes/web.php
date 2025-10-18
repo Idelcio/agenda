@@ -59,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'verified', 'whatsapp.setup'])->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'index'])->name('dashboard');
     Route::get('/agenda/eventos', [AppointmentController::class, 'events'])->name('agenda.events');
+    Route::get('/agenda/pdf-semanal', [AppointmentController::class, 'gerarPdfSemanal'])->name('agenda.pdf-semanal');
     Route::patch('/agenda/{appointment}/status', [AppointmentController::class, 'toggleStatus'])->name('agenda.status');
     Route::patch('/agenda/{appointment}/status/{status}', [AppointmentController::class, 'updateStatus'])->name('agenda.update-status');
     Route::post('/agenda/{appointment}/lembrar', [AppointmentController::class, 'sendReminder'])->name('agenda.reminder');
@@ -85,5 +86,12 @@ Route::middleware(['auth', 'verified', 'whatsapp.setup'])->group(function () {
 */
 Route::post('/webhooks/whatsapp', WhatsAppWebhookController::class)
     ->name('webhooks.whatsapp');
+
+/*
+|--------------------------------------------------------------------------
+| Super Admin Routes
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/super-admin-routes.php';
 
 require __DIR__ . '/auth.php';
