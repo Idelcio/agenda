@@ -619,25 +619,46 @@ class WhatsAppService
                 ->timeout(30)
                 ->post($url, []); // API Brasil geralmente usa POST
 
+            $data = $response->json() ?? [];
+
+            // 🔹 Mesmo com erro 401, a API Brasil retorna o status real do device
             if ($response->failed()) {
-                Log::error('Erro ao verificar status do device', [
+                Log::warning('API retornou erro ao verificar status, mas vamos checar a resposta', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
-                return ['connected' => false];
-            }
 
-            $data = $response->json() ?? [];
+                // ✅ Extrai o status do device mesmo no erro
+                $deviceStatus = $data['device']['status'] ?? null;
+
+                // Status válidos de conexão: "inChat", "qrcode", "open", "connected"
+                $statusesAtivos = ['inChat', 'qrcode', 'open', 'connected', 'isLogged'];
+
+                if ($deviceStatus && in_array($deviceStatus, $statusesAtivos)) {
+                    Log::info('✅ Device está conectado (extraído da resposta de erro)', [
+                        'device_status' => $deviceStatus,
+                    ]);
+
+                    return [
+                        'connected' => true,
+                        'status' => $deviceStatus,
+                        'full_response' => $data,
+                    ];
+                }
+
+                return ['connected' => false, 'full_response' => $data];
+            }
 
             Log::debug('Status do device verificado', [
                 'data' => $data,
             ]);
 
-            // Verifica se está conectado baseado na resposta
+            // Verifica se está conectado baseado na resposta (quando não há erro)
             $connected = ($data['connected'] ?? false)
                       || ($data['status'] ?? '') === 'connected'
                       || ($data['response']['connected'] ?? false)
-                      || ($data['state'] ?? '') === 'open';
+                      || ($data['state'] ?? '') === 'open'
+                      || ($data['device']['status'] ?? '') === 'inChat';
 
             return [
                 'connected' => $connected,

@@ -266,25 +266,91 @@ TXT;
 
     private function sendReply(WhatsAppService $service, string $to, string $message, ?User $user = null, ?array $meta = null): void
     {
-        try {
-            $service->sendMessage($to, $message);
-        } catch (RuntimeException $exception) {
-            Log::warning('WhatsApp service not configured', ['exception' => $exception->getMessage()]);
-
-            return;
-        } catch (\Throwable $exception) {
-            Log::error('Erro ao enviar mensagem de WhatsApp', ['exception' => $exception]);
-
+        if (!$message) {
+            Log::info('⚠️ Mensagem vazia, não enviando resposta');
             return;
         }
 
-        ChatbotMessage::create([
-            'user_id' => $user?->id,
-            'whatsapp_numero' => $to,
-            'direcao' => 'saida',
-            'conteudo' => $message,
-            'payload' => $meta,
-        ]);
+        try {
+            // 🔹 Busca TODAS as empresas com device_token configurado
+            $empresas = User::where('tipo', 'empresa')
+                ->whereNotNull('apibrasil_device_token')
+                ->where('apibrasil_device_token', '!=', '')
+                ->get();
+
+            if ($empresas->isEmpty()) {
+                Log::error('❌ Nenhuma empresa com device_token encontrada');
+                return;
+            }
+
+            $empresaAtiva = null;
+
+            // 🔹 Testa cada empresa até encontrar uma com sessão CONECTADA
+            foreach ($empresas as $empresa) {
+                Log::info('🔍 Testando sessão da empresa', [
+                    'empresa_id' => $empresa->id,
+                    'empresa_nome' => $empresa->name,
+                ]);
+
+                try {
+                    // Verifica se a sessão está conectada
+                    $status = $service->checkDeviceStatus($empresa->apibrasil_device_token);
+
+                    if ($status['connected'] ?? false) {
+                        $empresaAtiva = $empresa;
+                        Log::info('✅ Sessão CONECTADA encontrada!', [
+                            'empresa_id' => $empresa->id,
+                            'empresa_nome' => $empresa->name,
+                        ]);
+                        break;
+                    } else {
+                        Log::warning('⚠️ Sessão DESCONECTADA', [
+                            'empresa_id' => $empresa->id,
+                            'empresa_nome' => $empresa->name,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('⚠️ Erro ao verificar status da sessão', [
+                        'empresa_id' => $empresa->id,
+                        'erro' => $e->getMessage(),
+                    ]);
+                    continue;
+                }
+            }
+
+            if (!$empresaAtiva) {
+                Log::error('❌ Nenhuma empresa com sessão CONECTADA encontrada');
+                return;
+            }
+
+            // 🔹 Usa as credenciais da empresa CONECTADA
+            $service->setDeviceCredentials(
+                $empresaAtiva->apibrasil_device_token,
+                $empresaAtiva->apibrasil_device_id
+            );
+
+            Log::info('📤 Enviando mensagem via sessão ativa', [
+                'empresa_id' => $empresaAtiva->id,
+                'empresa_nome' => $empresaAtiva->name,
+                'para' => $to,
+            ]);
+
+            $service->sendMessage($to, $message);
+
+            // Registra mensagem enviada
+            ChatbotMessage::create([
+                'user_id' => $user?->id,
+                'whatsapp_numero' => $to,
+                'direcao' => 'saida',
+                'conteudo' => $message,
+                'payload' => $meta,
+            ]);
+
+        } catch (RuntimeException $exception) {
+            Log::warning('WhatsApp service not configured', ['exception' => $exception->getMessage()]);
+        } catch (\Throwable $exception) {
+            Log::error('Erro ao enviar mensagem de WhatsApp', ['exception' => $exception->getMessage()]);
+        }
     }
 
     // private function isAuthorized(Request $request): bool
