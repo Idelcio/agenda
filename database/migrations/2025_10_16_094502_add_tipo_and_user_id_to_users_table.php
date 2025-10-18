@@ -12,10 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('tipo')->default('empresa')->after('email'); // empresa ou cliente
-            $table->foreignId('user_id')->nullable()->after('tipo')->constrained('users')->onDelete('cascade'); // empresa pai
-            $table->string('whatsapp_number')->nullable()->after('user_id');
-            $table->boolean('is_admin')->default(false)->after('whatsapp_number');
+            // Adiciona 'tipo' apenas se não existir
+            if (!Schema::hasColumn('users', 'tipo')) {
+                $table->string('tipo')->default('empresa')->after('email');
+            }
+
+            // Adiciona 'user_id' apenas se não existir
+            if (!Schema::hasColumn('users', 'user_id')) {
+                $table->foreignId('user_id')->nullable()->after('tipo')->constrained('users')->onDelete('cascade');
+            }
+
+            // Adiciona 'whatsapp_number' apenas se não existir
+            if (!Schema::hasColumn('users', 'whatsapp_number')) {
+                $table->string('whatsapp_number')->nullable()->after('user_id');
+            }
+
+            // Adiciona 'is_admin' apenas se não existir
+            if (!Schema::hasColumn('users', 'is_admin')) {
+                $table->boolean('is_admin')->default(false)->after('whatsapp_number');
+            }
         });
     }
 

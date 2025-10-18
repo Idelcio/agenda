@@ -12,13 +12,27 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('apibrasil_device_token')->nullable()->after('whatsapp_number');
-            $table->string('apibrasil_device_name')->nullable()->after('apibrasil_device_token');
-            $table->string('apibrasil_device_id')->nullable()->after('apibrasil_device_name');
-            $table->enum('apibrasil_qrcode_status', ['pending', 'connected', 'disconnected'])
-                  ->default('pending')
-                  ->after('apibrasil_device_id');
-            $table->boolean('apibrasil_setup_completed')->default(false)->after('apibrasil_qrcode_status');
+            if (!Schema::hasColumn('users', 'apibrasil_device_token')) {
+                $table->string('apibrasil_device_token')->nullable()->after('whatsapp_number');
+            }
+
+            if (!Schema::hasColumn('users', 'apibrasil_device_name')) {
+                $table->string('apibrasil_device_name')->nullable()->after('apibrasil_device_token');
+            }
+
+            if (!Schema::hasColumn('users', 'apibrasil_device_id')) {
+                $table->string('apibrasil_device_id')->nullable()->after('apibrasil_device_name');
+            }
+
+            if (!Schema::hasColumn('users', 'apibrasil_qrcode_status')) {
+                $table->enum('apibrasil_qrcode_status', ['pending', 'connected', 'disconnected'])
+                      ->default('pending')
+                      ->after('apibrasil_device_id');
+            }
+
+            if (!Schema::hasColumn('users', 'apibrasil_setup_completed')) {
+                $table->boolean('apibrasil_setup_completed')->default(false)->after('apibrasil_qrcode_status');
+            }
         });
     }
 
