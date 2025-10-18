@@ -134,7 +134,10 @@ class WhatsAppWebhookController extends Controller
         // 🔹 Cliente respondeu "1" → CONFIRMAR
         if (in_array($normalized, ['1', 'CONFIRMAR', 'SIM', 'OK'])) {
             if ($appointment) {
-                $appointment->update(['status' => 'confirmado']);
+                $appointment->update([
+                    'status' => 'confirmado',
+                    'status_lembrete' => 'respondido', // 🔹 Marca como respondido
+                ]);
 
                 Log::info('✅ Compromisso confirmado via WhatsApp', [
                     'appointment_id' => $appointment->id,
@@ -157,7 +160,10 @@ class WhatsAppWebhookController extends Controller
         if (in_array($normalized, ['2', 'CANCELAR', 'NAO', 'NÃO'])) {
             if ($appointment) {
                 $oldStatus = $appointment->status;
-                $appointment->update(['status' => 'cancelado']);
+                $appointment->update([
+                    'status' => 'cancelado',
+                    'status_lembrete' => 'respondido', // 🔹 Marca como respondido
+                ]);
 
                 $mensagemCancelamento = "❌ Seu atendimento de *{$appointment->titulo}* foi *CANCELADO* com sucesso!\n\n📅 Data: {$appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y H:i')}\n\n💬 Para remarcar, entre em contato conosco.";
 
