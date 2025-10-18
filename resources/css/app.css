@@ -1,3 +1,114 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    /* FullCalendar Base Styles */
+    .fc {
+        font-family: inherit;
+    }
+
+    .fc-theme-standard .fc-scrollgrid {
+        border-color: #e5e7eb;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #e5e7eb;
+    }
+
+    /* Calendar Container */
+    #fullcalendar {
+        @apply bg-white rounded-lg p-6 shadow-sm;
+    }
+
+    /* Toolbar */
+    .fc .fc-toolbar-title {
+        @apply text-xl font-bold text-gray-900;
+    }
+
+    .fc .fc-button {
+        @apply bg-blue-500 border-blue-500 text-white font-semibold px-4 py-2 rounded-md transition-colors;
+    }
+
+    .fc .fc-button:hover:not(:disabled) {
+        @apply bg-blue-600 border-blue-600;
+    }
+
+    .fc .fc-button:disabled {
+        @apply bg-gray-300 border-gray-300 cursor-not-allowed;
+    }
+
+    .fc .fc-button-active {
+        @apply bg-blue-700 border-blue-700;
+    }
+
+    /* Calendar Header */
+    .fc .fc-col-header-cell-cushion {
+        @apply font-bold text-gray-700 uppercase text-xs py-2;
+    }
+
+    /* Day Numbers */
+    .fc .fc-daygrid-day-number {
+        @apply font-semibold text-gray-700 py-1 px-2;
+    }
+
+    /* Today's Date */
+    .fc .fc-day-today {
+        @apply bg-blue-50;
+    }
+
+    /* Events */
+    .fc-event {
+        @apply rounded-md px-2 py-1 text-sm font-medium cursor-pointer transition-all border-l-4;
+    }
+
+    .fc-event:hover {
+        @apply opacity-90 shadow-md;
+    }
+
+    /* List View */
+    .fc .fc-list-event:hover td {
+        @apply bg-gray-50;
+    }
+
+    .fc .fc-list-event-time {
+        @apply font-semibold text-gray-700;
+    }
+
+    .fc .fc-list-event-title {
+        @apply font-medium;
+    }
+
+    /* Time Grid */
+    .fc-timegrid-slot {
+        height: 3rem;
+    }
+
+    .fc .fc-timegrid-slot-label {
+        @apply text-xs text-gray-600;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        #fullcalendar {
+            @apply p-3;
+        }
+
+        .fc .fc-toolbar {
+            @apply flex-col gap-2;
+        }
+
+        .fc .fc-toolbar-chunk {
+            @apply flex justify-center;
+        }
+
+        .fc .fc-button {
+            @apply text-xs px-3 py-1.5;
+        }
+
+        .fc .fc-toolbar-title {
+            @apply text-lg;
+        }
+    }
+}

@@ -6,7 +6,10 @@
       "Bash(mysql:*)",
       "Bash(tasklist:*)",
       "Bash(findstr:*)",
-      "Bash(timeout 60 php artisan:*)"
+      "Bash(timeout 60 php artisan:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

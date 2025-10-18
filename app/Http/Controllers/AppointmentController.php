@@ -69,10 +69,10 @@ class AppointmentController extends Controller
         $dueReminders = $dueReminderIds->isEmpty()
             ? collect()
             : $user->appointments()
-                ->with($relations)
-                ->whereIn('id', $dueReminderIds)
-                ->orderBy('lembrar_em')
-                ->get();
+            ->with($relations)
+            ->whereIn('id', $dueReminderIds)
+            ->orderBy('lembrar_em')
+            ->get();
 
         $upcoming = $user->appointments()
             ->with($relations)
@@ -104,7 +104,7 @@ class AppointmentController extends Controller
             ->with($relations)
             ->where('inicio', '<', $now->copy()->startOfDay())
             ->orderByDesc('inicio')
-            ->limit(10)
+            ->limit(5)
             ->get();
 
         $stats = [
