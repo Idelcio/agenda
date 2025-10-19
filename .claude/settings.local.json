@@ -11,7 +11,14 @@
       "Bash(npm run build:*)",
       "Bash(dir:*)",
       "Bash(composer show)",
-      "Bash(composer require barryvdh/laravel-dompdf)"
+      "Bash(composer require barryvdh/laravel-dompdf)",
+      "Bash(git log --name-only --pretty=format: --since=\"2 days ago\")",
+      "Bash(powershell -Command \"Get-Item ''app\\Services\\WhatsAppService.php'' | Select-Object Length, Name\")",
+      "Bash(copy /Y appServicesWhatsAppService_backup.php appServicesWhatsAppService.php)",
+      "Bash(del appServicesWhatsAppService_backup.php)",
+      "Bash(git add app/Services/WhatsAppService.php)",
+      "Bash(git commit -m \"Fix: Recupera WhatsAppService.php que estava vazio\")",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []
