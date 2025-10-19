@@ -40,10 +40,13 @@ class RegisteredUserController extends Controller
             'terms.accepted' => 'Você deve aceitar os Termos de Uso e Política de Privacidade para se registrar.',
         ]);
 
+        // Remove o sinal de + do número do WhatsApp antes de salvar
+        $whatsappNumber = preg_replace('/[^\d]/', '', $request->whatsapp_number);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'whatsapp_number' => $request->whatsapp_number,
+            'whatsapp_number' => $whatsappNumber,
             'password' => Hash::make($request->password),
             'tipo' => 'empresa', // Sempre empresa no registro público
         ]);

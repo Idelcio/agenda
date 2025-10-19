@@ -7,14 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Appointment extends Model
 {
     use HasFactory;
 
-    /**
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'destinatario_user_id',
@@ -33,9 +32,6 @@ class Appointment extends Model
         'status_lembrete',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'inicio' => 'datetime',
         'fim' => 'datetime',
@@ -45,17 +41,11 @@ class Appointment extends Model
         'lembrete_enviado_em' => 'datetime',
     ];
 
-    /**
-     * Relacionamento com o usuário (quem criou).
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Relacionamento com o destinatário (quem vai receber/responder).
-     */
     public function destinatario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'destinatario_user_id');
@@ -81,7 +71,7 @@ class Appointment extends Model
             return null;
         }
 
-        $digits = preg_replace('/\\D+/', '', $number);
+        $digits = preg_replace('/\D+/', '', $number);
 
         if ($digits === '') {
             return null;
@@ -94,36 +84,35 @@ class Appointment extends Model
         return '+' . $digits;
     }
 
-    /**
-     * Define se o compromisso está concluído.
-     */
     public function isCompleted(): bool
     {
         return $this->status === 'concluido';
     }
 
-    /**
-     * Escopo para compromissos futuros.
-     */
     public function scopeUpcoming($query)
     {
         return $query->where('inicio', '>=', now())->orderBy('inicio');
     }
 
     /**
-     * Escopo para compromissos que precisam de lembrete.
+     * 🔔 Escopo para compromissos que precisam de lembrete.
+     * Usa o horário do banco para evitar diferença de timezone.
      */
     public function scopeDueForReminder($query)
     {
+        $dbNow = DB::select('SELECT NOW() AS db_time')[0]->db_time;
+
+        Log::info('🔎 Verificando lembretes pendentes', [
+            'db_time' => $dbNow,
+        ]);
+
         return $query->where('notificar_whatsapp', true)
             ->where('status_lembrete', 'pendente')
             ->whereNotNull('lembrar_em')
-            ->where('lembrar_em', '<=', now());
+            ->where('lembrar_em', '<=', DB::raw('NOW()'));
     }
 
-    /**
-     * Define a data de lembrete com base na antecedência.
-     */
+
     public function computeReminderTime(?int $antecedenciaMinutos = null): void
     {
         if ($antecedenciaMinutos !== null && $this->inicio instanceof CarbonInterface) {
@@ -132,9 +121,6 @@ class Appointment extends Model
         }
     }
 
-    /**
-     * Marca o compromisso como lembrado.
-     */
     public function markAsReminded(): void
     {
         $this->lembrete_enviado_em = Carbon::now();
@@ -142,9 +128,6 @@ class Appointment extends Model
         $this->saveQuietly();
     }
 
-    /**
-     * Marca o lembrete como falhou no envio.
-     */
     public function markReminderAsFailed(): void
     {
         $this->status_lembrete = 'falhou';
@@ -154,5 +137,14 @@ class Appointment extends Model
     public function cliente()
     {
         return $this->belongsTo(User::class, 'cliente_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function ($appointment) {
+            if ($appointment->notificar_whatsapp && $appointment->inicio && $appointment->antecedencia_minutos) {
+                $appointment->computeReminderTime($appointment->antecedencia_minutos);
+            }
+        });
     }
 }
