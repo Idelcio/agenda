@@ -104,4 +104,38 @@ class User extends Authenticatable
         // Usuários filhos (clientes vinculados à empresa)
         return $this->hasMany(User::class, 'user_id');
     }
+
+    /**
+     * Assinaturas do usuário
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Assinatura ativa do usuário
+     */
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)
+            ->where('status', 'active')
+            ->where('expires_at', '>', now());
+    }
+
+    /**
+     * Pagamentos do usuário
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Verifica se o usuário tem assinatura ativa
+     */
+    public function hasActiveSubscription()
+    {
+        return $this->activeSubscription()->exists();
+    }
 }

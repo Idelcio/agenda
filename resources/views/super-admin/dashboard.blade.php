@@ -53,8 +53,8 @@
         <div class="stat-card danger">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="label">Requisições Mês</div>
-                    <div class="value">{{ number_format($totalRequisicoesMes, 0, ',', '.') }}</div>
+                    <div class="label">Mensagens enviadas (mês)</div>
+                    <div class="value">{{ number_format($totalMensagensMes, 0, ',', '.') }}</div>
                 </div>
                 <div class="icon">
                     <i class="fas fa-paper-plane"></i>
@@ -76,16 +76,63 @@
         </div>
     </div>
 
-    <!-- Gráfico de Requisições por Mês -->
+    <!-- Gráfico de Mensagens por mês -->
     <div class="col-md-6">
         <div class="stat-card">
             <h5 class="mb-3">
-                <i class="fas fa-chart-line text-success"></i> Requisições (Últimos 6 Meses)
+                <i class="fas fa-chart-line text-success"></i> Mensagens enviadas (últimos 6 meses)
             </h5>
-            <canvas id="chartRequisicoes"></canvas>
+            <canvas id="chartMensagens"></canvas>
         </div>
     </div>
 </div>
+
+@if($mensagensPorEmpresa->isNotEmpty())
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-envelope-open-text text-success"></i> Mensagens enviadas por empresa (mês atual)
+                </h5>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div style="min-height: 320px;">
+                        <canvas id="chartMensagensEmpresas"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="text-muted">#</th>
+                                    <th>Empresa</th>
+                                    <th class="text-end">Mensagens (mês)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($mensagensPorEmpresa as $index => $empresa)
+                                    <tr>
+                                        <td class="text-muted">{{ $index + 1 }}</td>
+                                        <td>{{ $empresa->name }}</td>
+                                        <td class="text-end">
+                                            <span class="badge bg-success">
+                                                {{ number_format($empresa->total, 0, ',', '.') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Empresas Recentes -->
 <div class="row">
@@ -185,15 +232,15 @@
         }
     });
 
-    // Gráfico de Requisições por Mês
-    const ctxRequisicoes = document.getElementById('chartRequisicoes').getContext('2d');
-    new Chart(ctxRequisicoes, {
+    // Gráfico de Mensagens por mês
+    const ctxMensagens = document.getElementById('chartMensagens').getContext('2d');
+    new Chart(ctxMensagens, {
         type: 'line',
         data: {
-            labels: {!! json_encode($requisicoesUltimosSeisMeses->pluck('mes')->toArray()) !!},
+            labels: {!! json_encode($mensagensUltimosSeisMeses->pluck('mes')->toArray()) !!},
             datasets: [{
-                label: 'Requisições',
-                data: {!! json_encode($requisicoesUltimosSeisMeses->pluck('total')->toArray()) !!},
+                label: 'Mensagens enviadas',
+                data: {!! json_encode($mensagensUltimosSeisMeses->pluck('total')->toArray()) !!},
                 borderColor: '#667eea',
                 backgroundColor: 'rgba(102, 126, 234, 0.1)',
                 borderWidth: 2,
@@ -216,5 +263,39 @@
             }
         }
     });
+
+    if (document.getElementById('chartMensagensEmpresas')) {
+        const ctxMensagensEmpresas = document.getElementById('chartMensagensEmpresas').getContext('2d');
+        new Chart(ctxMensagensEmpresas, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($mensagensPorEmpresa->take(12)->pluck('name')->toArray()) !!},
+                datasets: [{
+                    label: 'Mensagens enviadas',
+                    data: {!! json_encode($mensagensPorEmpresa->take(12)->pluck('total')->toArray()) !!},
+                    backgroundColor: 'rgba(37, 211, 102, 0.6)',
+                    borderColor: '#25D366',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 @endsection

@@ -414,7 +414,7 @@
                 <div class="step-card">
                     <div class="step-number">1</div>
                     <h3>Cadastre e conecte</h3>
-                    <p>Adicione seus clientes com nome e WhatsApp. No primeiro acesso, conecte sua conta usando QR Code. Ambos feitos apenas uma vez e seus dados ficam salvos.</p>
+                    <p>No primeiro acesso após o pagamento, nossa equipe técnica entrará em contato via WhatsApp para configurar suas credenciais e fazer a leitura do QR Code. Após isso, você já pode começar a cadastrar seus clientes!</p>
                 </div>
 
                 <div class="step-card">
@@ -450,7 +450,7 @@
         </section>
 
         <footer>
-            <p>Desenvolvido com Laravel e integração Evolution API. Sua agenda profissional totalmente automatizada.</p>
+            <p>Desenvolvido por <strong>Forest Desenvolvimento</strong></p>
             <p style="margin-top: 0.5rem;">
                 <a href="{{ route('terms') }}">Termos de Uso e Política de Privacidade</a>
             </p>

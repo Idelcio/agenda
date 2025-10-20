@@ -127,20 +127,16 @@
                     <td>{{ $totalClientes }}</td>
                 </tr>
                 <tr>
-                    <td><strong>Requisições (Mês):</strong></td>
-                    <td>
-                        <strong>{{ $empresa->requisicoes_mes_atual }}</strong> / {{ $empresa->limite_requisicoes_mes }}
-                        @php
-                            $percentual = $empresa->limite_requisicoes_mes > 0
-                                ? ($empresa->requisicoes_mes_atual / $empresa->limite_requisicoes_mes) * 100
-                                : 0;
-                        @endphp
-                        ({{ number_format($percentual, 1) }}%)
-                    </td>
+                    <td><strong>Mensagens enviadas (mês):</strong></td>
+                    <td>{{ number_format($mensagensMesAtual, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
-                    <td><strong>Total Requisições:</strong></td>
-                    <td>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</td>
+                    <td><strong>Total de mensagens enviadas:</strong></td>
+                    <td>{{ number_format($totalMensagens, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Mensagens (últimos 30 dias):</strong></td>
+                    <td>{{ number_format($mensagensUltimos30Dias, 0, ',', '.') }}</td>
                 </tr>
                 @if($empresa->valor_pago)
                     <tr>
@@ -165,13 +161,13 @@
         </div>
     </div>
 
-    <!-- Gráfico de Requisições -->
+    <!-- Gráfico de Mensagens -->
     <div class="col-md-6">
         <div class="stat-card">
             <h5 class="mb-3">
-                <i class="fas fa-chart-area text-success"></i> Requisições (Últimos 30 Dias)
+                <i class="fas fa-chart-area text-success"></i> Mensagens enviadas (últimos 30 dias)
             </h5>
-            <canvas id="chartRequisicoes"></canvas>
+            <canvas id="chartMensagensEmpresa"></canvas>
         </div>
     </div>
 </div>
@@ -209,15 +205,15 @@
 
 @section('scripts')
 <script>
-    // Gráfico de Requisições
-    const ctx = document.getElementById('chartRequisicoes').getContext('2d');
+    // Gráfico de mensagens enviadas
+    const ctx = document.getElementById('chartMensagensEmpresa').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($requisicoesUltimos30Dias->pluck('dia')->map(fn($d) => date('d/m', strtotime($d)))->toArray()) !!},
+            labels: {!! json_encode($mensagensPorDia->pluck('dia')->map(fn($d) => date('d/m', strtotime($d)))->toArray()) !!},
             datasets: [{
-                label: 'Requisições',
-                data: {!! json_encode($requisicoesUltimos30Dias->pluck('total')->toArray()) !!},
+                label: 'Mensagens enviadas',
+                data: {!! json_encode($mensagensPorDia->pluck('total')->toArray()) !!},
                 backgroundColor: 'rgba(102, 126, 234, 0.8)',
                 borderColor: '#667eea',
                 borderWidth: 1

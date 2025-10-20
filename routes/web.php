@@ -56,7 +56,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/setup-whatsapp/complete', [WhatsAppSetupController::class, 'completeSetup'])->name('setup-whatsapp.complete');
 });
 
-Route::middleware(['auth', 'verified', 'whatsapp.setup'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Rotas de Assinatura (autenticadas, sem middleware de assinatura)
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Web\SubscriptionWebController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/subscription/plans', [SubscriptionWebController::class, 'plans'])->name('subscription.plans');
+    Route::post('/subscription/checkout', [SubscriptionWebController::class, 'checkout'])->name('subscription.checkout');
+    Route::get('/subscription/current', [SubscriptionWebController::class, 'current'])->name('subscription.current');
+    Route::get('/subscription/history', [SubscriptionWebController::class, 'history'])->name('subscription.history');
+
+    // Rotas de retorno do Mercado Pago (não requerem assinatura)
+    Route::get('/payment/success', [SubscriptionWebController::class, 'success'])->name('payment.success');
+    Route::get('/payment/failure', [SubscriptionWebController::class, 'failure'])->name('payment.failure');
+    Route::get('/payment/pending', [SubscriptionWebController::class, 'pending'])->name('payment.pending');
+});
+
+Route::middleware(['auth', 'verified', 'subscription'])->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'index'])->name('dashboard');
     Route::get('/agenda/eventos', [AppointmentController::class, 'events'])->name('agenda.events');
     Route::get('/agenda/pdf-semanal', [AppointmentController::class, 'gerarPdfSemanal'])->name('agenda.pdf-semanal');

@@ -57,9 +57,9 @@
                     <th>Contato</th>
                     <th>Plano</th>
                     <th>Status</th>
-                    <th>Acesso Até</th>
-                    <th>Uso</th>
-                    <th class="text-center">Ações</th>
+                    <th>Acesso Ate</th>
+                    <th>Mensagens</th>
+                    <th class="text-center">Acoes</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,7 +70,7 @@
                                 <strong>{{ $empresa->name }}</strong>
                                 <br>
                                 <small class="text-muted">
-                                    {{ $empresa->appointments_count }} compromissos •
+                                    {{ $empresa->appointments_count }} compromissos Ã¢â‚¬Â¢
                                     {{ $empresa->clientes_count }} clientes
                                 </small>
                             </div>
@@ -114,20 +114,11 @@
                             @endif
                         </td>
                         <td>
-                            <div class="progress" style="height: 20px;">
-                                @php
-                                    $percentual = $empresa->limite_requisicoes_mes > 0
-                                        ? min(100, ($empresa->requisicoes_mes_atual / $empresa->limite_requisicoes_mes) * 100)
-                                        : 0;
-                                @endphp
-                                <div class="progress-bar
-                                    @if($percentual < 50) bg-success
-                                    @elseif($percentual < 80) bg-warning
-                                    @else bg-danger
-                                    @endif"
-                                     style="width: {{ $percentual }}%">
-                                    {{ $empresa->requisicoes_mes_atual }} / {{ $empresa->limite_requisicoes_mes }}
-                                </div>
+                            <div class="fw-semibold">
+                                {{ number_format($empresa->total_mensagens ?? 0, 0, ',', '.') }} mensagens
+                            </div>
+                            <div class="small text-muted">
+                                Mes atual: {{ number_format($empresa->mensagens_mes ?? 0, 0, ',', '.') }}
                             </div>
                         </td>
                         <td class="text-center">

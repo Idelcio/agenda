@@ -17,7 +17,7 @@ class SuperAdminController extends Controller
      */
     public function index()
     {
-        // 🔹 Estatísticas gerais
+        // Estatisticas gerais
         $totalEmpresas = User::where('tipo', 'empresa')->count();
         $empresasAtivas = User::where('tipo', 'empresa')
             ->where('acesso_ativo', true)
@@ -26,38 +26,63 @@ class SuperAdminController extends Controller
             ->where('acesso_ativo', true)
             ->where('acesso_liberado_ate', '<', now())
             ->count();
-        $totalRequisicoesMes = User::where('tipo', 'empresa')->sum('requisicoes_mes_atual');
+        $mensagensQueryBase = Appointment::where('status_lembrete', 'enviado')
+            ->whereNotNull('whatsapp_mensagem')
+            ->whereNotNull('lembrete_enviado_em');
 
-        // 🔹 Empresas recentes
+        $totalMensagensMes = (clone $mensagensQueryBase)
+            ->where('lembrete_enviado_em', '>=', now()->startOfMonth())
+            ->count();
+
+        // Empresas recentes
         $empresasRecentes = User::where('tipo', 'empresa')
             ->latest()
             ->limit(10)
             ->get();
 
-        // 🔹 Dados para gráficos
+        // Dados para graficos
         $empresasPorPlano = User::where('tipo', 'empresa')
             ->select('plano', DB::raw('count(*) as total'))
             ->groupBy('plano')
             ->get();
 
-        // 🔹 Requisições por mês (últimos 6 meses)
-        $requisicoesUltimosSeisMeses = ChatbotMessage::select(
-            DB::raw('DATE_FORMAT(created_at, "%Y-%m") as mes'),
+        // Mensagens enviadas por mes (ultimos 6 meses)
+        $mensagensUltimosSeisMeses = Appointment::select(
+            DB::raw('DATE_FORMAT(lembrete_enviado_em, "%Y-%m") as mes'),
             DB::raw('count(*) as total')
         )
-            ->where('created_at', '>=', now()->subMonths(6))
+            ->where('status_lembrete', 'enviado')
+            ->whereNotNull('whatsapp_mensagem')
+            ->whereNotNull('lembrete_enviado_em')
+            ->where('lembrete_enviado_em', '>=', now()->subMonths(6)->startOfMonth())
             ->groupBy('mes')
             ->orderBy('mes')
+            ->get();
+
+        $mensagensPorEmpresa = Appointment::select(
+                'users.id',
+                'users.name',
+                DB::raw('COUNT(appointments.id) as total')
+            )
+            ->join('users', 'appointments.user_id', '=', 'users.id')
+            ->where('users.tipo', 'empresa')
+            ->where('appointments.status_lembrete', 'enviado')
+            ->whereNotNull('appointments.whatsapp_mensagem')
+            ->whereNotNull('appointments.lembrete_enviado_em')
+            ->where('appointments.lembrete_enviado_em', '>=', now()->startOfMonth())
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total')
             ->get();
 
         return view('super-admin.dashboard', compact(
             'totalEmpresas',
             'empresasAtivas',
             'empresasVencidas',
-            'totalRequisicoesMes',
+            'totalMensagensMes',
             'empresasRecentes',
             'empresasPorPlano',
-            'requisicoesUltimosSeisMeses'
+            'mensagensUltimosSeisMeses',
+            'mensagensPorEmpresa'
         ));
     }
 
@@ -68,7 +93,7 @@ class SuperAdminController extends Controller
     {
         $query = User::where('tipo', 'empresa');
 
-        // 🔹 Filtros
+        // Filtros
         if ($request->filled('status')) {
             if ($request->status === 'ativas') {
                 $query->where('acesso_ativo', true)
@@ -101,11 +126,41 @@ class SuperAdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
+        $empresaIds = $empresas->pluck('id');
+
+        if ($empresaIds->isNotEmpty()) {
+            $mensagensTotais = Appointment::select('user_id', DB::raw('COUNT(*) as total'))
+                ->whereIn('user_id', $empresaIds)
+                ->where('status_lembrete', 'enviado')
+                ->whereNotNull('whatsapp_mensagem')
+                ->whereNotNull('lembrete_enviado_em')
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+
+            $mensagensMes = Appointment::select('user_id', DB::raw('COUNT(*) as total'))
+                ->whereIn('user_id', $empresaIds)
+                ->where('status_lembrete', 'enviado')
+                ->whereNotNull('whatsapp_mensagem')
+                ->whereNotNull('lembrete_enviado_em')
+                ->where('lembrete_enviado_em', '>=', now()->startOfMonth())
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+
+            $empresas->getCollection()->transform(function ($empresa) use ($mensagensTotais, $mensagensMes) {
+                $empresa->total_mensagens = (int) ($mensagensTotais[$empresa->id]->total ?? 0);
+                $empresa->mensagens_mes = (int) ($mensagensMes[$empresa->id]->total ?? 0);
+
+                return $empresa;
+            });
+        }
+
         return view('super-admin.empresas.index', compact('empresas'));
     }
 
     /**
-     * Detalhes de uma empresa específica
+     * Detalhes de uma empresa especifica
      */
     public function empresaDetalhes($id)
     {
@@ -113,24 +168,33 @@ class SuperAdminController extends Controller
             ->with(['appointments', 'clientes'])
             ->findOrFail($id);
 
-        // 🔹 Estatísticas da empresa
+        // Estatisticas da empresa
         $totalCompromissos = $empresa->appointments()->count();
         $compromissosConfirmados = $empresa->appointments()->where('status', 'confirmado')->count();
         $compromissosCancelados = $empresa->appointments()->where('status', 'cancelado')->count();
         $totalClientes = $empresa->clientes()->count();
 
-        // 🔹 Mensagens dos últimos 30 dias
-        $mensagensUltimos30Dias = ChatbotMessage::where('user_id', $id)
-            ->where('created_at', '>=', now()->subDays(30))
+        $mensagensBase = Appointment::where('user_id', $id)
+            ->where('status_lembrete', 'enviado')
+            ->whereNotNull('whatsapp_mensagem')
+            ->whereNotNull('lembrete_enviado_em');
+
+        $mensagensUltimos30Dias = (clone $mensagensBase)
+            ->where('lembrete_enviado_em', '>=', now()->subDays(30))
             ->count();
 
-        // 🔹 Gráfico de requisições por dia (últimos 30 dias)
-        $requisicoesUltimos30Dias = ChatbotMessage::where('user_id', $id)
+        $mensagensMesAtual = (clone $mensagensBase)
+            ->where('lembrete_enviado_em', '>=', now()->startOfMonth())
+            ->count();
+
+        $totalMensagens = (clone $mensagensBase)->count();
+
+        $mensagensPorDia = (clone $mensagensBase)
+            ->where('lembrete_enviado_em', '>=', now()->subDays(30))
             ->select(
-                DB::raw('DATE(created_at) as dia'),
+                DB::raw('DATE(lembrete_enviado_em) as dia'),
                 DB::raw('count(*) as total')
             )
-            ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('dia')
             ->orderBy('dia')
             ->get();
@@ -142,7 +206,9 @@ class SuperAdminController extends Controller
             'compromissosCancelados',
             'totalClientes',
             'mensagensUltimos30Dias',
-            'requisicoesUltimos30Dias'
+            'mensagensMesAtual',
+            'totalMensagens',
+            'mensagensPorDia'
         ));
     }
 
@@ -182,7 +248,7 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Liberar acesso temporário (trial)
+     * Liberar acesso temporario (trial)
      */
     public function liberarAcessoTrial(Request $request, $id)
     {
@@ -227,7 +293,7 @@ class SuperAdminController extends Controller
     {
         $empresa = User::where('tipo', 'empresa')->findOrFail($id);
 
-        // 🔹 Deleta todos os relacionamentos
+        // Deleta todos os relacionamentos
         $empresa->appointments()->delete();
         $empresa->clientes()->delete();
         ChatbotMessage::where('user_id', $id)->delete();
@@ -240,7 +306,7 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Resetar contador de requisições
+     * Resetar contador de requisicoes
      */
     public function resetarRequisicoes($id)
     {
@@ -253,24 +319,48 @@ class SuperAdminController extends Controller
 
         return redirect()
             ->route('super-admin.empresas.detalhes', $id)
-            ->with('success', 'Contador de requisições resetado!');
+            ->with('success', 'Contador de requisicoes resetado!');
     }
 
     /**
-     * Relatórios e Analytics
+     * Relatorios e Analytics
      */
     public function relatorios()
     {
-        // 🔹 Total de requisições por empresa (top 10)
-        $topEmpresas = User::where('tipo', 'empresa')
-            ->orderBy('total_requisicoes', 'desc')
-            ->limit(10)
-            ->get();
+        // Estatisticas de mensagens por empresa (top 10)
+        $mensagensTotais = Appointment::select('user_id', DB::raw('COUNT(*) as total'))
+            ->where('status_lembrete', 'enviado')
+            ->whereNotNull('whatsapp_mensagem')
+            ->whereNotNull('lembrete_enviado_em')
+            ->groupBy('user_id')
+            ->get()
+            ->keyBy('user_id');
 
-        // 🔹 Receita total
+        $mensagensMesAtual = Appointment::select('user_id', DB::raw('COUNT(*) as total'))
+            ->where('status_lembrete', 'enviado')
+            ->whereNotNull('whatsapp_mensagem')
+            ->whereNotNull('lembrete_enviado_em')
+            ->where('lembrete_enviado_em', '>=', now()->startOfMonth())
+            ->groupBy('user_id')
+            ->get()
+            ->keyBy('user_id');
+
+        $todasEmpresas = User::where('tipo', 'empresa')
+            ->get()
+            ->map(function ($empresa) use ($mensagensTotais, $mensagensMesAtual) {
+                $empresa->total_mensagens = (int) ($mensagensTotais[$empresa->id]->total ?? 0);
+                $empresa->mensagens_mes = (int) ($mensagensMesAtual[$empresa->id]->total ?? 0);
+                return $empresa;
+            })
+            ->sortByDesc('total_mensagens')
+            ->values();
+
+        $topEmpresas = $todasEmpresas->take(10);
+
+        // Receita total
         $receitaTotal = User::where('tipo', 'empresa')->sum('valor_pago');
 
-        // 🔹 Receita por mês (últimos 12 meses)
+        // Receita por mes (ultimos 12 meses)
         $receitaPorMes = User::where('tipo', 'empresa')
             ->select(
                 DB::raw('DATE_FORMAT(data_ultimo_pagamento, "%Y-%m") as mes'),
@@ -284,6 +374,7 @@ class SuperAdminController extends Controller
 
         return view('super-admin.relatorios', compact(
             'topEmpresas',
+            'todasEmpresas',
             'receitaTotal',
             'receitaPorMes'
         ));

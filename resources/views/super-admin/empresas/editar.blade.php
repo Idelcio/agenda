@@ -73,9 +73,9 @@
                         <small class="text-muted">Deixe em branco para acesso ilimitado</small>
                     </div>
 
-                    <!-- Limite de Requisições -->
+                    <!-- Limite de Mensagens -->
                     <div class="col-md-6">
-                        <label class="form-label">Limite de Requisições/Mês *</label>
+                        <label class="form-label">Limite de mensagens/mês *</label>
                         <input type="number" name="limite_requisicoes_mes"
                                class="form-control @error('limite_requisicoes_mes') is-invalid @enderror"
                                value="{{ old('limite_requisicoes_mes', $empresa->limite_requisicoes_mes) }}"
@@ -105,8 +105,8 @@
                         <div class="alert alert-info">
                             <strong><i class="fas fa-info-circle"></i> Informações:</strong><br>
                             <small>
-                                • Requisições no mês atual: <strong>{{ $empresa->requisicoes_mes_atual }}</strong><br>
-                                • Total de requisições: <strong>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</strong><br>
+                                • Mensagens enviadas no mês atual: <strong>{{ $empresa->requisicoes_mes_atual }}</strong><br>
+                                • Total de mensagens enviadas: <strong>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</strong><br>
                                 • Cadastrado em: <strong>{{ $empresa->created_at->format('d/m/Y H:i') }}</strong>
                             </small>
                         </div>

@@ -55,7 +55,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Redireciona para setup do WhatsApp ao invés da agenda
-        return redirect()->route('setup-whatsapp.index');
+        // Redireciona para escolher plano após registro
+        return redirect()->route('subscription.plans')
+            ->with('welcome', 'Bem-vindo! Escolha seu plano para começar a usar a plataforma.');
     }
 }

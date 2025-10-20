@@ -46,16 +46,16 @@
             @endif
 
             {{-- Estatísticas Principais --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div
-                    class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-md sm:rounded-lg border-l-4 border-blue-500">
+                    class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 shadow-md sm:rounded-lg border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase font-semibold text-blue-600">Total de Compromissos</p>
-                            <p class="text-3xl font-bold text-blue-900 mt-2">{{ $stats['total'] }}</p>
+                            <p class="text-2xl font-bold text-blue-900 mt-2">{{ $stats['total'] }}</p>
                         </div>
-                        <div class="bg-blue-500 p-3 rounded-full">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-blue-500 p-2 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
@@ -64,14 +64,14 @@
                 </div>
 
                 <div
-                    class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 shadow-md sm:rounded-lg border-l-4 border-amber-500">
+                    class="bg-gradient-to-br from-amber-50 to-amber-100 p-5 shadow-md sm:rounded-lg border-l-4 border-amber-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase font-semibold text-amber-600">Pendentes</p>
-                            <p class="text-3xl font-bold text-amber-900 mt-2">{{ $stats['pendentes'] }}</p>
+                            <p class="text-2xl font-bold text-amber-900 mt-2">{{ $stats['pendentes'] }}</p>
                         </div>
-                        <div class="bg-amber-500 p-3 rounded-full">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-amber-500 p-2 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -80,14 +80,14 @@
                 </div>
 
                 <div
-                    class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 shadow-md sm:rounded-lg border-l-4 border-emerald-500">
+                    class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 shadow-md sm:rounded-lg border-l-4 border-emerald-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase font-semibold text-emerald-600">Confirmados</p>
-                            <p class="text-3xl font-bold text-emerald-900 mt-2">{{ $stats['confirmados'] }}</p>
+                            <p class="text-2xl font-bold text-emerald-900 mt-2">{{ $stats['confirmados'] }}</p>
                         </div>
-                        <div class="bg-emerald-500 p-3 rounded-full">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-emerald-500 p-2 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -96,14 +96,14 @@
                 </div>
 
                 <div
-                    class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-md sm:rounded-lg border-l-4 border-purple-500">
+                    class="bg-gradient-to-br from-purple-50 to-purple-100 p-5 shadow-md sm:rounded-lg border-l-4 border-purple-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs uppercase font-semibold text-purple-600">Concluídos</p>
-                            <p class="text-3xl font-bold text-purple-900 mt-2">{{ $stats['concluidos'] }}</p>
+                            <p class="text-xs uppercase font-semibold text-purple-600">Concluidos</p>
+                            <p class="text-2xl font-bold text-purple-900 mt-2">{{ $stats['concluidos'] }}</p>
                         </div>
-                        <div class="bg-purple-500 p-3 rounded-full">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-purple-500 p-2 rounded-full">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7" />
                             </svg>

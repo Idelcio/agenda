@@ -1,5 +1,7 @@
 @extends('super-admin.layouts.app')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('title', 'Relatórios')
 @section('page-title', 'Relatórios e Analytics')
 @section('page-subtitle', 'Estatísticas detalhadas do sistema')
@@ -72,7 +74,7 @@
     <div class="col-md-4">
         <div class="stat-card">
             <h5 class="mb-3">
-                <i class="fas fa-trophy text-warning"></i> Top 10 - Requisições
+                <i class="fas fa-trophy text-warning"></i> Top 10 - Mensagens enviadas
             </h5>
             <div class="table-responsive">
                 <table class="table table-sm">
@@ -102,7 +104,7 @@
                                 </td>
                                 <td class="text-end">
                                     <span class="badge bg-primary">
-                                        {{ number_format($empresa->total_requisicoes, 0, ',', '.') }}
+                                        {{ number_format($empresa->total_mensagens ?? 0, 0, ',', '.') }}
                                     </span>
                                 </td>
                             </tr>
@@ -134,20 +136,14 @@
                         <tr>
                             <th>Empresa</th>
                             <th>Plano</th>
-                            <th class="text-end">Requisições/Mês</th>
-                            <th class="text-end">Total Requisições</th>
+                            <th class="text-end">Mensagens (mês)</th>
+                            <th class="text-end">Mensagens (total)</th>
                             <th class="text-end">Valor Pago</th>
                             <th>Status</th>
                             <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            $todasEmpresas = \App\Models\User::where('tipo', 'empresa')
-                                ->orderBy('total_requisicoes', 'desc')
-                                ->get();
-                        @endphp
-
                         @forelse($todasEmpresas as $empresa)
                             <tr>
                                 <td>
@@ -159,20 +155,10 @@
                                     <span class="badge bg-info">{{ strtoupper($empresa->plano) }}</span>
                                 </td>
                                 <td class="text-end">
-                                    <strong>{{ $empresa->requisicoes_mes_atual }}</strong>
-                                    / {{ $empresa->limite_requisicoes_mes }}
-                                    <br>
-                                    <small class="text-muted">
-                                        @php
-                                            $percentual = $empresa->limite_requisicoes_mes > 0
-                                                ? ($empresa->requisicoes_mes_atual / $empresa->limite_requisicoes_mes) * 100
-                                                : 0;
-                                        @endphp
-                                        ({{ number_format($percentual, 1) }}%)
-                                    </small>
+                                    <strong>{{ number_format($empresa->mensagens_mes ?? 0, 0, ',', '.') }}</strong>
                                 </td>
                                 <td class="text-end">
-                                    <strong>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</strong>
+                                    <strong>{{ number_format($empresa->total_mensagens ?? 0, 0, ',', '.') }}</strong>
                                 </td>
                                 <td class="text-end">
                                     @if($empresa->valor_pago)
@@ -214,9 +200,12 @@
                     </tbody>
                     <tfoot>
                         <tr class="table-light">
-                            <td colspan="3"><strong>TOTAL</strong></td>
+                            <td colspan="2"><strong>TOTAL</strong></td>
                             <td class="text-end">
-                                <strong>{{ number_format($todasEmpresas->sum('total_requisicoes'), 0, ',', '.') }}</strong>
+                                <strong>{{ number_format($todasEmpresas->sum('mensagens_mes'), 0, ',', '.') }}</strong>
+                            </td>
+                            <td class="text-end">
+                                <strong>{{ number_format($todasEmpresas->sum('total_mensagens'), 0, ',', '.') }}</strong>
                             </td>
                             <td class="text-end">
                                 <strong>R$ {{ number_format($todasEmpresas->sum('valor_pago'), 2, ',', '.') }}</strong>
