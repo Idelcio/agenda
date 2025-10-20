@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\MercadoPagoService;
+use App\Services\PlanService;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionWebController extends Controller
 {
     private $mercadoPagoService;
+    private $planService;
 
-    public function __construct(MercadoPagoService $mercadoPagoService)
+    public function __construct(MercadoPagoService $mercadoPagoService, PlanService $planService)
     {
         $this->mercadoPagoService = $mercadoPagoService;
+        $this->planService = $planService;
     }
 
     /**
@@ -21,7 +24,7 @@ class SubscriptionWebController extends Controller
      */
     public function plans()
     {
-        $plans = config('mercadopago.plans');
+        $plans = $this->planService->all();
         $user = Auth::user();
 
         // Verifica se já tem assinatura ativa
@@ -41,7 +44,12 @@ class SubscriptionWebController extends Controller
 
         $user = Auth::user();
         $planType = $request->plan_type;
-        $plans = config('mercadopago.plans');
+        $plans = $this->planService->all();
+
+        // Verifica se o plano existe
+        if (!isset($plans[$planType])) {
+            return back()->with('error', 'Plano não encontrado.');
+        }
 
         // Verifica se já existe uma assinatura ativa
         if ($this->mercadoPagoService->hasActiveSubscription($user->id)) {
@@ -49,7 +57,16 @@ class SubscriptionWebController extends Controller
                 ->with('error', 'Você já possui uma assinatura ativa.');
         }
 
-        $amount = $plans[$planType]['price'];
+        // Calcula o valor final com desconto aplicado
+        $plan = $plans[$planType];
+        $amount = $plan['price'];
+
+        if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0) {
+            $amount = $amount * (1 - $plan['discount_percent'] / 100);
+        }
+
+        // Arredonda para 2 casas decimais
+        $amount = round($amount, 2);
 
         // Cria a preference no Mercado Pago
         $preference = $this->mercadoPagoService->createPreference($user, $planType, $amount);

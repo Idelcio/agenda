@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\MercadoPagoService;
+use App\Services\PlanService;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -11,10 +12,12 @@ use Illuminate\Support\Facades\Log;
 class SubscriptionController extends Controller
 {
     private $mercadoPagoService;
+    private $planService;
 
-    public function __construct(MercadoPagoService $mercadoPagoService)
+    public function __construct(MercadoPagoService $mercadoPagoService, PlanService $planService)
     {
         $this->mercadoPagoService = $mercadoPagoService;
+        $this->planService = $planService;
     }
 
     /**
@@ -22,7 +25,7 @@ class SubscriptionController extends Controller
      */
     public function plans()
     {
-        $plans = config('mercadopago.plans');
+        $plans = $this->planService->all();
 
         return response()->json([
             'success' => true,
@@ -41,7 +44,7 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
         $planType = $request->plan_type;
-        $plans = config('mercadopago.plans');
+        $plans = $this->planService->all();
 
         // Verifica se o plano existe
         if (!isset($plans[$planType])) {
@@ -51,7 +54,16 @@ class SubscriptionController extends Controller
             ], 400);
         }
 
-        $amount = $plans[$planType]['price'];
+        // Calcula o valor final com desconto aplicado
+        $plan = $plans[$planType];
+        $amount = $plan['price'];
+
+        if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0) {
+            $amount = $amount * (1 - $plan['discount_percent'] / 100);
+        }
+
+        // Arredonda para 2 casas decimais
+        $amount = round($amount, 2);
 
         // Verifica se já existe uma assinatura ativa
         if ($this->mercadoPagoService->hasActiveSubscription($user->id)) {

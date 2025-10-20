@@ -25,6 +25,13 @@ class User extends Authenticatable
         'is_admin',
         'tipo',
         'user_id',
+        'plano',
+        'acesso_ativo',
+        'acesso_liberado_ate',
+        'limite_requisicoes_mes',
+        'requisicoes_mes_atual',
+        'valor_pago',
+        'observacoes_admin',
         'apibrasil_device_token',
         'apibrasil_device_name',
         'apibrasil_device_id',
@@ -50,6 +57,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_admin' => 'boolean',
+        'acesso_ativo' => 'boolean',
+        'acesso_liberado_ate' => 'datetime',
+        'valor_pago' => 'decimal:2',
         'apibrasil_setup_completed' => 'boolean',
     ];
 

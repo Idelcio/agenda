@@ -30,11 +30,11 @@
                 <label class="form-label">Plano</label>
                 <select name="plano" class="form-select">
                     <option value="">Todos</option>
-                    <option value="trial" {{ request('plano') === 'trial' ? 'selected' : '' }}>Trial</option>
-                    <option value="mensal" {{ request('plano') === 'mensal' ? 'selected' : '' }}>Mensal</option>
-                    <option value="trimestral" {{ request('plano') === 'trimestral' ? 'selected' : '' }}>Trimestral</option>
-                    <option value="semestral" {{ request('plano') === 'semestral' ? 'selected' : '' }}>Semestral</option>
-                    <option value="anual" {{ request('plano') === 'anual' ? 'selected' : '' }}>Anual</option>
+                    <option value="trial" {{ request('plano') === 'trial' ? 'selected' : '' }}>Trial (Teste)</option>
+                    <option value="monthly" {{ request('plano') === 'monthly' ? 'selected' : '' }}>Plano Mensal</option>
+                    <option value="quarterly" {{ request('plano') === 'quarterly' ? 'selected' : '' }}>Plano Trimestral</option>
+                    <option value="semiannual" {{ request('plano') === 'semiannual' ? 'selected' : '' }}>Plano Semestral</option>
+                    <option value="annual" {{ request('plano') === 'annual' ? 'selected' : '' }}>Plano Anual</option>
                 </select>
             </div>
 
@@ -85,7 +85,17 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-info">{{ strtoupper($empresa->plano) }}</span>
+                            @php
+                                $planoNomes = [
+                                    'trial' => 'Trial',
+                                    'monthly' => 'Mensal',
+                                    'quarterly' => 'Trimestral',
+                                    'semiannual' => 'Semestral',
+                                    'annual' => 'Anual',
+                                ];
+                                $planoNome = $planoNomes[$empresa->plano] ?? strtoupper($empresa->plano);
+                            @endphp
+                            <span class="badge bg-info">{{ $planoNome }}</span>
                         </td>
                         <td>
                             @if($empresa->acesso_ativo && (!$empresa->acesso_liberado_ate || $empresa->acesso_liberado_ate >= now()))

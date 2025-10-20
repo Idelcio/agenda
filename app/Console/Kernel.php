@@ -15,14 +15,15 @@ class Kernel extends ConsoleKernel
         // 🕐 Envia lembretes automaticamente a cada minuto
         $schedule->command('agenda:disparar-lembretes')
             ->everyMinute()
-            ->appendOutputTo(storage_path('logs/schedule.log'));
+            ->withoutOverlapping(2)
+            ->appendOutputTo(storage_path('logs/disparar.log'));
 
-        // 🔄 Sincroniza respostas do WhatsApp a cada 5 minutos
+        // 🔄 Sincroniza respostas do WhatsApp a cada minuto
         $schedule->command('agenda:sincronizar-respostas')
-            ->everyFiveMinutes()
-            ->appendOutputTo(storage_path('logs/schedule.log'));
+            ->everyMinute()
+            ->withoutOverlapping(2)
+            ->appendOutputTo(storage_path('logs/sincronizar.log'));
     }
-
 
     /**
      * Register the commands for the application.

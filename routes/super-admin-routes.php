@@ -28,4 +28,9 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super.a
 
     // Relatórios
     Route::get('/relatorios', [SuperAdminController::class, 'relatorios'])->name('relatorios');
+
+    // Planos de Assinatura
+    Route::get('/planos', [SuperAdminController::class, 'planos'])->name('planos');
+    Route::get('/planos/{slug}/editar', [SuperAdminController::class, 'planoEditar'])->name('planos.editar');
+    Route::put('/planos/{slug}', [SuperAdminController::class, 'planoAtualizar'])->name('planos.atualizar');
 });

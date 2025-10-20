@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,9 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <style>
         :root {
@@ -34,7 +38,7 @@
             width: var(--sidebar-width);
             background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
             padding-top: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
 
@@ -44,12 +48,12 @@
             color: white;
             font-size: 24px;
             font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
 
         .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             padding: 12px 25px;
             margin: 5px 15px;
             border-radius: 8px;
@@ -58,7 +62,7 @@
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             color: white;
         }
 
@@ -77,7 +81,7 @@
             background: white;
             padding: 15px 30px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
@@ -88,7 +92,7 @@
             background: white;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s;
         }
 
@@ -107,10 +111,21 @@
             color: white;
         }
 
-        .stat-card.primary .icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .stat-card.success .icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .stat-card.warning .icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .stat-card.danger .icon { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .stat-card.primary .icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card.success .icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.warning .icon {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-card.danger .icon {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
 
         .stat-card .value {
             font-size: 32px;
@@ -148,6 +163,7 @@
 
     @yield('styles')
 </head>
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -156,13 +172,20 @@
         </div>
 
         <nav class="nav flex-column">
-            <a class="nav-link {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}" href="{{ route('super-admin.dashboard') }}">
+            <a class="nav-link {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}"
+                href="{{ route('super-admin.dashboard') }}">
                 <i class="fas fa-home"></i> Dashboard
             </a>
-            <a class="nav-link {{ request()->routeIs('super-admin.empresas*') ? 'active' : '' }}" href="{{ route('super-admin.empresas') }}">
+            <a class="nav-link {{ request()->routeIs('super-admin.empresas*') ? 'active' : '' }}"
+                href="{{ route('super-admin.empresas') }}">
                 <i class="fas fa-building"></i> Empresas
             </a>
-            <a class="nav-link {{ request()->routeIs('super-admin.relatorios') ? 'active' : '' }}" href="{{ route('super-admin.relatorios') }}">
+            <a class="nav-link {{ request()->routeIs('super-admin.planos*') ? 'active' : '' }}"
+                href="{{ route('super-admin.planos') }}">
+                <i class="fas fa-tags"></i> Planos
+            </a>
+            <a class="nav-link {{ request()->routeIs('super-admin.relatorios') ? 'active' : '' }}"
+                href="{{ route('super-admin.relatorios') }}">
                 <i class="fas fa-chart-line"></i> Relatórios
             </a>
 
@@ -172,7 +195,7 @@
                 <i class="fas fa-arrow-left"></i> Voltar ao Sistema
             </a>
             <a class="nav-link" href="{{ route('logout') }}"
-               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <i class="fas fa-sign-out-alt"></i> Sair
             </a>
         </nav>
@@ -198,14 +221,14 @@
         </div>
 
         <!-- Alerts -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle"></i> {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -221,4 +244,5 @@
 
     @yield('scripts')
 </body>
+
 </html>

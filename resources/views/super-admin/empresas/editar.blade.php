@@ -45,11 +45,11 @@
                     <div class="col-md-6">
                         <label class="form-label">Plano *</label>
                         <select name="plano" class="form-select @error('plano') is-invalid @enderror" required>
-                            <option value="trial" {{ old('plano', $empresa->plano) === 'trial' ? 'selected' : '' }}>Trial</option>
-                            <option value="mensal" {{ old('plano', $empresa->plano) === 'mensal' ? 'selected' : '' }}>Mensal</option>
-                            <option value="trimestral" {{ old('plano', $empresa->plano) === 'trimestral' ? 'selected' : '' }}>Trimestral</option>
-                            <option value="semestral" {{ old('plano', $empresa->plano) === 'semestral' ? 'selected' : '' }}>Semestral</option>
-                            <option value="anual" {{ old('plano', $empresa->plano) === 'anual' ? 'selected' : '' }}>Anual</option>
+                            <option value="trial" {{ old('plano', $empresa->plano) === 'trial' ? 'selected' : '' }}>Trial (Teste)</option>
+                            <option value="monthly" {{ old('plano', $empresa->plano) === 'monthly' ? 'selected' : '' }}>Plano Mensal</option>
+                            <option value="quarterly" {{ old('plano', $empresa->plano) === 'quarterly' ? 'selected' : '' }}>Plano Trimestral</option>
+                            <option value="semiannual" {{ old('plano', $empresa->plano) === 'semiannual' ? 'selected' : '' }}>Plano Semestral</option>
+                            <option value="annual" {{ old('plano', $empresa->plano) === 'annual' ? 'selected' : '' }}>Plano Anual</option>
                         </select>
                         @error('plano')
                             <div class="invalid-feedback">{{ $message }}</div>

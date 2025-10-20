@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\ChatbotMessage;
+use App\Services\PlanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -232,13 +233,16 @@ class SuperAdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'whatsapp_number' => 'nullable|string|max:20',
-            'acesso_ativo' => 'boolean',
+            'acesso_ativo' => 'nullable|boolean',
             'acesso_liberado_ate' => 'nullable|date',
-            'plano' => 'required|in:trial,mensal,trimestral,semestral,anual',
+            'plano' => 'required|in:trial,monthly,quarterly,semiannual,annual',
             'limite_requisicoes_mes' => 'required|integer|min:0',
             'valor_pago' => 'nullable|numeric|min:0',
             'observacoes_admin' => 'nullable|string',
         ]);
+
+        // Garante que acesso_ativo seja boolean
+        $validated['acesso_ativo'] = $request->has('acesso_ativo') ? (bool) $request->acesso_ativo : false;
 
         $empresa->update($validated);
 
@@ -378,5 +382,56 @@ class SuperAdminController extends Controller
             'receitaTotal',
             'receitaPorMes'
         ));
+    }
+
+    /**
+     * Lista todos os planos de assinatura
+     */
+    public function planos(PlanService $planService)
+    {
+        $plans = $planService->all();
+
+        return view('super-admin.planos.index', compact('plans'));
+    }
+
+    /**
+     * Editar um plano específico
+     */
+    public function planoEditar($slug, PlanService $planService)
+    {
+        $plans = $planService->all();
+
+        if (!isset($plans[$slug])) {
+            return redirect()
+                ->route('super-admin.planos')
+                ->with('error', 'Plano não encontrado!');
+        }
+
+        $plan = array_merge(['slug' => $slug], $plans[$slug]);
+
+        return view('super-admin.planos.editar', compact('plan'));
+    }
+
+    /**
+     * Atualizar um plano
+     */
+    public function planoAtualizar(Request $request, $slug, PlanService $planService)
+    {
+        $validated = $request->validate([
+            'price' => 'required|numeric|min:0',
+            'discount_percent' => 'required|integer|min:0|max:100',
+        ]);
+
+        try {
+            $planService->update($slug, $validated);
+
+            return redirect()
+                ->route('super-admin.planos')
+                ->with('success', 'Plano atualizado com sucesso!');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()
+                ->route('super-admin.planos')
+                ->with('error', $e->getMessage());
+        }
     }
 }

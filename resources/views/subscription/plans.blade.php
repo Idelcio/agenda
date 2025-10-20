@@ -385,6 +385,14 @@
 
         <div class="plans-grid">
             @foreach($plans as $key => $plan)
+            @php
+                // Calcula o preço final com desconto
+                $finalPrice = $plan['price'];
+                if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0) {
+                    $finalPrice = $plan['price'] * (1 - $plan['discount_percent'] / 100);
+                }
+                $pricePerMonth = $finalPrice / $plan['duration_months'];
+            @endphp
             <div class="plan-card {{ $key === 'semiannual' ? 'popular' : '' }}">
                 @if($key === 'semiannual')
                 <div class="popular-badge">Mais Popular</div>
@@ -396,9 +404,16 @@
                 </div>
 
                 <div class="plan-pricing">
+                    @if(isset($plan['discount_percent']) && $plan['discount_percent'] > 0)
+                        <div style="text-align: center; margin-bottom: 0.5rem;">
+                            <span style="text-decoration: line-through; color: #94a3b8; font-size: 1.2rem;">
+                                R$ {{ number_format($plan['price'], 2, ',', '.') }}
+                            </span>
+                        </div>
+                    @endif
                     <div class="price-total">
                         <span class="price-currency">R$</span>
-                        <span class="price-value">{{ number_format($plan['price'], 2, ',', '.') }}</span>
+                        <span class="price-value">{{ number_format($finalPrice, 2, ',', '.') }}</span>
                     </div>
                     <div class="price-period">
                         @if($plan['duration_months'] == 1)
@@ -410,7 +425,7 @@
 
                     @if($plan['duration_months'] > 1)
                     <div class="price-monthly">
-                        <strong>R$ {{ number_format($plan['price'] / $plan['duration_months'], 2, ',', '.') }}</strong> por mês
+                        <strong>R$ {{ number_format($pricePerMonth, 2, ',', '.') }}</strong> por mês
                     </div>
                     @endif
 
