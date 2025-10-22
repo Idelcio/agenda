@@ -49,7 +49,7 @@ class MercadoPagoService
                 ]
             ],
             'payer' => [
-                'name' => 'Agenda Digital',
+                'name' => 'Agendoo',
                 'email' => $user->email,
             ],
             'back_urls' => [
