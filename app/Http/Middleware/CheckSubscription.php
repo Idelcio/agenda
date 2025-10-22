@@ -41,13 +41,8 @@ class CheckSubscription
             return $next($request);
         }
 
-        // Verifica se o acesso_ativo está true (liberação manual do super admin)
-        if (isset($user->acesso_ativo) && $user->acesso_ativo) {
-            // Se tem acesso_ativo mas não tem acesso_liberado_ate, libera
-            if (!$user->acesso_liberado_ate) {
-                return $next($request);
-            }
-        }
+        // REMOVIDO: A verificação de acesso_ativo não deve liberar acesso sozinha
+        // O acesso_ativo é apenas uma flag administrativa, não substitui a assinatura
 
         // Verifica se o usuário tem assinatura ativa
         if (!$this->mercadoPagoService->hasActiveSubscription($user->id)) {
