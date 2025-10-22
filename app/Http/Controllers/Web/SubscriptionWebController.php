@@ -97,6 +97,11 @@ class SubscriptionWebController extends Controller
      */
     public function checkout(Request $request)
     {
+        \Log::info('SubscriptionWebController@checkout - INÍCIO', [
+            'user_id' => Auth::id(),
+            'plan_type' => $request->plan_type,
+        ]);
+
         $request->validate([
             'plan_type' => 'required|in:monthly,quarterly,semiannual,annual',
         ]);
@@ -105,13 +110,25 @@ class SubscriptionWebController extends Controller
         $planType = $request->plan_type;
         $plans = $this->planService->all();
 
+        \Log::info('SubscriptionWebController@checkout - Planos carregados', [
+            'plans_count' => count($plans),
+            'plan_exists' => isset($plans[$planType]),
+        ]);
+
         // Verifica se o plano existe
         if (!isset($plans[$planType])) {
+            \Log::error('SubscriptionWebController@checkout - Plano não encontrado', [
+                'plan_type' => $planType,
+                'available_plans' => array_keys($plans),
+            ]);
             return back()->with('error', 'Plano não encontrado.');
         }
 
         // Verifica se já existe uma assinatura ativa
         if ($this->mercadoPagoService->hasActiveSubscription($user->id)) {
+            \Log::warning('SubscriptionWebController@checkout - Usuário já tem assinatura', [
+                'user_id' => $user->id,
+            ]);
             return redirect()->route('subscription.current')
                 ->with('error', 'Você já possui uma assinatura ativa.');
         }
@@ -127,11 +144,26 @@ class SubscriptionWebController extends Controller
         // Arredonda para 2 casas decimais
         $amount = round($amount, 2);
 
+        \Log::info('SubscriptionWebController@checkout - Criando preference', [
+            'user_id' => $user->id,
+            'plan_type' => $planType,
+            'amount' => $amount,
+            'access_token_exists' => !empty(config('mercadopago.access_token')),
+            'access_token_length' => strlen(config('mercadopago.access_token', '')),
+        ]);
+
         // Cria a preference no Mercado Pago
         $preference = $this->mercadoPagoService->createPreference($user, $planType, $amount);
 
+        \Log::info('SubscriptionWebController@checkout - Resultado da preference', [
+            'preference_created' => $preference !== null,
+            'preference_id' => $preference['id'] ?? null,
+            'init_point' => $preference['init_point'] ?? null,
+        ]);
+
         if (!$preference) {
-            return back()->with('error', 'Erro ao criar link de pagamento. Tente novamente.');
+            \Log::error('SubscriptionWebController@checkout - Falha ao criar preference');
+            return back()->with('error', 'Erro ao criar link de pagamento. Verifique os logs ou entre em contato com o suporte.');
         }
 
         // Cria a assinatura no banco com status pending
@@ -141,6 +173,11 @@ class SubscriptionWebController extends Controller
             'amount' => $amount,
             'status' => 'pending',
             'mercadopago_preference_id' => $preference['id'],
+        ]);
+
+        \Log::info('SubscriptionWebController@checkout - Assinatura criada, redirecionando', [
+            'subscription_id' => $subscription->id,
+            'redirect_url' => $preference['init_point'],
         ]);
 
         // Redireciona para o Mercado Pago

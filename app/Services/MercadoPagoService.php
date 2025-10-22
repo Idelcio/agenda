@@ -23,6 +23,14 @@ class MercadoPagoService
      */
     public function createPreference($user, $planType, $amount)
     {
+        Log::info('MercadoPagoService@createPreference - INÍCIO', [
+            'user_id' => $user->id,
+            'plan_type' => $planType,
+            'amount' => $amount,
+            'has_access_token' => !empty($this->accessToken),
+            'access_token_prefix' => substr($this->accessToken ?? '', 0, 20) . '...',
+        ]);
+
         $planNames = [
             'monthly' => 'Plano Mensal',
             'quarterly' => 'Plano Trimestral',
@@ -62,19 +70,37 @@ class MercadoPagoService
             ],
         ];
 
+        Log::info('MercadoPagoService@createPreference - Preference payload', [
+            'url' => $this->baseUrl . '/checkout/preferences',
+            'back_urls' => $preference['back_urls'],
+            'notification_url' => $preference['notification_url'],
+        ]);
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->accessToken,
                 'Content-Type' => 'application/json',
             ])->post($this->baseUrl . '/checkout/preferences', $preference);
 
+            Log::info('MercadoPagoService@createPreference - Response recebida', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 500),
+            ]);
+
             if ($response->successful()) {
-                return $response->json();
+                $data = $response->json();
+                Log::info('MercadoPagoService@createPreference - SUCESSO', [
+                    'preference_id' => $data['id'] ?? null,
+                    'init_point' => $data['init_point'] ?? null,
+                ]);
+                return $data;
             }
 
             Log::error('Erro ao criar preference no Mercado Pago', [
                 'response' => $response->json(),
                 'status' => $response->status(),
+                'body' => $response->body(),
             ]);
 
             return null;
