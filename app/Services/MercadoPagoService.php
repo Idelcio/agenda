@@ -49,7 +49,7 @@ class MercadoPagoService
                 ]
             ],
             'payer' => [
-                'name' => $user->name,
+                'name' => explode(' ', $user->name)[0], // Apenas o primeiro nome
                 'email' => $user->email,
             ],
             'back_urls' => [
