@@ -184,10 +184,10 @@ class SubscriptionWebController extends Controller
         // DEBUG: Mostra todos os dados antes de redirecionar
         dd([
             'subscription_id' => $subscription->id,
-            'subscription' => $subscription->toArray(),
+            'subscription' => $subscription,
             'preference_full' => $preference,
             'redirect_url' => $preference['init_point'],
-            'user' => $user->toArray(),
+            'user' => $user,
             'plan' => $plan,
             'amount' => $amount,
         ]);
