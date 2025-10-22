@@ -180,6 +180,17 @@ class SubscriptionWebController extends Controller
             'redirect_url' => $preference['init_point'],
         ]);
 
+        // DEBUG: Mostra todos os dados antes de redirecionar
+        dd([
+            'subscription_id' => $subscription->id,
+            'subscription' => $subscription->toArray(),
+            'preference_full' => $preference,
+            'redirect_url' => $preference['init_point'],
+            'user' => $user->toArray(),
+            'plan' => $plan,
+            'amount' => $amount,
+        ]);
+
         // Redireciona para o Mercado Pago
         return redirect($preference['init_point']);
     }
