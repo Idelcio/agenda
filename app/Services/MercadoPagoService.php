@@ -49,7 +49,7 @@ class MercadoPagoService
                 ]
             ],
             'payer' => [
-                'name' => explode(' ', $user->name)[0], // Apenas o primeiro nome
+                'name' => 'Agenda Digital',
                 'email' => $user->email,
             ],
             'back_urls' => [
