@@ -17,6 +17,15 @@ class PlanService
     {
         $plans = config('mercadopago.plans', []);
 
+        // GARANTIR que $plans seja sempre um array
+        if (!is_array($plans)) {
+            \Log::error('PlanService: config(mercadopago.plans) não retornou array', [
+                'type' => gettype($plans),
+                'value' => $plans,
+            ]);
+            $plans = [];
+        }
+
         if (is_file($this->storagePath)) {
             $overrides = json_decode(file_get_contents($this->storagePath), true) ?: [];
 

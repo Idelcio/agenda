@@ -25,7 +25,7 @@ class SubscriptionWebController extends Controller
     public function plans()
     {
         // DEBUG: Testar diferentes métodos de obter planos
-        $configPlans = config('mercadopago.plans');
+        $configPlans = config('mercadopago.plans', []);
         $plans = $this->planService->all();
         $user = Auth::user();
 
@@ -33,17 +33,57 @@ class SubscriptionWebController extends Controller
         \Log::info('SubscriptionWebController@plans - DEBUG', [
             'config_plans' => $configPlans,
             'config_plans_count' => is_array($configPlans) ? count($configPlans) : 0,
+            'config_plans_type' => gettype($configPlans),
             'service_plans' => $plans,
             'service_plans_count' => is_array($plans) ? count($plans) : 0,
+            'service_plans_type' => gettype($plans),
             'user_id' => $user->id,
             'storage_path' => storage_path('app/plans.json'),
             'storage_exists' => file_exists(storage_path('app/plans.json')),
         ]);
 
-        // FALLBACK: Se $plans estiver vazio, usar direto do config
+        // GARANTIR que $plans seja sempre um array
+        if (!is_array($plans) || empty($plans)) {
+            \Log::warning('SubscriptionWebController@plans - FALLBACK: usando config direto', [
+                'plans_was' => gettype($plans),
+                'config_is' => gettype($configPlans),
+            ]);
+            $plans = is_array($configPlans) ? $configPlans : [];
+        }
+
+        // PROTEÇÃO EXTRA: Se ainda estiver vazio, usar valores hardcoded
         if (empty($plans)) {
-            \Log::warning('SubscriptionWebController@plans - FALLBACK: usando config direto');
-            $plans = $configPlans;
+            \Log::error('SubscriptionWebController@plans - ERRO CRÍTICO: config vazio, usando hardcoded');
+            $plans = [
+                'monthly' => [
+                    'name' => 'Plano Mensal',
+                    'description' => 'Acesso completo por 1 mês',
+                    'price' => 59.90,
+                    'duration_months' => 1,
+                    'discount_percent' => 0,
+                ],
+                'quarterly' => [
+                    'name' => 'Plano Trimestral',
+                    'description' => 'Acesso completo por 3 meses',
+                    'price' => 159.90,
+                    'duration_months' => 3,
+                    'discount_percent' => 11,
+                ],
+                'semiannual' => [
+                    'name' => 'Plano Semestral',
+                    'description' => 'Acesso completo por 6 meses',
+                    'price' => 299.90,
+                    'duration_months' => 6,
+                    'discount_percent' => 17,
+                ],
+                'annual' => [
+                    'name' => 'Plano Anual',
+                    'description' => 'Acesso completo por 1 ano',
+                    'price' => 549.90,
+                    'duration_months' => 12,
+                    'discount_percent' => 24,
+                ],
+            ];
         }
 
         // Verifica se já tem assinatura ativa
