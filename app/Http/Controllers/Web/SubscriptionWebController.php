@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\MercadoPagoService;
 use App\Services\PlanService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionWebController extends Controller
 {
@@ -30,7 +31,7 @@ class SubscriptionWebController extends Controller
         $user = Auth::user();
 
         // DEBUG: Log detalhado
-        \Log::info('SubscriptionWebController@plans - DEBUG', [
+        Log::info('SubscriptionWebController@plans - DEBUG', [
             'config_plans' => $configPlans,
             'config_plans_count' => is_array($configPlans) ? count($configPlans) : 0,
             'config_plans_type' => gettype($configPlans),
@@ -44,7 +45,7 @@ class SubscriptionWebController extends Controller
 
         // GARANTIR que $plans seja sempre um array
         if (!is_array($plans) || empty($plans)) {
-            \Log::warning('SubscriptionWebController@plans - FALLBACK: usando config direto', [
+            Log::warning('SubscriptionWebController@plans - FALLBACK: usando config direto', [
                 'plans_was' => gettype($plans),
                 'config_is' => gettype($configPlans),
             ]);
@@ -53,7 +54,7 @@ class SubscriptionWebController extends Controller
 
         // PROTEÇÃO EXTRA: Se ainda estiver vazio, usar valores hardcoded
         if (empty($plans)) {
-            \Log::error('SubscriptionWebController@plans - ERRO CRÍTICO: config vazio, usando hardcoded');
+            Log::error('SubscriptionWebController@plans - ERRO CRÍTICO: config vazio, usando hardcoded');
             $plans = [
                 'monthly' => [
                     'name' => 'Plano Mensal',
@@ -97,7 +98,7 @@ class SubscriptionWebController extends Controller
      */
     public function checkout(Request $request)
     {
-        \Log::info('SubscriptionWebController@checkout - INÍCIO', [
+        Log::info('SubscriptionWebController@checkout - INÍCIO', [
             'user_id' => Auth::id(),
             'plan_type' => $request->plan_type,
         ]);
@@ -110,14 +111,14 @@ class SubscriptionWebController extends Controller
         $planType = $request->plan_type;
         $plans = $this->planService->all();
 
-        \Log::info('SubscriptionWebController@checkout - Planos carregados', [
+        Log::info('SubscriptionWebController@checkout - Planos carregados', [
             'plans_count' => count($plans),
             'plan_exists' => isset($plans[$planType]),
         ]);
 
         // Verifica se o plano existe
         if (!isset($plans[$planType])) {
-            \Log::error('SubscriptionWebController@checkout - Plano não encontrado', [
+            Log::error('SubscriptionWebController@checkout - Plano não encontrado', [
                 'plan_type' => $planType,
                 'available_plans' => array_keys($plans),
             ]);
@@ -126,7 +127,7 @@ class SubscriptionWebController extends Controller
 
         // Verifica se já existe uma assinatura ativa
         if ($this->mercadoPagoService->hasActiveSubscription($user->id)) {
-            \Log::warning('SubscriptionWebController@checkout - Usuário já tem assinatura', [
+            Log::warning('SubscriptionWebController@checkout - Usuário já tem assinatura', [
                 'user_id' => $user->id,
             ]);
             return redirect()->route('subscription.current')
@@ -144,7 +145,7 @@ class SubscriptionWebController extends Controller
         // Arredonda para 2 casas decimais
         $amount = round($amount, 2);
 
-        \Log::info('SubscriptionWebController@checkout - Criando preference', [
+        Log::info('SubscriptionWebController@checkout - Criando preference', [
             'user_id' => $user->id,
             'plan_type' => $planType,
             'amount' => $amount,
@@ -155,14 +156,14 @@ class SubscriptionWebController extends Controller
         // Cria a preference no Mercado Pago
         $preference = $this->mercadoPagoService->createPreference($user, $planType, $amount);
 
-        \Log::info('SubscriptionWebController@checkout - Resultado da preference', [
+        Log::info('SubscriptionWebController@checkout - Resultado da preference', [
             'preference_created' => $preference !== null,
             'preference_id' => $preference['id'] ?? null,
             'init_point' => $preference['init_point'] ?? null,
         ]);
 
         if (!$preference) {
-            \Log::error('SubscriptionWebController@checkout - Falha ao criar preference');
+            Log::error('SubscriptionWebController@checkout - Falha ao criar preference');
             return back()->with('error', 'Erro ao criar link de pagamento. Verifique os logs ou entre em contato com o suporte.');
         }
 
@@ -175,7 +176,7 @@ class SubscriptionWebController extends Controller
             'mercadopago_preference_id' => $preference['id'],
         ]);
 
-        \Log::info('SubscriptionWebController@checkout - Assinatura criada, redirecionando', [
+        Log::info('SubscriptionWebController@checkout - Assinatura criada, redirecionando', [
             'subscription_id' => $subscription->id,
             'redirect_url' => $preference['init_point'],
         ]);
