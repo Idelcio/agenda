@@ -36,6 +36,19 @@ class CheckSubscription
             return $next($request);
         }
 
+        // Verifica se tem acesso liberado até uma data futura
+        if ($user->acesso_liberado_ate && $user->acesso_liberado_ate->isFuture()) {
+            return $next($request);
+        }
+
+        // Verifica se o acesso_ativo está true (liberação manual do super admin)
+        if (isset($user->acesso_ativo) && $user->acesso_ativo) {
+            // Se tem acesso_ativo mas não tem acesso_liberado_ate, libera
+            if (!$user->acesso_liberado_ate) {
+                return $next($request);
+            }
+        }
+
         // Verifica se o usuário tem assinatura ativa
         if (!$this->mercadoPagoService->hasActiveSubscription($user->id)) {
             // Se for requisição API, retorna JSON
