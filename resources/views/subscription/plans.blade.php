@@ -505,21 +505,39 @@
             const forms = document.querySelectorAll('form[action*="checkout"]');
             forms.forEach((form, index) => {
                 form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // PREVINE o envio imediato
+
                     const planType = form.querySelector('input[name="plan_type"]').value;
                     const planName = form.querySelector('button[type="submit"]').textContent.trim();
+                    const button = form.querySelector('button[type="submit"]');
 
-                    console.log('🎯 Formulário submetido!');
+                    console.log('========================================');
+                    console.log('🎯 FORMULÁRIO SUBMETIDO!');
+                    console.log('========================================');
                     console.log('📦 Plano escolhido:', planType);
                     console.log('🏷️ Nome do plano:', planName);
                     console.log('🔗 Action URL:', form.action);
+                    console.log('🔗 Method:', form.method);
                     console.log('📝 CSRF Token:', form.querySelector('input[name="_token"]').value);
                     console.log('⏰ Timestamp:', new Date().toISOString());
+                    console.log('========================================');
+                    console.log('⏳ Aguardando 3 segundos antes de enviar...');
+                    console.log('========================================');
 
-                    // Não previne o envio, apenas loga
+                    // Desabilita o botão e mostra feedback
+                    button.disabled = true;
+                    button.textContent = 'Processando...';
+
+                    // Aguarda 3 segundos e depois envia
+                    setTimeout(function() {
+                        console.log('✅ Enviando formulário agora!');
+                        form.submit(); // Envia o formulário após o delay
+                    }, 3000); // 3 segundos
                 });
             });
 
             console.log('✅ Event listeners adicionados aos formulários');
+            console.log('⚠️ DEBUG MODE: Formulário tem delay de 3 segundos');
         });
     </script>
 </body>
