@@ -27,6 +27,13 @@ class SubscriptionWebController extends Controller
         $plans = $this->planService->all();
         $user = Auth::user();
 
+        // DEBUG: Log para verificar se os planos estão sendo carregados
+        \Log::info('SubscriptionWebController@plans', [
+            'plans_count' => count($plans),
+            'plans' => $plans,
+            'user_id' => $user->id,
+        ]);
+
         // Verifica se já tem assinatura ativa
         $hasActiveSubscription = $this->mercadoPagoService->hasActiveSubscription($user->id);
 
