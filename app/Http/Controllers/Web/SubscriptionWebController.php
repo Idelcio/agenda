@@ -24,15 +24,27 @@ class SubscriptionWebController extends Controller
      */
     public function plans()
     {
+        // DEBUG: Testar diferentes métodos de obter planos
+        $configPlans = config('mercadopago.plans');
         $plans = $this->planService->all();
         $user = Auth::user();
 
-        // DEBUG: Log para verificar se os planos estão sendo carregados
-        \Log::info('SubscriptionWebController@plans', [
-            'plans_count' => count($plans),
-            'plans' => $plans,
+        // DEBUG: Log detalhado
+        \Log::info('SubscriptionWebController@plans - DEBUG', [
+            'config_plans' => $configPlans,
+            'config_plans_count' => is_array($configPlans) ? count($configPlans) : 0,
+            'service_plans' => $plans,
+            'service_plans_count' => is_array($plans) ? count($plans) : 0,
             'user_id' => $user->id,
+            'storage_path' => storage_path('app/plans.json'),
+            'storage_exists' => file_exists(storage_path('app/plans.json')),
         ]);
+
+        // FALLBACK: Se $plans estiver vazio, usar direto do config
+        if (empty($plans)) {
+            \Log::warning('SubscriptionWebController@plans - FALLBACK: usando config direto');
+            $plans = $configPlans;
+        }
 
         // Verifica se já tem assinatura ativa
         $hasActiveSubscription = $this->mercadoPagoService->hasActiveSubscription($user->id);
