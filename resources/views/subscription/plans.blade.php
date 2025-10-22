@@ -44,6 +44,16 @@
             backdrop-filter: blur(20px);
         }
 
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 3rem;
@@ -483,6 +493,35 @@
             </p>
         </div>
     </div>
+
+    <script>
+        // Debug: Log quando o formulário for submetido
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Página de planos carregada');
+            console.log('📊 Planos disponíveis:', @json($plans));
+            console.log('👤 Tem assinatura ativa:', @json($hasActiveSubscription));
+
+            // Adiciona listener em todos os formulários de checkout
+            const forms = document.querySelectorAll('form[action*="checkout"]');
+            forms.forEach((form, index) => {
+                form.addEventListener('submit', function(e) {
+                    const planType = form.querySelector('input[name="plan_type"]').value;
+                    const planName = form.querySelector('button[type="submit"]').textContent.trim();
+
+                    console.log('🎯 Formulário submetido!');
+                    console.log('📦 Plano escolhido:', planType);
+                    console.log('🏷️ Nome do plano:', planName);
+                    console.log('🔗 Action URL:', form.action);
+                    console.log('📝 CSRF Token:', form.querySelector('input[name="_token"]').value);
+                    console.log('⏰ Timestamp:', new Date().toISOString());
+
+                    // Não previne o envio, apenas loga
+                });
+            });
+
+            console.log('✅ Event listeners adicionados aos formulários');
+        });
+    </script>
 </body>
 
 </html>
