@@ -408,6 +408,7 @@ class AppointmentController extends Controller
                     'allDay' => $appointment->dia_inteiro,
                     'status' => $appointment->status,
                     'whatsapp' => $appointment->notificar_whatsapp,
+                    'description' => $appointment->descricao,
                 ];
             });
 

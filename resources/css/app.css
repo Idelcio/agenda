@@ -60,11 +60,23 @@
 
     /* Events */
     .fc-event {
-        @apply rounded-md px-2 py-1 text-sm font-medium cursor-pointer transition-all border-l-4;
+        @apply rounded-md px-2 py-1 text-sm font-medium cursor-pointer transition-all border-l-4 text-gray-900;
     }
 
     .fc-event:hover {
         @apply opacity-90 shadow-md;
+    }
+
+    .fc .fc-event-title,
+    .fc .fc-event-time,
+    .fc .fc-list-event-title {
+        @apply text-gray-900;
+    }
+
+    .fc-event-description {
+        @apply block w-full text-xs text-gray-600 leading-snug mt-1 font-normal whitespace-nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* List View */

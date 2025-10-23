@@ -961,6 +961,55 @@
     </div>
 
 
+    <div id="appointment-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60" data-modal-close></div>
+        <div class="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
+            <div class="flex items-start justify-between gap-4">
+                <div class="space-y-2">
+                    <h2 class="text-2xl font-bold text-slate-900" data-modal-title>Compromisso</h2>
+                    <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                        <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold"
+                            data-modal-status></span>
+                        <span data-modal-datetime></span>
+                    </div>
+                </div>
+                <button type="button"
+                    class="text-slate-500 hover:text-slate-700 transition-colors"
+                    aria-label="Fechar modal"
+                    data-modal-close>
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-700">
+                <div>
+                    <p class="uppercase text-xs font-semibold text-slate-500">Descrição</p>
+                    <p class="mt-1 whitespace-pre-line" data-modal-description>-</p>
+                </div>
+                <div>
+                    <p class="uppercase text-xs font-semibold text-slate-500">Lembrete via WhatsApp</p>
+                    <p class="mt-1" data-modal-whatsapp>-</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+                <button type="button"
+                    class="w-full sm:w-auto inline-flex justify-center rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                    data-modal-close>
+                    Fechar
+                </button>
+                <a href="#"
+                    class="w-full sm:w-auto inline-flex justify-center rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                    data-modal-edit>
+                    Editar compromisso
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('✅ Sistema de agenda carregado.');
