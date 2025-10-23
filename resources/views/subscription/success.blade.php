@@ -176,7 +176,7 @@
         <div class="icon"></div>
 
         <h1>Pagamento Aprovado!</h1>
-        <p class="subtitle">Sua assinatura foi ativada com sucesso</p>
+        <p class="subtitle">🎉 Sua assinatura foi ativada com sucesso 🎉</p>
 
         <p>
             Parabéns! Seu pagamento foi aprovado e sua assinatura está ativa.
@@ -206,9 +206,15 @@
             Após a configuração, você poderá criar agendamentos, cadastrar clientes e enviar lembretes automáticos via WhatsApp.
         </p>
 
-        <a href="{{ route('dashboard') }}" class="btn">
-            Ir para o Dashboard
-        </a>
+        @if($hasWhatsAppCredentials ?? false)
+            <a href="{{ route('dashboard') }}" class="btn">
+                Ir para o Dashboard
+            </a>
+        @else
+            <a href="{{ route('setup-whatsapp.index') }}" class="btn">
+                Configurar WhatsApp Agora
+            </a>
+        @endif
     </div>
 </body>
 

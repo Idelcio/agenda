@@ -1,4 +1,4 @@
-﻿# Agenda Digital
+﻿# Agendoo
 
 Aplicacao Laravel localizada em portugues, com autenticacao Breeze, agenda multiusuario, lembretes via WhatsApp e chatbot integrado.
 

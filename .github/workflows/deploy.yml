@@ -1,0 +1,52 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚀 Iniciando Deploy
+      run: echo "Iniciando deploy para produção..."
+
+    - name: 🔐 Configurando SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: 📦 Deploy via SSH
+      run: |
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          cd ${{ secrets.SSH_PATH }}
+
+          echo "📥 Baixando atualizações do GitHub..."
+          git pull origin main
+
+          echo "📦 Instalando dependências do Composer..."
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+          echo "🧹 Limpando caches do Laravel..."
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
+
+          echo "⚡ Otimizando para produção..."
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+          echo "🗄️ Rodando migrations..."
+          php artisan migrate --force
+
+          echo "✅ Deploy concluído com sucesso!"
+        ENDSSH
+
+    - name: ✅ Deploy Finalizado
+      run: echo "Deploy concluído com sucesso! 🎉"

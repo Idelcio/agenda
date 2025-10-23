@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Agenda Digital') }}</title>
+    <title>{{ config('app.name', 'Agendoo') }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <style>
@@ -64,9 +64,10 @@
             gap: 0.8rem;
         }
 
-        header h1::before {
-            content: "📱";
-            font-size: 2.5rem;
+        header h1 img.logo {
+            width: 3.5rem;
+            height: 3.5rem;
+            object-fit: contain;
         }
 
         header span {
@@ -364,7 +365,10 @@
     <div class="landing">
         <header>
             <div>
-                <h1>{{ config('app.name') }}</h1>
+                <h1>
+                    <img src="{{ asset('favicon.svg') }}" alt="Logo" class="logo">
+                    {{ config('app.name') }}
+                </h1>
                 <span>Agenda inteligente com WhatsApp integrado</span>
             </div>
             @auth

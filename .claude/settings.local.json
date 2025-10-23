@@ -18,7 +18,9 @@
       "Bash(del appServicesWhatsAppService_backup.php)",
       "Bash(git add app/Services/WhatsAppService.php)",
       "Bash(git commit -m \"Fix: Recupera WhatsAppService.php que estava vazio\")",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

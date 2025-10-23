@@ -38,6 +38,14 @@ class CheckSubscription
 
         // Verifica se tem acesso liberado até uma data futura
         if ($user->acesso_liberado_ate && $user->acesso_liberado_ate->isFuture()) {
+            // Mesmo com acesso liberado, precisa ter credenciais do WhatsApp configuradas
+            $hasWhatsAppCredentials = !empty($user->apibrasil_device_token) && !empty($user->apibrasil_device_id);
+
+            if (!$hasWhatsAppCredentials) {
+                return redirect()->route('setup-whatsapp.index')
+                    ->with('info', 'Por favor, configure suas credenciais do WhatsApp para continuar.');
+            }
+
             return $next($request);
         }
 
@@ -58,6 +66,14 @@ class CheckSubscription
             // Se for web, redireciona para página de escolha de plano
             return redirect()->route('subscription.plans')
                 ->with('error', 'Você precisa ter uma assinatura ativa para acessar este recurso.');
+        }
+
+        // Se tem assinatura ativa, verifica se tem credenciais do WhatsApp
+        $hasWhatsAppCredentials = !empty($user->apibrasil_device_token) && !empty($user->apibrasil_device_id);
+
+        if (!$hasWhatsAppCredentials) {
+            return redirect()->route('setup-whatsapp.index')
+                ->with('info', 'Por favor, configure suas credenciais do WhatsApp para continuar.');
         }
 
         return $next($request);

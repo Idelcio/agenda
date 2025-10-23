@@ -233,7 +233,7 @@
                             <x-input-label for="mensagem" value="Mensagem" />
                             <textarea id="mensagem" name="mensagem" rows="3"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="Digite a mensagem que deseja enviar">{{ old('mensagem', 'Ola! Esta e uma mensagem de teste do Agenda Digital.') }}</textarea>
+                                placeholder="Digite a mensagem que deseja enviar">{{ old('mensagem', 'Ola! Esta e uma mensagem de teste do Agendoo.') }}</textarea>
                             <x-input-error class="mt-2" :messages="$errors->get('mensagem')" />
                         </div>
 

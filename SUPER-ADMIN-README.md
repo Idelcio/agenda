@@ -305,4 +305,4 @@ Para dúvidas ou problemas:
 
 ---
 
-**Desenvolvido para o Sistema de Agenda Digital** 🚀
+**Desenvolvido para o Sistema Agendoo** 🚀

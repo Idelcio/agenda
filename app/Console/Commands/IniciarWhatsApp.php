@@ -24,7 +24,7 @@ class IniciarWhatsApp extends Command
         try {
             // Tenta iniciar a sessão
             $response = $this->whatsapp->startSession(
-                deviceName: config('app.name', 'Agenda Digital'),
+                deviceName: config('app.name', 'Agendoo'),
                 number: null,
                 autoCloseMs: null
             );

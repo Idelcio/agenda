@@ -220,7 +220,12 @@ class SubscriptionWebController extends Controller
      */
     public function success()
     {
-        return view('subscription.success');
+        $user = Auth::user();
+
+        // Verifica se o usuário já tem credenciais da API Brasil configuradas
+        $hasWhatsAppCredentials = !empty($user->apibrasil_device_token) && !empty($user->apibrasil_device_id);
+
+        return view('subscription.success', compact('hasWhatsAppCredentials'));
     }
 
     /**

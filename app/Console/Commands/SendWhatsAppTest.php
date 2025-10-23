@@ -40,7 +40,7 @@ class SendWhatsAppTest extends Command
             return Command::FAILURE;
         }
 
-        $mensagem = $this->option('mensagem') ?: 'Mensagem de teste do Agenda Digital.';
+        $mensagem = $this->option('mensagem') ?: 'Mensagem de teste do Agendoo.';
 
         try {
             $this->whatsApp->sendMessage($destino, $mensagem);

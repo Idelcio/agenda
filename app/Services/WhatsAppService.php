@@ -27,7 +27,7 @@ class WhatsAppService
     public function startSession(?string $deviceName = null, ?string $number = null, ?int $autoCloseMs = null): array
     {
         $payload = array_filter([
-            'powered_by' => config('app.name', 'Agenda Digital'),
+            'powered_by' => config('app.name', 'Agendoo'),
             'device_name' => $deviceName,
             'number' => $number ? $this->normalizeNumber($number) : null,
             'auto_close' => $autoCloseMs,
@@ -501,7 +501,7 @@ class WhatsAppService
             ]);
 
             $payload = array_filter([
-                'powered_by' => config('app.name', 'Agenda Digital'),
+                'powered_by' => config('app.name', 'Agendoo'),
                 'device_name' => $deviceName,
             ]);
 

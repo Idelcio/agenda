@@ -29,6 +29,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Verifica se o usuário tem credenciais da API Brasil configuradas
+        $user = Auth::user();
+        $hasWhatsAppCredentials = !empty($user->apibrasil_device_token) && !empty($user->apibrasil_device_id);
+
+        // Se não tiver credenciais, redireciona para setup do WhatsApp
+        if (!$hasWhatsAppCredentials) {
+            return redirect()->intended(route('setup-whatsapp.index'));
+        }
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
