@@ -452,6 +452,13 @@ class WhatsAppService
         if (empty($this->config['token']) || empty($this->config['device_token'])) {
             throw new RuntimeException('Credenciais da API Brasil/WhatsApp não configuradas.');
         }
+
+        if (empty($this->config['device_id'])) {
+            Log::warning('Tentativa de acessar API Brasil sem device_id configurado.', [
+                'device_token' => substr($this->config['device_token'] ?? '', 0, 8) . '...',
+            ]);
+            throw new RuntimeException('Device ID da API Brasil não configurado.');
+        }
     }
 
     private function normalizeNumber(string $number): string
@@ -698,6 +705,14 @@ class WhatsAppService
 
         // Se for empresa e tem credenciais configuradas, usa elas
         if ($user && $user->tipo === 'empresa' && $user->apibrasil_device_token) {
+            if (empty($user->apibrasil_device_id)) {
+                Log::warning('Empresa sem device_id configurado para WhatsApp.', [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                ]);
+                return;
+            }
+
             $this->setDeviceCredentials(
                 $user->apibrasil_device_token,
                 $user->apibrasil_device_id
@@ -707,12 +722,14 @@ class WhatsAppService
                 'user_id' => $user->id,
                 'user_name' => $user->name,
             ]);
-        } else {
-            // Fallback: usa credenciais do .env (padrão)
-            Log::warning('Usando credenciais padrão do .env', [
-                'user_id' => $user->id ?? null,
-                'tipo' => $user->tipo ?? null,
-            ]);
+
+            return;
         }
+
+        // Fallback: usa credenciais do .env (padrão)
+        Log::warning('Usando credenciais padrão do .env', [
+            'user_id' => $user->id ?? null,
+            'tipo' => $user->tipo ?? null,
+        ]);
     }
 }

@@ -63,6 +63,19 @@
                                 </div>
 
                                 <div>
+                                    <label for="device_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Device ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="device_id"
+                                        name="device_id"
+                                        required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ex: 4db434ed-222d-4a5f-b4e6-63d73e45aa50">
+                                </div>
+
+                                <div>
                                     <label for="device_token" class="block text-sm font-medium text-gray-700 mb-1">
                                         DeviceToken
                                     </label>
@@ -70,9 +83,8 @@
                                         type="text"
                                         id="device_token"
                                         name="device_token"
-                                        required
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Ex: 4db434ed-222d-4a5f-b4e6-63d73e45aa50">
+                                        placeholder="Ex: 14edb6cf-1398-41c7-9109-af9b584b40ab">
                                 </div>
 
                                 <div class="pt-4">
@@ -183,6 +195,7 @@
             showStep(loadingStep);
 
             const deviceName = document.getElementById('device_name').value;
+            const deviceId = document.getElementById('device_id').value;
             const deviceToken = document.getElementById('device_token').value;
 
             try {
@@ -194,6 +207,7 @@
                     },
                     body: JSON.stringify({
                         device_name: deviceName,
+                        device_id: deviceId,
                         device_token: deviceToken
                     })
                 });

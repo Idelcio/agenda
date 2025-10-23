@@ -31,6 +31,7 @@ class User extends Authenticatable
         'limite_requisicoes_mes',
         'requisicoes_mes_atual',
         'valor_pago',
+        'data_ultimo_pagamento',
         'observacoes_admin',
         'apibrasil_device_token',
         'apibrasil_device_name',
@@ -60,8 +61,18 @@ class User extends Authenticatable
         'acesso_ativo' => 'boolean',
         'acesso_liberado_ate' => 'datetime',
         'valor_pago' => 'decimal:2',
+        'data_ultimo_pagamento' => 'datetime',
         'apibrasil_setup_completed' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::saving(function (self $user) {
+            if (!empty($user->apibrasil_device_id) && empty($user->apibrasil_device_token)) {
+                $user->apibrasil_device_token = $user->apibrasil_device_id;
+            }
+        });
+    }
 
     /**
      * Compromissos vinculados ao usuário.
@@ -149,3 +160,4 @@ class User extends Authenticatable
         return $this->activeSubscription()->exists();
     }
 }
+

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\ChatbotMessage;
+use App\Models\Subscription;
 use App\Services\PlanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -225,7 +226,7 @@ class SuperAdminController extends Controller
     /**
      * Atualizar empresa
      */
-    public function empresaAtualizar(Request $request, $id)
+    public function empresaAtualizar(Request $request, PlanService $planService, $id)
     {
         $empresa = User::where('tipo', 'empresa')->findOrFail($id);
 
@@ -239,12 +240,86 @@ class SuperAdminController extends Controller
             'limite_requisicoes_mes' => 'required|integer|min:0',
             'valor_pago' => 'nullable|numeric|min:0',
             'observacoes_admin' => 'nullable|string',
+            'apibrasil_device_id' => 'nullable|string|max:255',
+            'apibrasil_device_token' => 'nullable|string|max:255',
         ]);
 
         // Garante que acesso_ativo seja boolean
-        $validated['acesso_ativo'] = $request->has('acesso_ativo') ? (bool) $request->acesso_ativo : false;
+        $validated['acesso_ativo'] = (bool) $request->input('acesso_ativo', false);
 
-        $empresa->update($validated);
+        if ($request->has('apibrasil_device_id')) {
+            $validated['apibrasil_device_id'] = $request->filled('apibrasil_device_id')
+                ? trim($request->input('apibrasil_device_id'))
+                : null;
+        }
+
+        if ($request->has('apibrasil_device_token')) {
+            $validated['apibrasil_device_token'] = $request->filled('apibrasil_device_token')
+                ? trim($request->input('apibrasil_device_token'))
+                : null;
+        }
+
+        if (!empty($validated['apibrasil_device_id']) && empty($validated['apibrasil_device_token'])) {
+            $validated['apibrasil_device_token'] = $validated['apibrasil_device_id'];
+        }
+
+        $planSlug = $validated['plano'];
+        $plans = $planService->all();
+        $planDetails = $plans[$planSlug] ?? null;
+        $isTrialPlan = $planSlug === 'trial';
+        $isPaidPlan = !$isTrialPlan && $planDetails !== null;
+        $planChanged = $empresa->plano !== $planSlug;
+        $hasActiveSubscription = $empresa->subscriptions()->active()->exists();
+        $shouldRegisterPayment = $isPaidPlan && ($planChanged || !$hasActiveSubscription);
+
+        $now = now();
+        $subscriptionData = null;
+
+        if ($shouldRegisterPayment) {
+            $price = round((float) ($planDetails['price'] ?? 0), 2);
+            $duration = max(1, (int) ($planDetails['duration_months'] ?? 1));
+            $startsAt = $now->copy();
+            $expiresAt = $startsAt->copy()->addMonths($duration);
+
+            $validated['valor_pago'] = $price;
+            $validated['data_ultimo_pagamento'] = $now;
+            $validated['acesso_ativo'] = true;
+
+            if (empty($validated['acesso_liberado_ate'])) {
+                $validated['acesso_liberado_ate'] = $expiresAt;
+            }
+
+            $subscriptionData = [
+                'amount' => $price,
+                'starts_at' => $startsAt,
+                'expires_at' => $expiresAt,
+            ];
+        } elseif ($isTrialPlan && $planChanged) {
+            $validated['valor_pago'] = null;
+            $validated['data_ultimo_pagamento'] = null;
+        }
+
+        DB::transaction(function () use ($empresa, $validated, $planChanged, $shouldRegisterPayment, $subscriptionData, $planSlug) {
+            $empresa->update($validated);
+
+            if ($planChanged) {
+                Subscription::where('user_id', $empresa->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'cancelled']);
+            }
+
+            if ($shouldRegisterPayment && $subscriptionData) {
+                Subscription::create([
+                    'user_id' => $empresa->id,
+                    'plan_type' => $planSlug,
+                    'amount' => $subscriptionData['amount'],
+                    'status' => 'active',
+                    'is_lifetime' => false,
+                    'starts_at' => $subscriptionData['starts_at'],
+                    'expires_at' => $subscriptionData['expires_at'],
+                ]);
+            }
+        });
 
         return redirect()
             ->route('super-admin.empresas.detalhes', $id)
@@ -297,11 +372,20 @@ class SuperAdminController extends Controller
     {
         $empresa = User::where('tipo', 'empresa')->findOrFail($id);
 
-        $empresa->update([
+        $updates = [
             'acesso_liberado_ate' => now()->addYear(),
             'acesso_ativo' => true,
-            'apibrasil_device_id' => $empresa->apibrasil_device_token ?: $empresa->apibrasil_device_id,
-        ]);
+        ];
+
+        if (empty($empresa->apibrasil_device_id) && !empty($empresa->apibrasil_device_token)) {
+            $updates['apibrasil_device_id'] = $empresa->apibrasil_device_token;
+        }
+
+        if (empty($empresa->apibrasil_device_token) && !empty($empresa->apibrasil_device_id)) {
+            $updates['apibrasil_device_token'] = $empresa->apibrasil_device_id;
+        }
+
+        $empresa->update($updates);
 
         return redirect()
             ->route('super-admin.empresas.detalhes', $id)

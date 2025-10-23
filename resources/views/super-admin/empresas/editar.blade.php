@@ -93,6 +93,23 @@
                                placeholder="0.00">
                     </div>
 
+                    <!-- Credenciais API Brasil -->
+                    <div class="col-md-6">
+                        <label class="form-label">Device ID (API Brasil)</label>
+                        <input type="text" name="apibrasil_device_id" class="form-control"
+                               value="{{ old('apibrasil_device_id', $empresa->apibrasil_device_id) }}"
+                               placeholder="4db434ed-222d-4a5f-b4e6-63d73e45aa50">
+                        <small class="text-muted">Obrigatório para sincronizar mensagens via API Brasil.</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Device Token (API Brasil)</label>
+                        <input type="text" name="apibrasil_device_token" class="form-control"
+                               value="{{ old('apibrasil_device_token', $empresa->apibrasil_device_token) }}"
+                               placeholder="14edb6cf-1398-41c7-9109-af9b584b40ab">
+                        <small class="text-muted">Se vazio, o sistema copiará o Device ID automaticamente.</small>
+                    </div>
+
                     <!-- Observações -->
                     <div class="col-12">
                         <label class="form-label">Observações do Admin</label>
