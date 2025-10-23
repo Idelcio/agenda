@@ -30,6 +30,11 @@ class Appointment extends Model
         'lembrar_em',
         'lembrete_enviado_em',
         'status_lembrete',
+        'recorrente',
+        'frequencia_recorrencia',
+        'data_fim_recorrencia',
+        'compromisso_pai_id',
+        'observacoes',
     ];
 
     protected $casts = [
@@ -39,6 +44,8 @@ class Appointment extends Model
         'notificar_whatsapp' => 'boolean',
         'lembrar_em' => 'datetime',
         'lembrete_enviado_em' => 'datetime',
+        'recorrente' => 'boolean',
+        'data_fim_recorrencia' => 'date',
     ];
 
     public function user(): BelongsTo
@@ -137,6 +144,22 @@ class Appointment extends Model
     public function cliente()
     {
         return $this->belongsTo(User::class, 'cliente_id');
+    }
+
+    /**
+     * Compromisso pai (para compromissos recorrentes)
+     */
+    public function compromissoPai()
+    {
+        return $this->belongsTo(Appointment::class, 'compromisso_pai_id');
+    }
+
+    /**
+     * Compromissos filhos (gerados pela recorrência)
+     */
+    public function compromissosFilhos()
+    {
+        return $this->hasMany(Appointment::class, 'compromisso_pai_id');
     }
 
     protected static function booted(): void

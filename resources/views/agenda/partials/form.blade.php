@@ -167,6 +167,89 @@
         </div>
     </div>
 
+    {{-- Seção de Recorrência --}}
+    <div class="border-t-2 border-purple-200 pt-4 mt-6 bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg">
+        <div class="flex items-start gap-2 mb-3">
+            <svg class="w-6 h-6 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <div>
+                <h4 class="font-bold text-gray-900 text-base">🔁 Compromisso Recorrente</h4>
+                <p class="text-sm text-purple-700 font-medium mt-1">
+                    ✅ Ideal para aulas regulares, reuniões semanais ou eventos periódicos
+                </p>
+                <p class="text-xs text-gray-600 mt-1">
+                    Configure para repetir automaticamente este compromisso em intervalos regulares.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-3 flex items-center space-x-2">
+            <input type="hidden" name="recorrente" value="0">
+            <input id="recorrente" name="recorrente" type="checkbox" value="1"
+                   class="rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500"
+                   @checked(old('recorrente', $model->recorrente ?? false))
+                   onchange="document.getElementById('opcoes-recorrencia').classList.toggle('hidden')" />
+            <x-input-label for="recorrente" value="Ativar recorrência (repetir compromisso)" />
+        </div>
+
+        <div id="opcoes-recorrencia" class="mt-4 space-y-4 {{ old('recorrente', $model->recorrente ?? false) ? '' : 'hidden' }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <x-input-label for="frequencia_recorrencia" value="Frequência de repetição" />
+                    <select
+                        id="frequencia_recorrencia"
+                        name="frequencia_recorrencia"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                    >
+                        <option value="">Selecionar...</option>
+                        <option value="semanal" @selected(old('frequencia_recorrencia', $model->frequencia_recorrencia ?? '') === 'semanal')>
+                            📅 Semanal (toda semana, mesmo dia e hora)
+                        </option>
+                        <option value="quinzenal" @selected(old('frequencia_recorrencia', $model->frequencia_recorrencia ?? '') === 'quinzenal')>
+                            📅 Quinzenal (a cada 2 semanas)
+                        </option>
+                        <option value="mensal" @selected(old('frequencia_recorrencia', $model->frequencia_recorrencia ?? '') === 'mensal')>
+                            📆 Mensal (mesmo dia do mês)
+                        </option>
+                        <option value="anual" @selected(old('frequencia_recorrencia', $model->frequencia_recorrencia ?? '') === 'anual')>
+                            🎂 Anual (uma vez por ano)
+                        </option>
+                    </select>
+                    <x-input-error class="mt-2" :messages="$errors->get('frequencia_recorrencia')" />
+                </div>
+
+                <div>
+                    <x-input-label for="data_fim_recorrencia" value="Repetir até (opcional)" />
+                    <x-text-input
+                        id="data_fim_recorrencia"
+                        name="data_fim_recorrencia"
+                        type="date"
+                        class="mt-1 block w-full"
+                        :value="old('data_fim_recorrencia', $model?->data_fim_recorrencia?->format('Y-m-d'))"
+                    />
+                    <p class="mt-1 text-xs text-gray-500">Deixe em branco para repetir indefinidamente</p>
+                    <x-input-error class="mt-2" :messages="$errors->get('data_fim_recorrencia')" />
+                </div>
+            </div>
+
+            <div class="bg-purple-100 border border-purple-300 rounded-md p-3">
+                <p class="text-sm text-purple-900 font-medium">
+                    💡 <strong>Como funciona:</strong>
+                </p>
+                <ul class="text-xs text-purple-800 mt-2 space-y-1 ml-4 list-disc">
+                    <li><strong>Semanal:</strong> Ex: Aula toda segunda às 14h</li>
+                    <li><strong>Quinzenal:</strong> Ex: Reunião a cada 2 semanas</li>
+                    <li><strong>Mensal:</strong> Ex: Pagamento todo dia 5</li>
+                    <li><strong>Anual:</strong> Ex: Aniversário, renovação</li>
+                </ul>
+                <p class="text-xs text-purple-700 mt-2 font-medium">
+                    ⚡ Os compromissos serão criados automaticamente pelo sistema!
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div>
         <x-primary-button>{{ $submitLabel ?? ($isEdit ? 'Atualizar compromisso' : 'Salvar compromisso') }}</x-primary-button>
 

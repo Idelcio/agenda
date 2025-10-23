@@ -23,6 +23,12 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping(2)
             ->appendOutputTo(storage_path('logs/sincronizar.log'));
+
+        // 🔁 Gera compromissos recorrentes uma vez por dia (às 6h da manhã)
+        $schedule->command('agenda:gerar-recorrentes')
+            ->dailyAt('06:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/recorrentes.log'));
     }
 
     /**
