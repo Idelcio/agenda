@@ -291,6 +291,24 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Liberar acesso total (1 ano + credenciais WhatsApp)
+     */
+    public function liberarAcessoTotal($id)
+    {
+        $empresa = User::where('tipo', 'empresa')->findOrFail($id);
+
+        $empresa->update([
+            'acesso_liberado_ate' => now()->addYear(),
+            'acesso_ativo' => true,
+            'apibrasil_device_id' => $empresa->apibrasil_device_token ?: $empresa->apibrasil_device_id,
+        ]);
+
+        return redirect()
+            ->route('super-admin.empresas.detalhes', $id)
+            ->with('success', 'Acesso total liberado por 1 ano!');
+    }
+
+    /**
      * Deletar empresa
      */
     public function empresaDeletar($id)

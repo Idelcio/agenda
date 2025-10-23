@@ -24,6 +24,7 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'super.a
     // Ações rápidas
     Route::post('/empresas/{id}/trial', [SuperAdminController::class, 'liberarAcessoTrial'])->name('empresas.trial');
     Route::post('/empresas/{id}/toggle-acesso', [SuperAdminController::class, 'toggleAcesso'])->name('empresas.toggle-acesso');
+    Route::post('/empresas/{id}/acesso-total', [SuperAdminController::class, 'liberarAcessoTotal'])->name('empresas.acesso-total');
     Route::post('/empresas/{id}/resetar-requisicoes', [SuperAdminController::class, 'resetarRequisicoes'])->name('empresas.resetar-requisicoes');
 
     // Relatórios

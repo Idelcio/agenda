@@ -24,6 +24,14 @@
             <i class="fas fa-gift"></i> Liberar Trial
         </button>
 
+        <form action="{{ route('super-admin.empresas.acesso-total', $empresa->id) }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Liberar acesso total por 1 ano e configurar credenciais WhatsApp?')">
+                <i class="fas fa-unlock-alt"></i> Acesso Total (1 ano)
+            </button>
+        </form>
+
         <form action="{{ route('super-admin.empresas.resetar-requisicoes', $empresa->id) }}" method="POST" class="d-inline">
             @csrf
             <button type="submit" class="btn btn-secondary"
