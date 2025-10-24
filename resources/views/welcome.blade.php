@@ -5,8 +5,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Agendoo') }}</title>
+
+    <!-- Ícones e Manifesto -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="alternate icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-180.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="theme-color" content="#25D366">
+
+    <!-- PWA iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Agendoo">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <!-- PWA Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Agendoo">
+
+
+
     <style>
         :root {
             color-scheme: light;
@@ -418,37 +436,44 @@
                 <div class="step-card">
                     <div class="step-number">1</div>
                     <h3>Cadastre e conecte</h3>
-                    <p>No primeiro acesso após o pagamento, nossa equipe técnica entrará em contato via WhatsApp para configurar suas credenciais e fazer a leitura do QR Code. Após isso, você já pode começar a cadastrar seus clientes!</p>
+                    <p>No primeiro acesso após o pagamento, nossa equipe técnica entrará em contato via WhatsApp para
+                        configurar suas credenciais e fazer a leitura do QR Code. Após isso, você já pode começar a
+                        cadastrar seus clientes!</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">2</div>
                     <h3>Crie o agendamento</h3>
-                    <p>Selecione o cliente cadastrado, defina data, horário e escreva a mensagem personalizada. Tudo em poucos cliques na sua agenda.</p>
+                    <p>Selecione o cliente cadastrado, defina data, horário e escreva a mensagem personalizada. Tudo em
+                        poucos cliques na sua agenda.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">3</div>
                     <h3>Envio automático</h3>
-                    <p>No horário marcado, o sistema envia automaticamente a mensagem via WhatsApp. Você não precisa fazer nada, é tudo automático.</p>
+                    <p>No horário marcado, o sistema envia automaticamente a mensagem via WhatsApp. Você não precisa
+                        fazer nada, é tudo automático.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">4</div>
                     <h3>Cliente responde</h3>
-                    <p>Seu cliente recebe e responde pelo WhatsApp normalmente. Pode confirmar, reagendar ou cancelar de forma natural.</p>
+                    <p>Seu cliente recebe e responde pelo WhatsApp normalmente. Pode confirmar, reagendar ou cancelar de
+                        forma natural.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">5</div>
                     <h3>Chatbot processa</h3>
-                    <p>O chatbot inteligente identifica e processa a resposta automaticamente, atualizando o status do agendamento na sua agenda em tempo real.</p>
+                    <p>O chatbot inteligente identifica e processa a resposta automaticamente, atualizando o status do
+                        agendamento na sua agenda em tempo real.</p>
                 </div>
 
                 <div class="step-card">
                     <div class="step-number">6</div>
                     <h3>Acompanhe e gerencie</h3>
-                    <p>Visualize tudo no dashboard: status, horários, clientes e respostas organizados. Edite, reagende ou envie novos lembretes quando precisar.</p>
+                    <p>Visualize tudo no dashboard: status, horários, clientes e respostas organizados. Edite, reagende
+                        ou envie novos lembretes quando precisar.</p>
                 </div>
             </div>
         </section>

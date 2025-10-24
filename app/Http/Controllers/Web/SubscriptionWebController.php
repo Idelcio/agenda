@@ -181,6 +181,17 @@ class SubscriptionWebController extends Controller
             'redirect_url' => $preference['init_point'],
         ]);
 
+        // // DEBUG: Mostra todos os dados antes de redirecionar
+        // dd([
+        //     'subscription_id' => $subscription->id,
+        //     'subscription' => $subscription->toArray(),
+        //     'preference_full' => $preference,
+        //     'redirect_url' => $preference['init_point'],
+        //     'user' => $user->toArray(),
+        //     'plan' => $plan,
+        //     'amount' => $amount,
+        // ]);
+
         // Redireciona para o Mercado Pago
         return redirect($preference['init_point']);
     }
@@ -220,12 +231,7 @@ class SubscriptionWebController extends Controller
      */
     public function success()
     {
-        $user = Auth::user();
-
-        // Verifica se o usuário já tem credenciais da API Brasil configuradas
-        $hasWhatsAppCredentials = !empty($user->apibrasil_device_token) && !empty($user->apibrasil_device_id);
-
-        return view('subscription.success', compact('hasWhatsAppCredentials'));
+        return view('subscription.success');
     }
 
     /**
