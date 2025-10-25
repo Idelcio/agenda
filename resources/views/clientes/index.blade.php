@@ -22,6 +22,19 @@
                 </div>
             @endif
 
+            {{-- Botão Histórico / Voltar com estilo Agendoo --}}
+            <div class="flex justify-start">
+                <a href="{{ route('agenda.index') }}"
+                    class="inline-flex items-center mb-4 px-5 py-2.5 bg-white text-indigo-600 border border-indigo-200 rounded-lg shadow hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 font-semibold text-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+
+
+
             {{-- Estatísticas de Clientes --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div

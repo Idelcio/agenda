@@ -117,24 +117,25 @@
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             <h3 class="text-lg font-semibold text-gray-900">Calendário de Agendamentos</h3>
                         </div>
-                        <a href="{{ route('agenda.pdf-semanal') }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <a href="{{ route('agenda.pdf-semanal') }}" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                             Gerar PDF Semanal
                         </a>
                     </div>
                     <p class="text-sm text-gray-600 mb-4">
-                        Visualize seus compromissos por dia, semana ou mês. Clique em um horário para criar novo agendamento.
+                        Visualize seus compromissos por dia, semana ou mês. Clique em um horário para criar novo
+                        agendamento.
                     </p>
                     <div id="fullcalendar"></div>
                 </div>
@@ -173,25 +174,45 @@
 
             <div class="bg-white shadow sm:rounded-lg border-t-4 border-indigo-500">
                 <div class="p-6">
-                    <div class="flex items-start gap-3 mb-4">
-                        <div class="bg-indigo-100 p-2 rounded-lg">
-                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                            </svg>
+                    <!-- Wrapper flex responsivo -->
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+                        <!-- Ícone e texto principal -->
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="bg-indigo-100 p-2 rounded-lg">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Novo Compromisso Interno</h3>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <span class="font-semibold text-indigo-600">📋 Para uso da empresa:</span>
+                                    Registre o compromisso no seu sistema interno.
+                                </p>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    💡 <span class="font-medium">Importante:</span> Este formulário apenas
+                                    <strong>salva na sua agenda</strong>. Para <strong>notificar o cliente</strong>,
+                                    configure o lembrete por WhatsApp abaixo.
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-gray-900">Novo Compromisso Interno</h3>
-                            <p class="text-sm text-gray-600 mt-1">
-                                <span class="font-semibold text-indigo-600">📋 Para uso da empresa:</span> Registre o compromisso no seu sistema interno.
-                            </p>
-                            <p class="text-sm text-gray-500 mt-1">
-                                💡 <span class="font-medium">Importante:</span> Este formulário apenas <strong>salva na sua agenda</strong>.
-                                Para <strong>notificar o cliente</strong>, configure o lembrete por WhatsApp abaixo.
-                            </p>
+
+                        <!-- Botão "Novo Cliente" que vai para baixo no mobile -->
+                        <div class="w-full lg:w-auto mt-4 lg:mt-0">
+                            <a href="{{ route('clientes.create') }}"
+                                class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                Novo Cliente
+                            </a>
                         </div>
                     </div>
 
+                    {{-- Formulário incluído --}}
                     @include('agenda.partials.form', [
                         'appointment' => null,
                         'defaultWhatsapp' => $defaultWhatsapp,
@@ -202,6 +223,7 @@
                     ])
                 </div>
             </div>
+
 
             {{-- <div class="bg-white shadow sm:rounded-lg">
                 <div class="p-6">
@@ -505,16 +527,16 @@
                                             </td>
                                             <td class="px-3 py-2">
                                                 <p class="text-sm font-semibold text-gray-900">
-                                                {{ $appointment->contact_name ?? 'Sem cadastro' }}
-                                            </p>
-                                            @if ($appointment->contact_phone)
-                                                <p class="text-xs font-mono text-gray-700">
-                                                    {{ $appointment->contact_phone }}
+                                                    {{ $appointment->contact_name ?? 'Sem cadastro' }}
                                                 </p>
-                                            @else
-                                                <span class="text-xs text-gray-400">Sem telefone</span>
-                                            @endif
-                                            @if ($appointment->whatsapp_mensagem)
+                                                @if ($appointment->contact_phone)
+                                                    <p class="text-xs font-mono text-gray-700">
+                                                        {{ $appointment->contact_phone }}
+                                                    </p>
+                                                @else
+                                                    <span class="text-xs text-gray-400">Sem telefone</span>
+                                                @endif
+                                                @if ($appointment->whatsapp_mensagem)
                                                     <p class="text-xs text-gray-500 mt-1 italic">
                                                         "{{ Str::limit($appointment->whatsapp_mensagem, 40) }}"
                                                     </p>
@@ -559,7 +581,7 @@
                                                         Editar
                                                     </a>
 
-                                                    @if(auth()->user()->isAdmin())
+                                                    @if (auth()->user()->isAdmin())
                                                         <form method="POST"
                                                             action="{{ route('agenda.destroy', $appointment) }}"
                                                             onsubmit="return confirm('Tem certeza que deseja excluir este compromisso?');">
@@ -569,8 +591,8 @@
                                                                 class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 border border-red-300 rounded text-xs font-medium hover:bg-red-200">
                                                                 <svg class="w-3 h-3 mr-1" fill="none"
                                                                     stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                        stroke-width="2"
+                                                                    <path stroke-linecap="round"
+                                                                        stroke-linejoin="round" stroke-width="2"
                                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                                 </svg>
                                                                 Excluir
@@ -632,7 +654,8 @@
                     @else
                         <ul class="divide-y divide-gray-200 text-sm text-gray-700" id="concluidos-list">
                             @foreach ($concluidos as $appointment)
-                                <li class="py-3 appointment-item" data-date="{{ $appointment->inicio->format('Y-m-d') }}">
+                                <li class="py-3 appointment-item"
+                                    data-date="{{ $appointment->inicio->format('Y-m-d') }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex-1">
                                             <p class="font-semibold text-gray-900">{{ $appointment->titulo }}</p>
@@ -809,7 +832,8 @@
                     @else
                         <ul class="divide-y divide-gray-200 text-sm text-gray-700" id="cancelados-list">
                             @foreach ($cancelados as $appointment)
-                                <li class="py-3 appointment-item" data-date="{{ $appointment->inicio->format('Y-m-d') }}">
+                                <li class="py-3 appointment-item"
+                                    data-date="{{ $appointment->inicio->format('Y-m-d') }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex-1">
                                             <p class="font-semibold text-gray-900">{{ $appointment->titulo }}</p>
@@ -968,15 +992,14 @@
                 <div class="space-y-2">
                     <h2 class="text-2xl font-bold text-slate-900" data-modal-title>Compromisso</h2>
                     <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
-                        <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold"
+                        <span
+                            class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold"
                             data-modal-status></span>
                         <span data-modal-datetime></span>
                     </div>
                 </div>
-                <button type="button"
-                    class="text-slate-500 hover:text-slate-700 transition-colors"
-                    aria-label="Fechar modal"
-                    data-modal-close>
+                <button type="button" class="text-slate-500 hover:text-slate-700 transition-colors"
+                    aria-label="Fechar modal" data-modal-close>
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M6 18L18 6M6 6l12 12" />
@@ -1027,7 +1050,8 @@
 
                         // Atualiza estilo das abas
                         tabs.forEach(t => {
-                            t.classList.remove('active', `border-${borderColor}`, `text-${textColor}`);
+                            t.classList.remove('active', `border-${borderColor}`,
+                                `text-${textColor}`);
                             t.classList.add('border-transparent');
                         });
                         tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
@@ -1053,15 +1077,17 @@
                             const itemDate = new Date(item.dataset.date + 'T00:00:00');
                             let shouldShow = false;
 
-                            switch(filter) {
+                            switch (filter) {
                                 case 'hoje':
                                     shouldShow = itemDate.getTime() === hoje.getTime();
                                     break;
                                 case 'semana':
-                                    shouldShow = itemDate >= inicioSemana && itemDate <= fimSemana;
+                                    shouldShow = itemDate >= inicioSemana && itemDate <=
+                                        fimSemana;
                                     break;
                                 case 'mes':
-                                    shouldShow = itemDate >= inicioMes && itemDate <= fimMes;
+                                    shouldShow = itemDate >= inicioMes && itemDate <=
+                                        fimMes;
                                     break;
                                 case 'todos':
                                     shouldShow = true;
@@ -1082,7 +1108,8 @@
                             if (!emptyMessage) {
                                 emptyMessage = document.createElement('p');
                                 emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
-                                emptyMessage.textContent = 'Nenhum compromisso encontrado para este período.';
+                                emptyMessage.textContent =
+                                    'Nenhum compromisso encontrado para este período.';
                                 list.parentElement.appendChild(emptyMessage);
                             }
                             emptyMessage.style.display = '';
