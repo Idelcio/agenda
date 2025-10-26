@@ -13,8 +13,8 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
 
     <!-- Scripts -->
     @env('local')
@@ -104,8 +104,10 @@
     <div class="guest-layout-wrapper min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
         <div>
             <a href="/">
-                <x-application-logo class="text-5xl" />
+                <img src="{{ asset('logo2.png') }}" alt="{{ config('app.name', 'Agendoo') }} logo"
+                    style="width: 110px; height: auto;" class="block object-contain">
             </a>
+
         </div>
 
         <div class="guest-card w-full sm:max-w-md mt-6 px-6 py-4 shadow-md overflow-hidden sm:rounded-lg">

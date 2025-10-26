@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Minha Assinatura - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #25D366, #128C7E, #075E54);

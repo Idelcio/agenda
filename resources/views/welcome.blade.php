@@ -7,10 +7,10 @@
     <title>{{ config('app.name', 'Agendoo') }}</title>
 
     <!-- Ícones e Manifesto -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="alternate icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon-180.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="alternate icon" type="image/png" sizes="32x32" href="{{ asset('logo2.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo2.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#25D366">
 
@@ -384,7 +384,7 @@
         <header>
             <div>
                 <h1>
-                    <img src="{{ asset('favicon.svg') }}" alt="Logo" class="logo">
+                    <img src="{{ asset('logo2.png') }}" alt="Logo" class="logo">
                     {{ config('app.name') }}
                 </h1>
                 <span>Agenda inteligente com WhatsApp integrado</span>
