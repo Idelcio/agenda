@@ -1,271 +1,279 @@
-@extends('super-admin.layouts.app')
+﻿@extends('super-admin.layouts.app')
 
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard')
 @section('page-subtitle', 'Visão geral do sistema')
 
 @section('content')
-<!-- Estatísticas Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card primary">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="label">Total de Empresas</div>
-                    <div class="value">{{ $totalEmpresas }}</div>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-building"></i>
-                </div>
+<section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Total de Empresas</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900">{{ $totalEmpresas }}</p>
             </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
+                <i class="fa-solid fa-building text-xl"></i>
+            </span>
         </div>
-    </div>
+    </article>
 
-    <div class="col-md-3">
-        <div class="stat-card success">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="label">Empresas Ativas</div>
-                    <div class="value">{{ $empresasAtivas }}</div>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Empresas Ativas</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900">{{ $empresasAtivas }}</p>
             </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <i class="fa-solid fa-check-circle text-xl"></i>
+            </span>
         </div>
-    </div>
+    </article>
 
-    <div class="col-md-3">
-        <div class="stat-card warning">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="label">Acessos Vencidos</div>
-                    <div class="value">{{ $empresasVencidas }}</div>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Acessos Vencidos</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900">{{ $empresasVencidas }}</p>
             </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+                <i class="fa-solid fa-exclamation-triangle text-xl"></i>
+            </span>
         </div>
-    </div>
+    </article>
 
-    <div class="col-md-3">
-        <div class="stat-card danger">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="label">Mensagens enviadas (mês)</div>
-                    <div class="value">{{ number_format($totalMensagensMes, 0, ',', '.') }}</div>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-paper-plane"></i>
-                </div>
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Mensagens enviadas (mês)</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900">
+                    {{ number_format($totalMensagensMes, 0, ',', '.') }}
+                </p>
             </div>
+            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <i class="fa-solid fa-paper-plane text-xl"></i>
+            </span>
         </div>
-    </div>
-</div>
+    </article>
+</section>
 
-<!-- Gráficos -->
-<div class="row g-4 mb-4">
-    <!-- Gráfico de Empresas por Plano -->
-    <div class="col-md-6">
-        <div class="stat-card">
-            <h5 class="mb-3">
-                <i class="fas fa-chart-pie text-primary"></i> Empresas por Plano
-            </h5>
-            <canvas id="chartPlanos"></canvas>
+<section class="mt-6 grid gap-6 lg:grid-cols-2">
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <header class="mb-4 flex items-center gap-3 text-lg font-semibold text-slate-800">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
+                <i class="fa-solid fa-chart-pie"></i>
+            </span>
+            Empresas por Plano
+        </header>
+        <div class="overflow-hidden">
+            <canvas id="chartPlanos" class="w-full"></canvas>
         </div>
-    </div>
+    </article>
 
-    <!-- Gráfico de Mensagens por mês -->
-    <div class="col-md-6">
-        <div class="stat-card">
-            <h5 class="mb-3">
-                <i class="fas fa-chart-line text-success"></i> Mensagens enviadas (últimos 6 meses)
-            </h5>
-            <canvas id="chartMensagens"></canvas>
+    <article class="rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+        <header class="mb-4 flex items-center gap-3 text-lg font-semibold text-slate-800">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <i class="fa-solid fa-chart-line"></i>
+            </span>
+            Mensagens enviadas (últimos 6 meses)
+        </header>
+        <div class="overflow-hidden">
+            <canvas id="chartMensagens" class="w-full"></canvas>
         </div>
-    </div>
-</div>
+    </article>
+</section>
 
-@if($mensagensPorEmpresa->isNotEmpty())
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                    <i class="fas fa-envelope-open-text text-success"></i> Mensagens enviadas por empresa (mês atual)
-                </h5>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div style="min-height: 320px;">
-                        <canvas id="chartMensagensEmpresas"></canvas>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th class="text-muted">#</th>
-                                    <th>Empresa</th>
-                                    <th class="text-end">Mensagens (mês)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($mensagensPorEmpresa as $index => $empresa)
-                                    <tr>
-                                        <td class="text-muted">{{ $index + 1 }}</td>
-                                        <td>{{ $empresa->name }}</td>
-                                        <td class="text-end">
-                                            <span class="badge bg-success">
-                                                {{ number_format($empresa->total, 0, ',', '.') }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+@if ($mensagensPorEmpresa->isNotEmpty())
+<section class="mt-6 rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+    <header class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3 text-lg font-semibold text-slate-800">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </span>
+            Mensagens enviadas por empresa (mês atual)
         </div>
-    </div>
-</div>
-@endif
+    </header>
 
-<!-- Empresas Recentes -->
-<div class="row">
-    <div class="col-12">
-        <div class="stat-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                    <i class="fas fa-clock text-info"></i> Empresas Recentes
-                </h5>
-                <a href="{{ route('super-admin.empresas') }}" class="btn btn-sm btn-outline-primary">
-                    Ver Todas <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Email</th>
-                            <th>Plano</th>
-                            <th>Status</th>
-                            <th>Cadastro</th>
-                            <th>Ações</th>
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="h-80">
+            <canvas id="chartMensagensEmpresas" class="h-full w-full"></canvas>
+        </div>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/70">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <thead class="bg-slate-50">
+                        <tr class="text-left font-semibold text-slate-500">
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Empresa</th>
+                            <th class="px-4 py-3 text-right">Mensagens (mês)</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse($empresasRecentes as $empresa)
-                            <tr>
-                                <td>
-                                    <strong>{{ $empresa->name }}</strong>
-                                </td>
-                                <td>{{ $empresa->email }}</td>
-                                <td>
-                                    <span class="badge bg-info">{{ strtoupper($empresa->plano) }}</span>
-                                </td>
-                                <td>
-                                    @if($empresa->acesso_ativo && (!$empresa->acesso_liberado_ate || $empresa->acesso_liberado_ate >= now()))
-                                        <span class="badge-status ativo">Ativo</span>
-                                    @elseif($empresa->acesso_liberado_ate && $empresa->acesso_liberado_ate < now())
-                                        <span class="badge-status vencido">Vencido</span>
-                                    @else
-                                        <span class="badge-status bloqueado">Bloqueado</span>
-                                    @endif
-                                </td>
-                                <td>{{ $empresa->created_at->format('d/m/Y') }}</td>
-                                <td>
-                                    <a href="{{ route('super-admin.empresas.detalhes', $empresa->id) }}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+                    <tbody class="divide-y divide-slate-200 bg-white text-slate-700">
+                        @foreach ($mensagensPorEmpresa as $index => $empresa)
+                            <tr class="hover:bg-slate-50/80">
+                                <td class="px-4 py-3 text-sm text-slate-400">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 font-medium">{{ $empresa->name }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                        {{ number_format($empresa->total, 0, ',', '.') }}
+                                    </span>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">
-                                    Nenhuma empresa cadastrada
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</div>
+</section>
+@endif
+
+<section class="mt-6 rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200/70">
+    <header class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-3 text-lg font-semibold text-slate-800">
+            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+                <i class="fa-solid fa-clock"></i>
+            </span>
+            Empresas Recentes
+        </div>
+        <a href="{{ route('super-admin.empresas') }}"
+            class="inline-flex items-center gap-2 self-start rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/40 transition hover:bg-indigo-500">
+            Ver todas
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+        </a>
+    </header>
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200/70">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-slate-50 text-left font-semibold text-slate-500">
+                    <tr>
+                        <th class="px-4 py-3">Empresa</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Plano</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3">Cadastro</th>
+                        <th class="px-4 py-3 text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white text-slate-700">
+                    @forelse ($empresasRecentes as $empresa)
+                        <tr class="hover:bg-slate-50/80">
+                            <td class="px-4 py-3 font-semibold text-slate-900">{{ $empresa->name }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $empresa->email }}</td>
+                            <td class="px-4 py-3">
+                                <span
+                                    class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
+                                    {{ strtoupper($empresa->plano) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($empresa->acesso_ativo && (!$empresa->acesso_liberado_ate || $empresa->acesso_liberado_ate >= now()))
+                                    <span
+                                        class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                                        Ativo
+                                    </span>
+                                @elseif ($empresa->acesso_liberado_ate && $empresa->acesso_liberado_ate < now())
+                                    <span
+                                        class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                                        <i class="fa-solid fa-exclamation-triangle text-amber-500"></i>
+                                        Vencido
+                                    </span>
+                                @else
+                                    <span
+                                        class="inline-flex items-center gap-2 rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                                        <i class="fa-solid fa-ban text-slate-500"></i>
+                                        Bloqueado
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-slate-600">{{ $empresa->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 text-right">
+                                <a href="{{ route('super-admin.empresas.detalhes', $empresa->id) }}"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-indigo-200 text-indigo-600 transition hover:bg-indigo-50">
+                                    <i class="fa-solid fa-eye text-sm"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500">
+                                Nenhuma empresa cadastrada
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 @endsection
 
 @section('scripts')
 <script>
-    // Gráfico de Empresas por Plano
-    const ctxPlanos = document.getElementById('chartPlanos').getContext('2d');
-    new Chart(ctxPlanos, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode($empresasPorPlano->pluck('plano')->map(fn($p) => strtoupper($p))->toArray()) !!},
-            datasets: [{
-                data: {!! json_encode($empresasPorPlano->pluck('total')->toArray()) !!},
-                backgroundColor: [
-                    '#667eea',
-                    '#764ba2',
-                    '#f093fb',
-                    '#f5576c',
-                    '#fa709a'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-    // Gráfico de Mensagens por mês
-    const ctxMensagens = document.getElementById('chartMensagens').getContext('2d');
-    new Chart(ctxMensagens, {
-        type: 'line',
-        data: {
-            labels: {!! json_encode($mensagensUltimosSeisMeses->pluck('mes')->toArray()) !!},
-            datasets: [{
-                label: 'Mensagens enviadas',
-                data: {!! json_encode($mensagensUltimosSeisMeses->pluck('total')->toArray()) !!},
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    const ctxPlanosCanvas = document.getElementById('chartPlanos');
+    if (ctxPlanosCanvas) {
+        const ctxPlanos = ctxPlanosCanvas.getContext('2d');
+        new Chart(ctxPlanos, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($empresasPorPlano->pluck('plano')->map(fn ($p) => strtoupper($p))->toArray()) !!},
+                datasets: [{
+                    data: {!! json_encode($empresasPorPlano->pluck('total')->toArray()) !!},
+                    backgroundColor: ['#4f46e5', '#6366f1', '#a855f7', '#ec4899', '#f97316'],
+                    borderWidth: 0
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
-    if (document.getElementById('chartMensagensEmpresas')) {
-        const ctxMensagensEmpresas = document.getElementById('chartMensagensEmpresas').getContext('2d');
+    const ctxMensagensCanvas = document.getElementById('chartMensagens');
+    if (ctxMensagensCanvas) {
+        const ctxMensagens = ctxMensagensCanvas.getContext('2d');
+        new Chart(ctxMensagens, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($mensagensUltimosSeisMeses->pluck('mes')->toArray()) !!},
+                datasets: [{
+                    label: 'Mensagens enviadas',
+                    data: {!! json_encode($mensagensUltimosSeisMeses->pluck('total')->toArray()) !!},
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    const ctxMensagensEmpresasCanvas = document.getElementById('chartMensagensEmpresas');
+    if (ctxMensagensEmpresasCanvas) {
+        const ctxMensagensEmpresas = ctxMensagensEmpresasCanvas.getContext('2d');
         new Chart(ctxMensagensEmpresas, {
             type: 'bar',
             data: {
@@ -273,10 +281,10 @@
                 datasets: [{
                     label: 'Mensagens enviadas',
                     data: {!! json_encode($mensagensPorEmpresa->take(12)->pluck('total')->toArray()) !!},
-                    backgroundColor: 'rgba(37, 211, 102, 0.6)',
-                    borderColor: '#25D366',
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
                     borderWidth: 1,
-                    borderRadius: 6
+                    borderRadius: 8
                 }]
             },
             options: {
@@ -289,9 +297,7 @@
                 scales: {
                     x: {
                         beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
+                        ticks: { precision: 0 }
                     }
                 }
             }
@@ -299,3 +305,5 @@
     }
 </script>
 @endsection
+
+

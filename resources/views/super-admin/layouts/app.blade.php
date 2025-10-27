@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -7,368 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Super Admin') - {{ config('app.name') }}</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
 
-    <style>
-        :root {
-            --sidebar-width: 260px;
-            --brand-gradient: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #0f172a;
-            min-height: 100vh;
-        }
-
-        .admin-layout {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .sidebar-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.45);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 1030;
-        }
-
-        .sidebar-backdrop.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .sidebar {
-            position: fixed;
-            inset: 0 auto 0 0;
-            height: 100vh;
-            width: min(82vw, var(--sidebar-width));
-            background: var(--brand-gradient);
-            color: #ffffff;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            z-index: 1040;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0;
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-        }
-
-        .sidebar.open {
-            transform: translateX(0);
-            box-shadow: 20px 0 45px -25px rgba(15, 23, 42, 0.45);
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.5rem 1rem;
-        }
-
-        .sidebar-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .sidebar-close {
-            background: transparent;
-            border: 0;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.5rem;
-            line-height: 1;
-            padding: 0.25rem;
-            border-radius: 0.5rem;
-        }
-
-        .sidebar-close:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .sidebar nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.5rem 0;
-        }
-
-        .sidebar .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.75rem 1.5rem;
-            transition: background 0.2s ease, color 0.2s ease;
-            font-weight: 500;
-        }
-
-        .sidebar .nav-link i {
-            width: 1.25rem;
-            text-align: center;
-        }
-
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .sidebar hr {
-            border-color: rgba(255, 255, 255, 0.15);
-            margin: 1.5rem 1.5rem 0.75rem;
-        }
-
-        .layout-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            margin-left: 0;
-            padding: 1.5rem 1rem 3rem;
-            transition: margin-left 0.3s ease;
-        }
-
-        .top-bar {
-            background: #ffffff;
-            border-radius: 1rem;
-            padding: 1rem 1.25rem;
-            box-shadow: 0 10px 30px -15px rgba(15, 23, 42, 0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            position: sticky;
-            top: 1rem;
-            z-index: 10;
-        }
-
-        .top-bar-main {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            min-width: 0;
-        }
-
-        .sidebar-toggle {
-            background: #1e3a8a;
-            border: 0;
-            color: #ffffff;
-            width: 44px;
-            height: 44px;
-            border-radius: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 15px 30px -15px rgba(30, 58, 138, 0.8);
-        }
-
-        .sidebar-toggle:focus-visible,
-        .sidebar-close:focus-visible {
-            outline: 2px solid rgba(255, 255, 255, 0.7);
-            outline-offset: 2px;
-        }
-
-        .top-bar-titles h4 {
-            margin: 0;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .top-bar-titles small {
-            display: block;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-
-        .user-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f1f5f9;
-            color: #1e293b;
-            padding: 0.55rem 1rem;
-            border-radius: 9999px;
-            font-weight: 600;
-            white-space: nowrap;
-            align-self: flex-start;
-            margin-left: 3.25rem;
-            box-shadow: 0 18px 38px -26px rgba(30, 58, 138, 0.9);
-            border: 1px solid rgba(15, 23, 42, 0.05);
-        }
-
-        .user-chip i {
-            color: #1d4ed8;
-        }
-
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.9rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .badge-status i {
-            font-size: 1rem;
-        }
-
-        .badge-status.ativo {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .badge-status.vencido {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-status.bloqueado {
-            background-color: #e5e7eb;
-            color: #374151;
-        }
-
-        .main-shell {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .stat-card {
-            background: #ffffff;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 25px 45px -30px rgba(15, 23, 42, 0.4);
-            border: 1px solid rgba(15, 23, 42, 0.04);
-            transition: transform 0.25s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .stat-card .value {
-            font-size: clamp(1.5rem, 2vw, 2.25rem);
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .alert {
-            border-radius: 0.9rem;
-            padding: 0.9rem 1rem;
-        }
-
-        .alert i {
-            margin-right: 0.5rem;
-        }
-
-        body.sidebar-open {
-            overflow: hidden;
-        }
-
-        .table thead th {
-            white-space: nowrap;
-        }
-
-        .table td,
-        .table th {
-            vertical-align: middle;
-        }
-
-        @media (min-width: 576px) {
-            .layout-content {
-                padding: 2rem 1.5rem 3.5rem;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .top-bar {
-                padding: 1.25rem 1.5rem;
-            }
-
-            .top-bar-titles h4 {
-                font-size: 1.35rem;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .admin-layout {
-                flex-direction: row;
-            }
-
-            .sidebar {
-                width: var(--sidebar-width);
-                transform: none;
-                box-shadow: none;
-            }
-
-            .sidebar-backdrop {
-                display: none;
-            }
-
-            .layout-content {
-                margin-left: var(--sidebar-width);
-                padding: 2rem 3rem;
-            }
-
-            .top-bar {
-                position: static;
-                margin-bottom: 2rem;
-                gap: 1rem;
-            }
-
-            .user-chip {
-                margin-left: 0;
-            }
-
-            .sidebar-toggle,
-            .sidebar-close {
-                display: none;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .table-responsive {
-                border-radius: 1rem;
-                box-shadow: 0 18px 40px -32px rgba(15, 23, 42, 0.55);
-                overflow: hidden;
-            }
-
-            .table td {
-                font-size: 0.95rem;
-            }
-        }
-    </style>
-
-    @yield('styles')
     <!-- Scripts -->
     @env('local')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -381,98 +21,170 @@
         <script type="module" src="{{ asset('build/' . $manifest['resources/js/app.js']['file']) }}"></script>
     @endenv
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    @yield('styles')
 </head>
 
-<body>
-    <div class="admin-layout">
-        <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+    <div class="min-h-screen lg:flex">
+        <div id="sidebarBackdrop"
+            class="fixed inset-0 z-30 bg-slate-900/60 opacity-0 transition-opacity duration-200 ease-in-out pointer-events-none lg:hidden">
+        </div>
 
-        <aside class="sidebar" id="sidebar" aria-hidden="true">
-            <div class="sidebar-header">
-                <div class="sidebar-title">
-                    <i class="fas fa-crown"></i>
-                    <span>Super Admin</span>
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 z-40 flex w-72 transform flex-col overflow-hidden bg-gradient-to-b from-indigo-900 via-indigo-800 to-indigo-700 text-white shadow-2xl transition-transform duration-200 ease-in-out lg:static lg:h-auto lg:translate-x-0">
+            <div class="flex items-center justify-between px-6 pt-6 pb-4">
+                <div class="flex items-center gap-3 text-lg font-semibold">
+                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+                        <i class="fa-solid fa-crown"></i>
+                    </span>
+                    <div class="leading-tight">
+                        <p class="text-sm uppercase tracking-wide text-white/60">Área</p>
+                        <p>Super Admin</p>
+                    </div>
                 </div>
 
-                <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Fechar menu">
-                    <i class="fas fa-times"></i>
+                <button id="sidebarClose" type="button"
+                    class="rounded-xl p-2 text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:hidden"
+                    aria-label="Fechar menu">
+                    <i class="fa-solid fa-times"></i>
                 </button>
             </div>
 
-            <nav class="nav flex-column">
-                <a class="nav-link {{ request()->routeIs('super-admin.dashboard') ? 'active' : '' }}"
-                    href="{{ route('super-admin.dashboard') }}">
-                    <i class="fas fa-home"></i>
+            <nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
+                @php
+                    $navLinkBase =
+                        'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors duration-150';
+                @endphp
+
+                <a href="{{ route('super-admin.dashboard') }}"
+                    class="{{ $navLinkBase }} {{ request()->routeIs('super-admin.dashboard') ? 'bg-white/15 text-white shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white' }}"
+                    data-nav>
+                    <i class="fa-solid fa-home w-5 text-center"></i>
                     Dashboard
                 </a>
-                <a class="nav-link {{ request()->routeIs('super-admin.empresas*') ? 'active' : '' }}"
-                    href="{{ route('super-admin.empresas') }}">
-                    <i class="fas fa-building"></i>
+
+                <a href="{{ route('super-admin.empresas') }}"
+                    class="{{ $navLinkBase }} {{ request()->routeIs('super-admin.empresas*') ? 'bg-white/15 text-white shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white' }}"
+                    data-nav>
+                    <i class="fa-solid fa-building w-5 text-center"></i>
                     Empresas
                 </a>
-                <a class="nav-link {{ request()->routeIs('super-admin.planos*') ? 'active' : '' }}"
-                    href="{{ route('super-admin.planos') }}">
-                    <i class="fas fa-tags"></i>
+
+                <a href="{{ route('super-admin.planos') }}"
+                    class="{{ $navLinkBase }} {{ request()->routeIs('super-admin.planos*') ? 'bg-white/15 text-white shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white' }}"
+                    data-nav>
+                    <i class="fa-solid fa-tags w-5 text-center"></i>
                     Planos
                 </a>
-                <a class="nav-link {{ request()->routeIs('super-admin.relatorios') ? 'active' : '' }}"
-                    href="{{ route('super-admin.relatorios') }}">
-                    <i class="fas fa-chart-line"></i>
+
+                <a href="{{ route('super-admin.relatorios') }}"
+                    class="{{ $navLinkBase }} {{ request()->routeIs('super-admin.relatorios') ? 'bg-white/15 text-white shadow-lg' : 'text-white/70 hover:bg-white/10 hover:text-white' }}"
+                    data-nav>
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
                     Relatórios
                 </a>
 
-                <hr>
+                <div class="my-6 border-t border-white/10"></div>
 
-                <a class="nav-link" href="{{ route('dashboard') }}">
-                    <i class="fas fa-arrow-left"></i>
-                    Voltar ao Sistema
+                <a href="{{ route('dashboard') }}"
+                    class="{{ $navLinkBase }} text-white/70 hover:bg-white/10 hover:text-white" data-nav>
+                    <i class="fa-solid fa-arrow-left w-5 text-center"></i>
+                    Voltar ao sistema
                 </a>
-                <a class="nav-link" href="{{ route('logout') }}"
-                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fas fa-sign-out-alt"></i>
+
+                <a href="{{ route('logout') }}"
+                    class="{{ $navLinkBase }} text-white/70 hover:bg-white/10 hover:text-white"
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();" data-nav>
+                    <i class="fa-solid fa-sign-out-alt w-5 text-center"></i>
                     Sair
                 </a>
             </nav>
 
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
                 @csrf
             </form>
         </aside>
 
-        <div class="layout-content">
-            <header class="top-bar">
-                <div class="user-chip">
-                    <i class="fas fa-user-circle"></i>
-                    <span>{{ auth()->user()->name }}</span>
+        <div class="flex-1 lg:ml-72">
+            <header
+                class="sticky top-0 z-30 mx-4 mt-4 flex flex-col gap-3 rounded-3xl bg-white/80 p-4 shadow-xl backdrop-blur lg:mx-8 lg:mt-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+                <div class="flex flex-col gap-3">
+                    <div
+                        class="inline-flex w-fit items-center gap-3 rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-200">
+                        <span
+                            class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white shadow-inner">
+                            <i class="fa-solid fa-user text-base"></i>
+                        </span>
+                        <span>{{ auth()->user()->name }}</span>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <button id="sidebarToggle" type="button"
+                            class="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/40 transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 lg:hidden"
+                            aria-label="Abrir menu" aria-expanded="false">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
+
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 lg:text-3xl">
+                                @yield('page-title', 'Dashboard')
+                            </h1>
+                            @php
+                                $subtitle = trim($__env->yieldContent('page-subtitle', ''));
+                            @endphp
+                            @if ($subtitle !== '')
+                                <p class="text-sm font-medium uppercase tracking-wide text-slate-400">
+                                    {{ $subtitle }}
+                                </p>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
-                <div class="top-bar-main">
-                    <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Abrir menu"
-                        aria-expanded="false">
-                        <i class="fas fa-bars"></i>
+                <div class="hidden items-center gap-3 lg:flex">
+                    <button id="sidebarToggleDesktop" type="button"
+                        class="hidden h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700 shadow-inner ring-1 ring-indigo-200 lg:flex lg:hover:bg-indigo-100"
+                        aria-label="Alternar menu">
+                        <i class="fa-solid fa-bars"></i>
                     </button>
-
-                    <div class="top-bar-titles">
-                        <h4>@yield('page-title', 'Dashboard')</h4>
-                        <small>@yield('page-subtitle', '')</small>
-                    </div>
                 </div>
             </header>
 
-            <main class="main-shell">
+            <main class="mx-4 mb-10 mt-4 flex flex-col gap-6 lg:mx-8 lg:mt-8">
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle"></i>
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div
+                        class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-800 shadow-sm shadow-emerald-500/10 backdrop-blur">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-emerald-500/40">
+                                <i class="fa-solid fa-check"></i>
+                            </span>
+                            <div class="flex-1">
+                                <p class="font-semibold">Sucesso</p>
+                                <p>{{ session('success') }}</p>
+                            </div>
+                        </div>
                     </div>
                 @endif
 
                 @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle"></i>
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div
+                        class="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-sm text-rose-800 shadow-sm shadow-rose-500/10 backdrop-blur">
+                        <div class="flex items-start gap-3">
+                            <span
+                                class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500 text-white shadow-rose-500/40">
+                                <i class="fa-solid fa-exclamation-triangle"></i>
+                            </span>
+                            <div class="flex-1">
+                                <p class="font-semibold">Ops!</p>
+                                <p>{{ session('error') }}</p>
+                            </div>
+                        </div>
                     </div>
                 @endif
 
@@ -481,43 +193,41 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        (function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
             const sidebarClose = document.getElementById('sidebarClose');
             const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-            const navLinks = Array.from(sidebar?.querySelectorAll('a.nav-link') || []);
-            const desktopQuery = window.matchMedia('(min-width: 992px)');
+            const navLinks = Array.from(sidebar.querySelectorAll('[data-nav]'));
+            const desktopQuery = window.matchMedia('(min-width: 1024px)');
 
             const openSidebar = () => {
-                sidebar?.classList.add('open');
-                sidebarBackdrop?.classList.add('visible');
-                sidebarBackdrop?.removeAttribute('hidden');
-                document.body.classList.add('sidebar-open');
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                sidebarBackdrop.classList.remove('pointer-events-none');
+                sidebarBackdrop.classList.remove('opacity-0');
+                sidebarBackdrop.classList.add('opacity-100');
                 sidebarToggle?.setAttribute('aria-expanded', 'true');
-                sidebar?.setAttribute('aria-hidden', 'false');
             };
 
             const closeSidebar = () => {
-                sidebar?.classList.remove('open');
-                sidebarBackdrop?.classList.remove('visible');
-                sidebarBackdrop?.setAttribute('hidden', 'hidden');
-                document.body.classList.remove('sidebar-open');
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('translate-x-0');
+                sidebarBackdrop.classList.add('pointer-events-none');
+                sidebarBackdrop.classList.add('opacity-0');
+                sidebarBackdrop.classList.remove('opacity-100');
                 sidebarToggle?.setAttribute('aria-expanded', 'false');
-                sidebar?.setAttribute('aria-hidden', 'true');
             };
 
-            const handleViewportChange = () => {
+            const syncForViewport = () => {
                 if (desktopQuery.matches) {
-                    sidebar?.classList.add('open');
-                    sidebar?.setAttribute('aria-hidden', 'false');
-                    document.body.classList.remove('sidebar-open');
-                    sidebarBackdrop?.classList.remove('visible');
-                    sidebarBackdrop?.setAttribute('hidden', 'hidden');
+                    sidebar.classList.add('translate-x-0');
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebarBackdrop.classList.add('pointer-events-none');
+                    sidebarBackdrop.classList.add('opacity-0');
+                    sidebarBackdrop.classList.remove('opacity-100');
                     sidebarToggle?.setAttribute('aria-expanded', 'false');
                 } else {
                     closeSidebar();
@@ -525,10 +235,18 @@
             };
 
             sidebarToggle?.addEventListener('click', () => {
-                if (sidebar?.classList.contains('open')) {
-                    closeSidebar();
-                } else {
+                if (sidebar.classList.contains('-translate-x-full')) {
                     openSidebar();
+                } else {
+                    closeSidebar();
+                }
+            });
+
+            sidebarToggleDesktop?.addEventListener('click', () => {
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    openSidebar();
+                } else {
+                    closeSidebar();
                 }
             });
 
@@ -549,12 +267,14 @@
                 }
             });
 
-            handleViewportChange();
-            desktopQuery.addEventListener('change', handleViewportChange);
-        })();
+            desktopQuery.addEventListener('change', syncForViewport);
+            syncForViewport();
+        });
     </script>
 
     @yield('scripts')
 </body>
 
 </html>
+
+
