@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\WhatsAppMessageTemplate;
 use App\Services\WhatsAppReminderService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
@@ -126,6 +127,11 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'whatsapp_number']);
 
+        $quickMessageTemplates = $user->quickMessageTemplates()
+            ->latest()
+            ->take(WhatsAppMessageTemplate::MAX_PER_USER)
+            ->get();
+
         return view('agenda.index', [
             'upcoming' => $upcoming,
             'recent' => $recent,
@@ -136,6 +142,8 @@ class AppointmentController extends Controller
             'dueReminders' => $dueReminders,
             'defaultWhatsapp' => $user->whatsapp_number,
             'usuarios' => $usuarios,
+             'quickMessageTemplates' => $quickMessageTemplates,
+             'quickMessageTemplateLimit' => WhatsAppMessageTemplate::MAX_PER_USER,
             'quickMessageDefaults' => [
                 'destinatario' => $user->whatsapp_number ?? config('services.whatsapp.test_number'),
             ],

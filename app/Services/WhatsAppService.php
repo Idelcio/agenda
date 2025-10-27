@@ -22,7 +22,7 @@ class WhatsAppService
     }
 
     /**
-     * Inicia uma sessão (gera QRCode quando necessário).
+     * Inicia uma sessÃ£o (gera QRCode quando necessÃ¡rio).
      */
     public function startSession(?string $deviceName = null, ?string $number = null, ?int $autoCloseMs = null): array
     {
@@ -84,7 +84,7 @@ class WhatsAppService
     }
 
     /**
-     * Envia uma lista de opções (botões) para o usuário.
+     * Envia uma lista de opÃ§Ãµes (botÃµes) para o usuÃ¡rio.
      */
     public function sendList(string $number, string $buttonText, string $description, array $sections, array $options = []): array
     {
@@ -103,12 +103,12 @@ class WhatsAppService
     }
 
     /**
-     * Envia um conjunto simples de botões interativos.
+     * Envia um conjunto simples de botÃµes interativos.
      */
     public function sendButtons(string $number, string $text, array $buttons, array $options = []): array
     {
         if (empty($buttons)) {
-            throw new RuntimeException('Defina ao menos um botão para a mensagem interativa.');
+            throw new RuntimeException('Defina ao menos um botÃ£o para a mensagem interativa.');
         }
 
         $payload = [
@@ -119,7 +119,7 @@ class WhatsAppService
                 'buttons' => array_map(function (array $button) {
                     $label = trim($button['text'] ?? '');
                     if ($label === '') {
-                        throw new RuntimeException('Texto do botão interativo obrigatório.');
+                        throw new RuntimeException('Texto do botÃ£o interativo obrigatÃ³rio.');
                     }
                     return $button;
                 }, $buttons),
@@ -130,7 +130,7 @@ class WhatsAppService
     }
 
     /**
-     * Responde a uma mensagem específica.
+     * Responde a uma mensagem especÃ­fica.
      */
     public function reply(string $number, string $messageId, string $text, ?int $typingMs = null): array
     {
@@ -145,7 +145,7 @@ class WhatsAppService
     }
 
     /**
-     * 🔹 Busca novas mensagens (não lidas) e processa as respostas ("1" e "2")
+     * ðŸ”¹ Busca novas mensagens (nÃ£o lidas) e processa as respostas ("1" e "2")
      */
     public function fetchNewMessagesAndProcess(): void
     {
@@ -153,7 +153,7 @@ class WhatsAppService
         $data = $response['response']['contacts'] ?? [];
 
         if (empty($data)) {
-            Log::info('📭 Nenhuma nova mensagem recebida.');
+            Log::info('ðŸ“­ Nenhuma nova mensagem recebida.');
             return;
         }
 
@@ -161,52 +161,52 @@ class WhatsAppService
             $fromRaw = data_get($msg, 'from', '');
             $body = trim((string) data_get($msg, 'body', ''));
 
-            // 🚫 Ignorar grupos, broadcasts, status, comunidades, etc.
+            // ðŸš« Ignorar grupos, broadcasts, status, comunidades, etc.
             if (
                 str_contains($fromRaw, '@g.us') ||
                 str_contains($fromRaw, '@broadcast') ||
                 str_contains($fromRaw, '@status') ||
                 str_contains($fromRaw, '@newsletter')
             ) {
-                Log::info('📢 Ignorando mensagem de grupo/broadcast/newsletter', ['from' => $fromRaw]);
+                Log::info('ðŸ“¢ Ignorando mensagem de grupo/broadcast/newsletter', ['from' => $fromRaw]);
                 continue;
             }
 
-            // 🔹 Extrai só os dígitos numéricos
+            // ðŸ”¹ Extrai sÃ³ os dÃ­gitos numÃ©ricos
             $from = preg_replace('/\D+/', '', $fromRaw);
 
-            // 🚫 Bloqueia números absurdamente longos (grupos com ID numérico)
+            // ðŸš« Bloqueia nÃºmeros absurdamente longos (grupos com ID numÃ©rico)
             if (strlen($from) > 13 || strlen($from) < 11) {
-                Log::info('🚫 Ignorando número inválido detectado', ['from' => $fromRaw, 'length' => strlen($from)]);
+                Log::info('ðŸš« Ignorando nÃºmero invÃ¡lido detectado', ['from' => $fromRaw, 'length' => strlen($from)]);
                 continue;
             }
 
-            // 🔧 Normaliza o número (adiciona prefixo 55 e o 9º dígito se necessário)
+            // ðŸ”§ Normaliza o nÃºmero (adiciona prefixo 55 e o 9Âº dÃ­gito se necessÃ¡rio)
             if (!str_starts_with($from, '55')) {
                 $from = '55' . $from;
             }
 
-            // Adiciona o 9 após o DDD se faltar (12 dígitos → 13 dígitos)
+            // Adiciona o 9 apÃ³s o DDD se faltar (12 dÃ­gitos â†’ 13 dÃ­gitos)
             if (strlen($from) === 12) {
                 $from = substr($from, 0, 4) . '9' . substr($from, 4);
             }
 
-            // 🧩 Só processa se existir corpo da mensagem
+            // ðŸ§© SÃ³ processa se existir corpo da mensagem
             if ($from && $body !== '') {
                 $this->processIncomingMessage($from, $body, $msg);
             }
 
-            // 💤 Pequena pausa entre mensagens (evita flood)
+            // ðŸ’¤ Pequena pausa entre mensagens (evita flood)
             usleep(300000); // 0.3s
         }
     }
 
     /**
-     * 🔹 Processa cada mensagem recebida
+     * ðŸ”¹ Processa cada mensagem recebida
      */
     public function processIncomingMessage(string $from, string $body, array $payload): void
     {
-        // 🔹 Extrai ID único da mensagem (API Brasil envia isso em vários níveis)
+        // ðŸ”¹ Extrai ID Ãºnico da mensagem (API Brasil envia isso em vÃ¡rios nÃ­veis)
         $externalId =
             data_get($payload, 'id') ??
             data_get($payload, 'message.id') ??
@@ -214,16 +214,16 @@ class WhatsAppService
             data_get($payload, 'response.id') ??
             Str::uuid()->toString(); // fallback seguro
 
-        // 🔹 Evita processar a mesma mensagem duas vezes
+        // ðŸ”¹ Evita processar a mesma mensagem duas vezes
         if (ChatbotMessage::where('external_id', $externalId)->exists()) {
-            Log::info('⚠️ Mensagem duplicada ignorada (já processada)', [
+            Log::info('âš ï¸ Mensagem duplicada ignorada (jÃ¡ processada)', [
                 'from' => $from,
                 'id' => $externalId,
             ]);
             return;
         }
 
-        // 🔹 Busca o usuário (empresa ou cliente vinculado)
+        // ðŸ”¹ Busca o usuÃ¡rio (empresa ou cliente vinculado)
         $user = User::where('whatsapp_number', $from)->first();
 
         if (!$user) {
@@ -236,25 +236,25 @@ class WhatsAppService
             }
         }
 
-        // 🔹 Registra a mensagem recebida no histórico
+        // ðŸ”¹ Registra a mensagem recebida no histÃ³rico
         ChatbotMessage::create([
             'user_id' => $user?->id,
             'whatsapp_numero' => $from,
             'direcao' => 'entrada',
             'conteudo' => $body,
             'payload' => $payload,
-            'external_id' => $externalId, // 🔸 novo campo
+            'external_id' => $externalId, // ðŸ”¸ novo campo
         ]);
 
         if (!$user) {
-            Log::warning('🚫 Mensagem recebida de número não registrado', ['from' => $from]);
+            Log::warning('ðŸš« Mensagem recebida de nÃºmero nÃ£o registrado', ['from' => $from]);
             return;
         }
 
-        // 🔹 Normaliza corpo da mensagem
+        // ðŸ”¹ Normaliza corpo da mensagem
         $normalized = strtoupper(trim($body));
         $normalized = preg_replace('/[\s\n\r\t\x{200B}-\x{200D}\x{FEFF}]+/u', '', $normalized);
-        $normalized = str_replace(['️⃣', '⃣', '✖️', '✔️', '1️⃣', '2️⃣'], '', $normalized);
+        $normalized = str_replace(['ï¸âƒ£', 'âƒ£', 'âœ–ï¸', 'âœ”ï¸', '1ï¸âƒ£', '2ï¸âƒ£'], '', $normalized);
         $normalized = preg_replace('/[^\p{L}\p{N}]/u', '', $normalized);
 
         if (str_starts_with($normalized, '1')) {
@@ -263,7 +263,7 @@ class WhatsAppService
             $normalized = '2';
         }
 
-        // 🔹 Busca compromisso pendente/confirmado vinculado ao usuário
+        // ðŸ”¹ Busca compromisso pendente/confirmado vinculado ao usuÃ¡rio
         $appointment = Appointment::query()
             ->where(function ($query) use ($user, $from) {
                 if ($user->tipo === 'cliente') {
@@ -278,14 +278,14 @@ class WhatsAppService
             ->first();
 
         if (! $appointment) {
-            Log::info('⚠️ Nenhum compromisso pendente encontrado para este usuário.', [
+            Log::info('âš ï¸ Nenhum compromisso pendente encontrado para este usuÃ¡rio.', [
                 'whatsapp' => $from,
                 'user_id' => $user->id ?? null,
             ]);
             return;
         }
 
-        Log::info('📩 Mensagem recebida normalizada', [
+        Log::info('ðŸ“© Mensagem recebida normalizada', [
             'original' => $body,
             'normalizada' => $normalized,
             'appointment_id' => $appointment->id,
@@ -294,12 +294,12 @@ class WhatsAppService
 
         if ($appointment->status === 'cancelado') {
             $wantsReschedule = ['SIM', 'S', 'YES', '1'];
-            $doesNotWant = ['NAO', 'NÃO', 'N', 'NO', '2'];
+            $doesNotWant = ['NAO', 'NÃƒO', 'N', 'NO', '2'];
 
             if (in_array($normalized, $wantsReschedule, true)) {
-                // 🔹 Cliente respondeu SIM após cancelamento
-                $this->sendText($from, "✅ Em breve entraremos em contato para reagendar seu atendimento.");
-                Log::info('📅 Cliente deseja remarcar após cancelamento', [
+                // ðŸ”¹ Cliente respondeu SIM apÃ³s cancelamento
+                $this->sendText($from, "Tudo certo! Em breve entraremos em contato para reagendar seu atendimento.");
+                Log::info('ðŸ“… Cliente deseja remarcar apÃ³s cancelamento', [
                     'user_id' => $user->id,
                     'appointment_id' => $appointment->id,
                 ]);
@@ -307,9 +307,9 @@ class WhatsAppService
             }
 
             // if (in_array($normalized, $doesNotWant, true)) {
-            //     // 🔹 Cliente respondeu NÃO após cancelamento
-            //     $this->sendText($from, "👋 Obrigado! Até breve.");
-            //     Log::info('🙌 Cliente encerrou conversa após cancelamento', [
+            //     // ðŸ”¹ Cliente respondeu NÃƒO apÃ³s cancelamento
+            //     $this->sendText($from, "ðŸ‘‹ Obrigado! AtÃ© breve.");
+            //     Log::info('ðŸ™Œ Cliente encerrou conversa apÃ³s cancelamento', [
             //         'user_id' => $user->id,
             //         'appointment_id' => $appointment->id,
             //     ]);
@@ -317,11 +317,11 @@ class WhatsAppService
             // }
         }
 
-        // 🔹 Interpreta comandos conhecidos
+        // ðŸ”¹ Interpreta comandos conhecidos
         $isConfirm = in_array($normalized, ['1', 'UM', 'CONFIRMAR', 'SIM', 'OK', 'CONCLUIR']);
-        $isCancel  = in_array($normalized, ['2', 'DOIS', 'CANCELAR', 'NÃO', 'NAO', 'CANCEL']);
+        $isCancel  = in_array($normalized, ['2', 'DOIS', 'CANCELAR', 'NÃƒO', 'NAO', 'CANCEL']);
 
-        Log::info('🔍 Verificando comando', [
+        Log::info('ðŸ” Verificando comando', [
             'normalized' => $normalized,
             'isConfirm' => $isConfirm,
             'isCancel' => $isCancel,
@@ -332,45 +332,45 @@ class WhatsAppService
         if ($isConfirm) {
             $appointment->update(['status' => 'confirmado']);
 
-            Log::info('✅ Compromisso confirmado via WhatsApp', [
+            Log::info('âœ… Compromisso confirmado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
 
-            // Tenta enviar mensagem de confirmação (mas não bloqueia se der erro)
+            // Tenta enviar mensagem de confirmaÃ§Ã£o (mas nÃ£o bloqueia se der erro)
             try {
-                $this->sendText($from, "✅ Seu atendimento foi *CONFIRMADO* com sucesso!");
+                $this->sendText($from, "âœ… Seu atendimento foi *CONFIRMADO* com sucesso!");
             } catch (\Exception $e) {
-                Log::warning('⚠️ Não foi possível enviar mensagem de confirmação', [
+                Log::warning('âš ï¸ NÃ£o foi possÃ­vel enviar mensagem de confirmaÃ§Ã£o', [
                     'appointment_id' => $appointment->id,
                     'erro' => $e->getMessage(),
                 ]);
             }
         } elseif ($isCancel) {
-            Log::info('🔸 Entrando no cancelamento', [
+            Log::info('ðŸ”¸ Entrando no cancelamento', [
                 'appointment_id' => $appointment->id,
                 'status_antes' => $appointment->status,
             ]);
 
-            // 🔸 Atualiza o status para cancelado
+            // ðŸ”¸ Atualiza o status para cancelado
             $appointment->update(['status' => 'cancelado']);
 
-            Log::info('❌ Compromisso cancelado via WhatsApp', [
+            Log::info('âŒ Compromisso cancelado via WhatsApp', [
                 'user_id' => $user->id,
                 'appointment_id' => $appointment->id,
             ]);
 
-            // 🔸 Tenta enviar mensagem de cancelamento (mas não bloqueia se der erro)
+            // ðŸ”¸ Tenta enviar mensagem de cancelamento (mas nÃ£o bloqueia se der erro)
             try {
-                $this->sendText($from, "❌ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (Não).");
+                $this->sendText($from, "âŒ Seu agendamento foi *CANCELADO*.\n\nDeseja remarcar? Responda *1* (Sim) ou *2* (NÃ£o).");
             } catch (\Exception $e) {
-                Log::warning('⚠️ Não foi possível enviar mensagem de cancelamento', [
+                Log::warning('âš ï¸ NÃ£o foi possÃ­vel enviar mensagem de cancelamento', [
                     'appointment_id' => $appointment->id,
                     'erro' => $e->getMessage(),
                 ]);
             }
         } else {
-            Log::info('ℹ️ Mensagem ignorada (não é comando conhecido)', [
+            Log::info('â„¹ï¸ Mensagem ignorada (nÃ£o Ã© comando conhecido)', [
                 'conteudo' => $body,
                 'normalizada' => $normalized,
                 'appointment_id' => $appointment->id,
@@ -381,7 +381,7 @@ class WhatsAppService
 
 
     /**
-     * Recupera as mensagens de um chat específico.
+     * Recupera as mensagens de um chat especÃ­fico.
      */
     public function fetchChatMessages(string $number, ?string $direction = null, ?int $count = null): array
     {
@@ -396,7 +396,7 @@ class WhatsAppService
     }
 
     /**
-     * 🔧 Execução padrão de requisição à API Brasil
+     * ðŸ”§ ExecuÃ§Ã£o padrÃ£o de requisiÃ§Ã£o Ã  API Brasil
      */
     private function post(string $endpoint, array $payload = []): array
     {
@@ -424,7 +424,7 @@ class WhatsAppService
         try {
             $response = $http->post($url, $payload);
         } catch (\Illuminate\Http\Client\ConnectionException $exception) {
-            throw new RuntimeException('API Brasil não respondeu dentro do tempo limite.', 0, $exception);
+            throw new RuntimeException('API Brasil nÃ£o respondeu dentro do tempo limite.', 0, $exception);
         }
 
         if ($response->failed()) {
@@ -450,45 +450,45 @@ class WhatsAppService
     private function ensureCredentials(): void
     {
         if (empty($this->config['token']) || empty($this->config['device_token'])) {
-            throw new RuntimeException('Credenciais da API Brasil/WhatsApp não configuradas.');
+            throw new RuntimeException('Credenciais da API Brasil/WhatsApp nÃ£o configuradas.');
         }
 
         if (empty($this->config['device_id'])) {
             Log::warning('Tentativa de acessar API Brasil sem device_id configurado.', [
                 'device_token' => substr($this->config['device_token'] ?? '', 0, 8) . '...',
             ]);
-            throw new RuntimeException('Device ID da API Brasil não configurado.');
+            throw new RuntimeException('Device ID da API Brasil nÃ£o configurado.');
         }
     }
 
     private function normalizeNumber(string $number): string
     {
-        // Remove tudo que não for número
+        // Remove tudo que nÃ£o for nÃºmero
         $digits = preg_replace('/\D+/', '', $number);
 
-        // Garante que tenha o código do Brasil no início
+        // Garante que tenha o cÃ³digo do Brasil no inÃ­cio
         if (!str_starts_with($digits, '55')) {
             $digits = '55' . $digits;
         }
 
-        // Detecta DDD + número com ou sem o 9
-        // Exemplo: 555196244848 → faltando o 9
-        // Exemplo: 5551996244848 → já tem o 9
+        // Detecta DDD + nÃºmero com ou sem o 9
+        // Exemplo: 555196244848 â†’ faltando o 9
+        // Exemplo: 5551996244848 â†’ jÃ¡ tem o 9
         if (strlen($digits) === 12) {
-            // Inserir o 9 após o DDD (depois de 4 dígitos)
+            // Inserir o 9 apÃ³s o DDD (depois de 4 dÃ­gitos)
             $digits = substr($digits, 0, 4) . '9' . substr($digits, 4);
         }
 
         if ($digits === '' || strlen($digits) < 12) {
-            throw new RuntimeException('Número de WhatsApp inválido: ' . $number);
+            throw new RuntimeException('NÃºmero de WhatsApp invÃ¡lido: ' . $number);
         }
 
         return $digits;
     }
 
     /**
-     * Cria um novo device/sessão na API Brasil (usando token mestre)
-     * Faz requisição direta sem validar device_token (pois ainda não existe)
+     * Cria um novo device/sessÃ£o na API Brasil (usando token mestre)
+     * Faz requisiÃ§Ã£o direta sem validar device_token (pois ainda nÃ£o existe)
      */
     public function createDevice(string $deviceName): array
     {
@@ -501,7 +501,7 @@ class WhatsAppService
 
             $headers = array_filter([
                 'Authorization' => 'Bearer ' . ($this->config['token'] ?? ''),
-                // NÃO envia DeviceToken aqui, pois estamos CRIANDO um novo
+                // NÃƒO envia DeviceToken aqui, pois estamos CRIANDO um novo
                 'ProfileId' => $this->config['profile_id'] ?? '',
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
@@ -540,7 +540,7 @@ class WhatsAppService
                      ?? null;
 
             if (!$deviceToken) {
-                throw new RuntimeException('API Brasil não retornou device_token. Resposta: ' . json_encode($data));
+                throw new RuntimeException('API Brasil nÃ£o retornou device_token. Resposta: ' . json_encode($data));
             }
 
             return [
@@ -549,7 +549,7 @@ class WhatsAppService
                 'full_response' => $data,
             ];
         } catch (\Exception $e) {
-            Log::error('Exceção ao criar device: ' . $e->getMessage(), [
+            Log::error('ExceÃ§Ã£o ao criar device: ' . $e->getMessage(), [
                 'exception' => get_class($e),
             ]);
             throw $e;
@@ -557,7 +557,7 @@ class WhatsAppService
     }
 
     /**
-     * Obtém o QR Code de um device específico
+     * ObtÃ©m o QR Code de um device especÃ­fico
      */
     public function getDeviceQrCode(string $deviceToken): ?string
     {
@@ -602,13 +602,13 @@ class WhatsAppService
             return $qrcode;
 
         } catch (\Exception $e) {
-            Log::error('Exceção ao obter QR Code: ' . $e->getMessage());
+            Log::error('ExceÃ§Ã£o ao obter QR Code: ' . $e->getMessage());
             return null;
         }
     }
 
     /**
-     * Verifica o status de conexão de um device específico
+     * Verifica o status de conexÃ£o de um device especÃ­fico
      */
     public function checkDeviceStatus(string $deviceToken): array
     {
@@ -628,21 +628,21 @@ class WhatsAppService
 
             $data = $response->json() ?? [];
 
-            // 🔹 Mesmo com erro 401, a API Brasil retorna o status real do device
+            // ðŸ”¹ Mesmo com erro 401, a API Brasil retorna o status real do device
             if ($response->failed()) {
                 Log::warning('API retornou erro ao verificar status, mas vamos checar a resposta', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
 
-                // ✅ Extrai o status do device mesmo no erro
+                // âœ… Extrai o status do device mesmo no erro
                 $deviceStatus = $data['device']['status'] ?? null;
 
-                // Status válidos de conexão: "inChat", "qrcode", "open", "connected"
+                // Status vÃ¡lidos de conexÃ£o: "inChat", "qrcode", "open", "connected"
                 $statusesAtivos = ['inChat', 'qrcode', 'open', 'connected', 'isLogged'];
 
                 if ($deviceStatus && in_array($deviceStatus, $statusesAtivos)) {
-                    Log::info('✅ Device está conectado (extraído da resposta de erro)', [
+                    Log::info('âœ… Device estÃ¡ conectado (extraÃ­do da resposta de erro)', [
                         'device_status' => $deviceStatus,
                     ]);
 
@@ -660,7 +660,7 @@ class WhatsAppService
                 'data' => $data,
             ]);
 
-            // Verifica se está conectado baseado na resposta (quando não há erro)
+            // Verifica se estÃ¡ conectado baseado na resposta (quando nÃ£o hÃ¡ erro)
             $connected = ($data['connected'] ?? false)
                       || ($data['status'] ?? '') === 'connected'
                       || ($data['response']['connected'] ?? false)
@@ -673,13 +673,13 @@ class WhatsAppService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Exceção ao verificar status: ' . $e->getMessage());
+            Log::error('ExceÃ§Ã£o ao verificar status: ' . $e->getMessage());
             return ['connected' => false];
         }
     }
 
     /**
-     * Configura o serviço para usar credenciais de um device específico
+     * Configura o serviÃ§o para usar credenciais de um device especÃ­fico
      * (usado para enviar mensagens com credenciais da empresa)
      */
     public function setDeviceCredentials(?string $deviceToken, ?string $deviceId = null): void
@@ -693,7 +693,7 @@ class WhatsAppService
     }
 
     /**
-     * Configura credenciais baseado em um usuário (empresa)
+     * Configura credenciais baseado em um usuÃ¡rio (empresa)
      * Busca as credenciais do device da empresa no banco
      */
     public function useUserCredentials(User $user): void
@@ -726,10 +726,11 @@ class WhatsAppService
             return;
         }
 
-        // Fallback: usa credenciais do .env (padrão)
-        Log::warning('Usando credenciais padrão do .env', [
+        // Fallback: usa credenciais do .env (padrÃ£o)
+        Log::warning('Usando credenciais padrÃ£o do .env', [
             'user_id' => $user->id ?? null,
             'tipo' => $user->tipo ?? null,
         ]);
     }
 }
+

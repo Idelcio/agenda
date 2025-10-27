@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuickMessageTemplateController;
 use App\Http\Controllers\Webhook\WhatsAppWebhookController;
 use App\Http\Controllers\WhatsAppSetupController;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'verified', 'subscription'])->group(function () {
     Route::patch('/agenda/{appointment}/status/{status}', [AppointmentController::class, 'updateStatus'])->name('agenda.update-status');
     Route::post('/agenda/{appointment}/lembrar', [AppointmentController::class, 'sendReminder'])->name('agenda.reminder');
     Route::post('/agenda/whatsapp/rapido', [AppointmentController::class, 'sendQuickMessage'])->name('agenda.quick-whatsapp');
+    Route::post('/agenda/quick-messages', [QuickMessageTemplateController::class, 'store'])->name('agenda.quick-messages.store');
+    Route::patch('/agenda/quick-messages/{template}', [QuickMessageTemplateController::class, 'update'])->name('agenda.quick-messages.update');
+    Route::delete('/agenda/quick-messages/{template}', [QuickMessageTemplateController::class, 'destroy'])->name('agenda.quick-messages.destroy');
     Route::resource('agenda', AppointmentController::class)
         ->parameters(['agenda' => 'appointment'])
         ->except(['show']);

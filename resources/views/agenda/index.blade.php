@@ -17,6 +17,16 @@
 
     $recentReminderId = session('reminder_sent');
     $recentReminderId = is_numeric($recentReminderId) ? (int) $recentReminderId : null;
+
+    $quickMessageTemplates = $quickMessageTemplates ?? collect();
+    $quickMessageTemplateLimit = $quickMessageTemplateLimit ?? 5;
+    $quickTemplateOptions = $quickMessageTemplates->map(function ($template) {
+        return [
+            'id' => $template->id,
+            'message' => $template->message,
+            'preview' => Str::limit($template->message, 80),
+        ];
+    })->values();
 @endphp
 
 <x-app-layout>
@@ -45,7 +55,7 @@
                 </div>
             @endif
 
-            {{-- Estatísticas Principais --}}
+            {{-- Estatsticas Principais --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div
                     class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 shadow-md sm:rounded-lg border-l-4 border-blue-500">
@@ -112,7 +122,7 @@
                 </div>
             </div>
 
-            {{-- Calendário --}}
+            {{-- Calendrio --}}
             <div class="bg-white shadow-md sm:rounded-lg border-t-4 border-purple-500">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -122,7 +132,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <h3 class="text-lg font-semibold text-gray-900">Calendário de Agendamentos</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">Calendrio de Agendamentos</h3>
                         </div>
                         <a href="{{ route('agenda.pdf-semanal') }}" target="_blank"
                             class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -134,14 +144,14 @@
                         </a>
                     </div>
                     <p class="text-sm text-gray-600 mb-4">
-                        Visualize seus compromissos por dia, semana ou mês. Clique em um horário para criar novo
+                        Visualize seus compromissos por dia, semana ou ms. Clique em um horrio para criar novo
                         agendamento.
                     </p>
                     <div id="fullcalendar"></div>
                 </div>
             </div>
 
-            {{-- Estatísticas de Lembretes WhatsApp --}}
+            {{-- Estatsticas de Lembretes WhatsApp --}}
             <div class="bg-white shadow-md sm:rounded-lg border-t-4 border-green-500">
                 <div class="p-6">
                     <div class="flex items-center mb-4">
@@ -161,7 +171,7 @@
                             <p class="text-2xl font-bold text-green-900 mt-1">{{ $stats['lembretes_enviados'] }}</p>
                         </div>
                         <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                            <p class="text-xs uppercase font-semibold text-yellow-600">Aguardando Horário</p>
+                            <p class="text-xs uppercase font-semibold text-yellow-600">Aguardando Horrio</p>
                             <p class="text-2xl font-bold text-yellow-900 mt-1">{{ $stats['lembretes_pendentes'] }}</p>
                         </div>
                         <div class="bg-red-50 p-4 rounded-lg border border-red-200">
@@ -176,7 +186,7 @@
                 <div class="p-6">
                     <!-- Wrapper flex responsivo -->
                     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
-                        <!-- Ícone e texto principal -->
+                        <!-- cone e texto principal -->
                         <div class="flex items-start gap-3 flex-1">
                             <div class="bg-indigo-100 p-2 rounded-lg">
                                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor"
@@ -188,18 +198,18 @@
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">Novo Compromisso Interno</h3>
                                 <p class="text-sm text-gray-600 mt-1">
-                                    <span class="font-semibold text-indigo-600">📋 Para uso da empresa:</span>
+                                    <span class="font-semibold text-indigo-600"> Para uso da empresa:</span>
                                     Registre o compromisso no seu sistema interno.
                                 </p>
                                 <p class="text-sm text-gray-500 mt-1">
-                                    💡 <span class="font-medium">Importante:</span> Este formulário apenas
+                                     <span class="font-medium">Importante:</span> Este formulrio apenas
                                     <strong>salva na sua agenda</strong>. Para <strong>notificar o cliente</strong>,
                                     configure o lembrete por WhatsApp abaixo.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- Botão "Novo Cliente" que vai para baixo no mobile -->
+                        <!-- Boto "Novo Cliente" que vai para baixo no mobile -->
                         <div class="w-full lg:w-auto mt-4 lg:mt-0">
                             <a href="{{ route('clientes.create') }}"
                                 class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -212,7 +222,7 @@
                         </div>
                     </div>
 
-                    {{-- Formulário incluído --}}
+                    {{-- Formulrio includo --}}
                     @include('agenda.partials.form', [
                         'appointment' => null,
                         'defaultWhatsapp' => $defaultWhatsapp,
@@ -309,8 +319,8 @@
                         </div>
 
                         <p class="text-sm text-red-700 mb-4">
-                            Estes compromissos atingiram o horário programado. Configure e envie manualmente ou aguarde
-                            o envio automático.
+                            Estes compromissos atingiram o horrio programado. Configure e envie manualmente ou aguarde
+                            o envio automtico.
                         </p>
 
                         <div class="space-y-4">
@@ -338,11 +348,11 @@
                                             @endif
                                             <p class="text-sm text-gray-700 mt-1">
                                                 <strong>Compromisso:</strong>
-                                                {{ $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y \à\s H:i') }}
+                                                {{ $appointment->inicio->timezone(config('app.timezone'))->format('d/m/Y \\s H:i') }}
                                             </p>
                                             <p class="text-xs text-gray-600 mt-0.5">
                                                 <strong>Lembrete programado:</strong>
-                                                {{ $appointment->lembrar_em?->timezone(config('app.timezone'))->format('d/m/Y \à\s H:i') }}
+                                                {{ $appointment->lembrar_em?->timezone(config('app.timezone'))->format('d/m/Y \\s H:i') }}
                                             </p>
                                         </div>
                                     </div>
@@ -366,7 +376,7 @@
                                                 </span>
                                             </div>
                                         @else
-                                            {{-- Formulário do lembrete --}}
+                                            {{-- Formulrio do lembrete --}}
                                             <form method="POST" action="{{ route('agenda.quick-whatsapp') }}"
                                                 class="space-y-3 mt-3 pt-3 border-t border-red-200"
                                                 enctype="multipart/form-data"
@@ -378,7 +388,7 @@
 
                                                 <div>
                                                     <x-input-label for="destinatario_{{ $appointment->id }}"
-                                                        value="Número de destino" class="text-xs" />
+                                                        value="Nmero de destino" class="text-xs" />
                                                     <x-text-input id="destinatario_{{ $appointment->id }}"
                                                         name="destinatario" type="text"
                                                         class="mt-1 block w-full text-sm"
@@ -391,7 +401,88 @@
                                                         class="text-xs" />
                                                     <textarea id="mensagem_{{ $appointment->id }}" name="mensagem" rows="3"
                                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                                                        placeholder="Digite a mensagem do lembrete" required>{{ old('mensagem', $appointment->whatsapp_mensagem ?? sprintf('Olá! Você tem um agendamento de %s em %s.', $appointment->titulo, $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \à\s H:i'))) }}</textarea>
+                                                        placeholder="Digite a mensagem do lembrete" required>{{ old('mensagem', $appointment->whatsapp_mensagem ?? sprintf('Ol! Voc tem um agendamento de %s em %s.', $appointment->titulo, $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\s H:i'))) }}</textarea>
+                                                </div>
+
+                                                <div class="mt-3 space-y-3 rounded-md border border-indigo-100 bg-indigo-50/60 p-3"
+                                                    data-quick-template-controls data-target="mensagem_{{ $appointment->id }}"
+                                                    data-limit="{{ $quickMessageTemplateLimit }}"
+                                                    data-save-url="{{ route('agenda.quick-messages.store') }}"
+                                                    data-update-url-template="{{ route('agenda.quick-messages.update', ['template' => '__TEMPLATE__']) }}"
+                                                    data-delete-url-template="{{ route('agenda.quick-messages.destroy', ['template' => '__TEMPLATE__']) }}">
+                                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                                        <div class="flex flex-wrap items-center gap-2">
+                                                            <span class="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                                                                Mensagens prontas
+                                                            </span>
+                                                            <span class="text-xs text-gray-500" data-template-count>
+                                                                {{ $quickMessageTemplates->count() }}/{{ $quickMessageTemplateLimit }} salvas
+                                                            </span>
+                                                        </div>
+                                                        <button type="button"
+                                                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:bg-indigo-400"
+                                                            data-action="save-template">
+                                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                            <span data-template-save-label>Guardar mensagem</span>
+                                                        </button>
+                                                    </div>
+
+                                                    <p class="text-xs text-gray-500" data-templates-empty
+                                                        @if ($quickMessageTemplates->isNotEmpty()) style="display: none;" @endif>
+                                                        Nenhuma mensagem pronta ainda. Clique em "Guardar mensagem" para salvar textos recorrentes.
+                                                    </p>
+
+                                                    <div class="flex gap-3 overflow-x-auto pb-2" data-template-list>
+                                                        @foreach ($quickMessageTemplates as $template)
+                                                            <div class="flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all"
+                                                                data-template-id="{{ $template->id }}"
+                                                                data-template-message="{{ e($template->message) }}"
+                                                                data-action="apply-template"
+                                                                data-message="{{ e($template->message) }}"
+                                                                data-target="mensagem_{{ $appointment->id }}">
+                                                                <div class="space-y-3">
+                                                                    <p class="text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3" data-template-message-text>{{ $template->message }}</p>
+                                                                    <div class="flex flex-wrap gap-2">
+                                                                        <button type="button"
+                                                                            class="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
+                                                                            data-action="edit-template"
+                                                                            data-template-id="{{ $template->id }}"
+                                                                            data-message="{{ e($template->message) }}"
+                                                                            data-target="mensagem_{{ $appointment->id }}"
+                                                                            onclick="event.stopPropagation()">
+                                                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
+                                                                                viewBox="0 0 24 24">
+                                                                                <path stroke-linecap="round"
+                                                                                    stroke-linejoin="round" stroke-width="2"
+                                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                            </svg>
+                                                                            Editar
+                                                                        </button>
+                                                                        <button type="button"
+                                                                            class="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
+                                                                            data-action="delete-template"
+                                                                            data-template-id="{{ $template->id }}"
+                                                                            onclick="event.stopPropagation()">
+                                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
+                                                                                    viewBox="0 0 24 24">
+                                                                                    <path stroke-linecap="round"
+                                                                                        stroke-linejoin="round" stroke-width="2"
+                                                                                        d="M6 18L18 6M6 6l12 12" />
+                                                                                </svg>
+                                                                                Excluir
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+
+                                                    <p class="hidden text-xs font-medium text-emerald-600" data-template-feedback></p>
                                                 </div>
 
                                                 <div>
@@ -400,7 +491,7 @@
                                                     <input id="attachment_{{ $appointment->id }}" name="attachment"
                                                         type="file" class="mt-1 block w-full text-sm text-gray-700" />
                                                     <p class="mt-1 text-xs text-gray-500">Imagens (JPEG, PNG, WEBP, GIF) ou
-                                                        PDF até 5 MB.</p>
+                                                        PDF at 5 MB.</p>
                                                 </div>
 
                                                 <div class="flex gap-2">
@@ -610,7 +701,7 @@
                 </div>
             </div>
 
-            {{-- Seção Concluídos com Filtros --}}
+            {{-- Seo Concludos com Filtros --}}
             <div class="bg-white shadow sm:rounded-lg border-l-4 border-green-500">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -620,7 +711,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h3 class="text-lg font-bold text-gray-900">Concluídos</h3>
+                            <h3 class="text-lg font-bold text-gray-900">Concludos</h3>
                             <span class="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
                                 {{ $concluidos->count() }}
                             </span>
@@ -629,7 +720,7 @@
 
                     {{-- Abas de Filtro --}}
                     <div class="mb-4 border-b border-gray-200">
-                        <nav class="flex space-x-2" aria-label="Filtros de período">
+                        <nav class="flex space-x-2" aria-label="Filtros de perodo">
                             <button data-filter="hoje" data-section="concluidos"
                                 class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
                                 Hoje
@@ -640,7 +731,7 @@
                             </button>
                             <button data-filter="mes" data-section="concluidos"
                                 class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
-                                Este Mês
+                                Este Ms
                             </button>
                             <button data-filter="todos" data-section="concluidos"
                                 class="filter-tab-concluidos active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-green-600 text-green-600 transition">
@@ -650,7 +741,7 @@
                     </div>
 
                     @if ($concluidos->isEmpty())
-                        <p class="text-sm text-gray-600">Nenhum compromisso concluído.</p>
+                        <p class="text-sm text-gray-600">Nenhum compromisso concludo.</p>
                     @else
                         <ul class="divide-y divide-gray-200 text-sm text-gray-700" id="concluidos-list">
                             @foreach ($concluidos as $appointment)
@@ -681,7 +772,7 @@
                                         <div class="flex items-center gap-2">
                                             <span
                                                 class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
-                                                Concluído
+                                                Concludo
                                             </span>
                                             <form method="POST"
                                                 action="{{ route('agenda.update-status', ['appointment' => $appointment->id, 'status' => 'pendente']) }}"
@@ -712,7 +803,7 @@
                 </div>
             </div>
 
-            {{-- Seção Pendentes --}}
+            {{-- Seo Pendentes --}}
             <div class="bg-white shadow sm:rounded-lg border-l-4 border-amber-500">
                 <div class="p-6">
                     <div class="flex items-center mb-4">
@@ -766,7 +857,7 @@
                                                 @method('PATCH')
                                                 <button type="submit"
                                                     class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition">
-                                                    Concluído
+                                                    Concludo
                                                 </button>
                                             </form>
                                             <form method="POST"
@@ -788,7 +879,7 @@
                 </div>
             </div>
 
-            {{-- Seção Cancelados com Filtros --}}
+            {{-- Seo Cancelados com Filtros --}}
             <div class="bg-white shadow sm:rounded-lg border-l-4 border-red-500">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -807,7 +898,7 @@
 
                     {{-- Abas de Filtro --}}
                     <div class="mb-4 border-b border-gray-200">
-                        <nav class="flex space-x-2" aria-label="Filtros de período">
+                        <nav class="flex space-x-2" aria-label="Filtros de perodo">
                             <button data-filter="hoje" data-section="cancelados"
                                 class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
                                 Hoje
@@ -818,7 +909,7 @@
                             </button>
                             <button data-filter="mes" data-section="cancelados"
                                 class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
-                                Este Mês
+                                Este Ms
                             </button>
                             <button data-filter="todos" data-section="cancelados"
                                 class="filter-tab-cancelados active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-red-600 text-red-600 transition">
@@ -878,7 +969,7 @@
                                                 @method('PATCH')
                                                 <button type="submit"
                                                     class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition">
-                                                    Concluído
+                                                    Concluido
                                                 </button>
                                             </form>
                                         </div>
@@ -930,7 +1021,7 @@
                                                     'color' => 'amber',
                                                 ],
                                                 'concluido' => [
-                                                    'label' => 'Concluído',
+                                                    'label' => 'Concludo',
                                                     'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
                                                     'color' => 'green',
                                                 ],
@@ -1035,9 +1126,475 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('✅ Sistema de agenda carregado.');
+            console.log(' Sistema de agenda carregado.');
 
-            // Sistema de filtros por período
+            const templateLimit = {{ $quickMessageTemplateLimit ?? 5 }};
+            let quickTemplates = @json($quickTemplateOptions ?? []);
+            console.log('Quick templates carregados:', quickTemplates);
+            console.log('Total de templates:', quickTemplates.length);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+            const quickTemplateContainers = Array.from(document.querySelectorAll('[data-quick-template-controls]'))
+                .filter((container) => container.dataset.qtBound !== '1');
+
+            console.log('Containers de templates encontrados:', quickTemplateContainers.length);
+
+            if (quickTemplateContainers.length) {
+                const parseJson = async (response) => {
+                    const contentType = response.headers.get('content-type') ?? '';
+                    if (contentType.includes('application/json')) {
+                        try {
+                            return await response.json();
+                        } catch (_error) {
+                            return null;
+                        }
+                    }
+
+                    return null;
+                };
+
+                const showFeedback = (container, message, type = 'success') => {
+                    const feedback = container.querySelector('[data-template-feedback]');
+                    if (!feedback) {
+                        return;
+                    }
+
+                    feedback.textContent = message;
+                    feedback.classList.remove('hidden', 'text-emerald-600', 'text-red-600');
+                    feedback.classList.add(type === 'error' ? 'text-red-600' : 'text-emerald-600');
+                    feedback.classList.remove('hidden');
+
+                    if (feedback._timeoutId) {
+                        window.clearTimeout(feedback._timeoutId);
+                    }
+
+                    feedback._timeoutId = window.setTimeout(() => {
+                        feedback.classList.add('hidden');
+                        feedback._timeoutId = null;
+                    }, 4000);
+                };
+
+                                                                                    const getTextarea = (container) => {
+                                    const targetId = container.dataset.target;
+                                    return targetId ? document.getElementById(targetId) : null;
+                                };
+
+                                const findTemplateById = (templateId) => {
+                                    return quickTemplates.find((template) => String(template.id) === String(templateId));
+                                };
+
+                                const setEditingState = (container, templateId = null) => {
+                                    const saveButton = container.querySelector('[data-action="save-template"]');
+
+                                    if (templateId) {
+                                        container.dataset.editingTemplateId = String(templateId);
+                                        if (saveButton) {
+                                            saveButton.dataset.mode = 'update';
+                                            saveButton.disabled = false;
+                                            saveButton.classList.remove('opacity-60');
+                                            saveButton.removeAttribute('title');
+                                        }
+                                    } else {
+                                        delete container.dataset.editingTemplateId;
+                                        if (saveButton) {
+                                            delete saveButton.dataset.mode;
+                                        }
+                                    }
+                                };
+
+                                const applyMessageToTextarea = (container, message, successMessage = null, targetId = null) => {
+                                    const textarea = targetId
+                                        ? document.getElementById(targetId)
+                                        : getTextarea(container);
+
+                                    if (!textarea) {
+                                        showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
+                                        return false;
+                                    }
+
+                                    if (!message) {
+                                        showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
+                                        return false;
+                                    }
+
+                                    textarea.value = message;
+                                    textarea.focus();
+                                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                                    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+
+                                    if (successMessage) {
+                                        showFeedback(container, successMessage, 'success');
+                                    }
+
+                                    return true;
+                                };
+
+                                const createActionButton = (classes, action, iconSvg, label, template) => {
+                                    const button = document.createElement('button');
+                                    button.type = 'button';
+                                    button.className = classes;
+                                    button.dataset.action = action;
+                                    button.dataset.templateId = String(template.id);
+                                    button.innerHTML = `${iconSvg} ${label}`;
+
+                                    if (action === 'apply-template' || action === 'edit-template') {
+                                        button.dataset.message = template.message;
+                                    }
+
+                                    return button;
+                                };
+
+                                const renderTemplateList = (container) => {
+                                    const list = container.querySelector('[data-template-list]');
+                                    if (!list) {
+                                        return;
+                                    }
+
+                                    // Renderizar apenas uma vez globalmente
+                                    if (list.dataset.rendered === '1') {
+                                        return;
+                                    }
+                                    list.dataset.rendered = '1';
+
+                                    const selectedId = container.dataset.selectedTemplateId ?? null;
+
+                                    list.innerHTML = '';
+                                    list.className = 'flex gap-3 overflow-x-auto pb-2';
+
+                                    if (!quickTemplates.length) {
+                                        delete container.dataset.selectedTemplateId;
+                                        return;
+                                    }
+
+                                    const useIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h2m2-1v18m4-18v18"></path></svg>';
+                                    const editIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+                                    const deleteIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+                                    quickTemplates.forEach((template) => {
+                                        const wrapper = document.createElement('div');
+                                        wrapper.className = 'flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all';
+                                        wrapper.dataset.templateId = String(template.id);
+                                        wrapper.dataset.templateMessage = template.message;
+                                        wrapper.dataset.action = 'apply-template';
+                                        wrapper.dataset.message = template.message;
+                                        if (container.dataset.target) {
+                                            wrapper.dataset.target = container.dataset.target;
+                                        }
+
+                                        const contentContainer = document.createElement('div');
+                                        contentContainer.className = 'space-y-3';
+
+                                        const messageParagraph = document.createElement('p');
+                                        messageParagraph.className = 'text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3';
+                                        messageParagraph.setAttribute('data-template-message-text', '');
+                                        messageParagraph.textContent = template.message;
+
+                                        const actions = document.createElement('div');
+                                        actions.className = 'flex flex-wrap gap-2';
+
+                                        const editButton = createActionButton(
+                                            'inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1',
+                                            'edit-template',
+                                            editIcon,
+                                            'Editar',
+                                            template
+                                        );
+                                        editButton.setAttribute('onclick', 'event.stopPropagation()');
+
+                                        const deleteButton = createActionButton(
+                                            'inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1',
+                                            'delete-template',
+                                            deleteIcon,
+                                            'Excluir',
+                                            template
+                                        );
+                                        deleteButton.setAttribute('onclick', 'event.stopPropagation()');
+
+                                        if (container.dataset.target) {
+                                            editButton.dataset.target = container.dataset.target;
+                                        }
+
+                                        actions.appendChild(editButton);
+                                        actions.appendChild(deleteButton);
+
+                                        contentContainer.appendChild(messageParagraph);
+                                        contentContainer.appendChild(actions);
+                                        wrapper.appendChild(contentContainer);
+                                        list.appendChild(wrapper);
+                                    });
+
+                                };
+
+                                const updateTemplateControls = () => {
+                                    quickTemplateContainers.forEach((container) => {
+                                        const select = container.querySelector('.quick-template-select');
+                                        const applyButton = container.querySelector('[data-action="apply-template"]');
+                                        const deleteButton = container.querySelector('[data-action="delete-template"]');
+                                        const saveButton = container.querySelector('[data-action="save-template"]');
+                                        const countLabel = container.querySelector('[data-template-count]');
+                                        const emptyMessage = container.querySelector('[data-templates-empty]');
+                                        const limit = Number(container.dataset.limit || templateLimit);
+                                        const isEditing = Boolean(container.dataset.editingTemplateId);
+
+                                        if (countLabel) {
+                                            countLabel.textContent = `${quickTemplates.length}/${limit} mensagens salvas`;
+                                        }
+
+                                        if (emptyMessage) {
+                                            emptyMessage.style.display = quickTemplates.length === 0 ? '' : 'none';
+                                        }
+
+                                        if (select) {
+                                            const previousValue = select.value;
+                                            select.innerHTML = '';
+
+                                            const placeholder = document.createElement('option');
+                                            placeholder.value = '';
+                                            placeholder.textContent = quickTemplates.length
+                                                ? 'Selecione uma mensagem salva'
+                                                : 'Nenhuma mensagem salva';
+                                            select.appendChild(placeholder);
+
+                                            quickTemplates.forEach((template) => {
+                                                const option = document.createElement('option');
+                                                option.value = String(template.id);
+                                                option.textContent = template.preview;
+                                                option.dataset.message = template.message;
+                                                select.appendChild(option);
+                                            });
+
+                                            if (previousValue && quickTemplates.some((template) => String(template.id) === previousValue)) {
+                                                select.value = previousValue;
+                                            }
+                                        }
+
+                                        const hasTemplates = quickTemplates.length > 0;
+
+                                        if (applyButton) {
+                                            applyButton.disabled = !hasTemplates;
+                                        }
+
+                                        if (deleteButton) {
+                                            deleteButton.disabled = !hasTemplates;
+                                        }
+
+                                        if (saveButton) {
+                                            const limitReached = !isEditing && quickTemplates.length >= limit;
+                                            saveButton.disabled = limitReached;
+                                            saveButton.classList.toggle('opacity-60', limitReached);
+
+                                            if (limitReached) {
+                                                saveButton.setAttribute(
+                                                    'title',
+                                                    'Limite atingido. Exclua uma mensagem salva para adicionar outra.'
+                                                );
+                                            } else {
+                                                saveButton.removeAttribute('title');
+                                            }
+                                        }
+
+                                        renderTemplateList(container);
+                                    });
+                                };
+
+                                updateTemplateControls();
+
+                                quickTemplateContainers.forEach((container) => {
+                                    container.addEventListener('click', async (event) => {
+                                        const target = event.target;
+
+                    let trigger = target;
+                    while (trigger && trigger !== container) {
+                        if (typeof trigger.matches === 'function' && trigger.matches('button[data-action], div[data-action="apply-template"]')) {
+                            break;
+                        }
+                        trigger = trigger.parentElement || trigger.parentNode || null;
+                    }
+
+                    if (!trigger || trigger === container || typeof trigger.matches !== 'function' || !trigger.matches('button[data-action], div[data-action="apply-template"]')) {
+                        return;
+                    }
+
+                                        const action = trigger.dataset.action;
+                                        const saveUrl = container.dataset.saveUrl;
+                                        const updateUrlTemplate = container.dataset.updateUrlTemplate;
+                                        const deleteUrlTemplate = container.dataset.deleteUrlTemplate;
+
+                                        if (action === 'apply-template') {
+                                            event.preventDefault();
+
+                                            const templateId = trigger.dataset.templateId;
+            const message = trigger.dataset.message ?? findTemplateById(templateId)?.message ?? '';
+            const targetId = trigger.dataset.target || container.dataset.target;
+
+            if (!applyMessageToTextarea(container, message, 'Mensagem aplicada.', targetId)) {
+                return;
+            }
+
+                                            container.dataset.selectedTemplateId = templateId ?? '';
+                                            setEditingState(container, null);
+                                            updateTemplateControls();
+                                            return;
+                                        }
+
+                                        if (action === 'edit-template') {
+                                            event.preventDefault();
+
+                                            const templateId = trigger.dataset.templateId;
+            const message = trigger.dataset.message ?? findTemplateById(templateId)?.message ?? '';
+            const targetId = trigger.dataset.target || container.dataset.target;
+
+            if (!applyMessageToTextarea(container, message, null, targetId)) {
+                return;
+            }
+
+                                            container.dataset.selectedTemplateId = templateId ?? '';
+                                            setEditingState(container, templateId);
+                                            updateTemplateControls();
+                                            showFeedback(container, 'Mensagem carregada para edicao. Ajuste e clique em Guardar para atualizar.', 'success');
+                                            return;
+                                        }
+
+                                        if (action === 'save-template') {
+                                            event.preventDefault();
+
+                                            const textarea = getTextarea(container);
+
+                                            if (!textarea) {
+                                                showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
+                                                return;
+                                            }
+
+                                            const message = textarea.value.trim();
+
+                                            if (!message) {
+                                                showFeedback(container, 'Escreva uma mensagem antes de salvar.', 'error');
+                                                return;
+                                            }
+
+                                            if (message.length > 500) {
+                                                showFeedback(container, 'A mensagem pode ter no maximo 500 caracteres.', 'error');
+                                                return;
+                                            }
+
+                                            if (!csrfToken) {
+                                                showFeedback(container, 'Token CSRF nao encontrado. Recarregue a pagina.', 'error');
+                                                return;
+                                            }
+
+                                            const editingTemplateId = container.dataset.editingTemplateId;
+                                            const isEditing = Boolean(editingTemplateId);
+                                            const requestUrl = isEditing
+                                                ? updateUrlTemplate?.replace('__TEMPLATE__', editingTemplateId)
+                                                : saveUrl;
+                                            const method = isEditing ? 'PATCH' : 'POST';
+
+                                            if (!requestUrl) {
+                                                showFeedback(container, 'Nao foi possivel encontrar a rota para salvar.', 'error');
+                                                return;
+                                            }
+
+                                            trigger.disabled = true;
+
+                                            try {
+                                                const response = await fetch(requestUrl, {
+                                                    method,
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'X-CSRF-TOKEN': csrfToken,
+                                                        Accept: 'application/json',
+                                                    },
+                                                    body: JSON.stringify({ mensagem: message }),
+                                                });
+
+                                                const payload = await parseJson(response);
+
+                                                if (response.ok) {
+                                                    quickTemplates = Array.isArray(payload?.templates) ? payload.templates : [];
+                                                    setEditingState(container, null);
+                                                    if (!isEditing && quickTemplates.length) {
+                                                        container.dataset.selectedTemplateId = String(quickTemplates[0].id);
+                                                    }
+                                                    updateTemplateControls();
+                                                    showFeedback(
+                                                        container,
+                                                        payload?.message ?? (isEditing ? 'Mensagem atualizada.' : 'Mensagem salva.'),
+                                                        'success'
+                                                    );
+                                                } else {
+                                                    const errorMessage = payload?.message ?? 'Nao foi possivel salvar a mensagem.';
+                                                    showFeedback(container, errorMessage, 'error');
+                                                }
+                                            } catch (_error) {
+                                                showFeedback(container, 'Erro ao salvar mensagem. Tente novamente.', 'error');
+                                            } finally {
+                                                trigger.disabled = false;
+                                            }
+
+                                            return;
+                                        }
+
+                                        if (action === 'delete-template') {
+                                            event.preventDefault();
+
+                                            const templateId = trigger.dataset.templateId ??
+                                                trigger.closest('[data-template-id]')?.dataset.templateId;
+
+                                            if (!templateId) {
+                                                showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
+                                                return;
+                                            }
+
+                                            if (!deleteUrlTemplate) {
+                                                showFeedback(container, 'Nao foi possivel encontrar a rota para exclusao.', 'error');
+                                                return;
+                                            }
+
+                                            if (!csrfToken) {
+                                                showFeedback(container, 'Token CSRF nao encontrado. Recarregue a pagina.', 'error');
+                                                return;
+                                            }
+
+                                            if (!window.confirm('Deseja excluir esta mensagem salva?')) {
+                                                return;
+                                            }
+
+                                            const requestUrl = deleteUrlTemplate.replace('__TEMPLATE__', templateId);
+                                            trigger.disabled = true;
+
+                                            try {
+                                                const response = await fetch(requestUrl, {
+                                                    method: 'DELETE',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': csrfToken,
+                                                        Accept: 'application/json',
+                                                    },
+                                                });
+
+                                                const payload = await parseJson(response);
+
+                                                if (response.ok) {
+                                                    quickTemplates = Array.isArray(payload?.templates) ? payload.templates : [];
+                                                    if (container.dataset.editingTemplateId === String(templateId)) {
+                                                        setEditingState(container, null);
+                                                    }
+                                                    if (container.dataset.selectedTemplateId === String(templateId)) {
+                                                        delete container.dataset.selectedTemplateId;
+                                                    }
+                                                    updateTemplateControls();
+                                                    showFeedback(container, payload?.message ?? 'Mensagem excluida.', 'success');
+                                                } else {
+                                                    const errorMessage = payload?.message ?? 'Nao foi possivel excluir a mensagem.';
+                                                    showFeedback(container, errorMessage, 'error');
+                                                }
+                                            } catch (_error) {
+                                                showFeedback(container, 'Erro ao excluir mensagem. Tente novamente.', 'error');
+                                            } finally {
+                                                trigger.disabled = false;
+                                            }
+                                        }
+                                    });
+                                });
+            // Sistema de filtros por perodo
             function setupPeriodFilters(section, borderColor, textColor) {
                 const tabs = document.querySelectorAll(`.filter-tab-${section}`);
                 const list = document.getElementById(`${section}-list`);
@@ -1102,14 +1659,14 @@
                             }
                         });
 
-                        // Mostra mensagem se não há itens
+                        // Mostra mensagem se no h itens
                         let emptyMessage = list.parentElement.querySelector('.empty-message');
                         if (visibleCount === 0) {
                             if (!emptyMessage) {
                                 emptyMessage = document.createElement('p');
                                 emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
                                 emptyMessage.textContent =
-                                    'Nenhum compromisso encontrado para este período.';
+                                    'Nenhum compromisso encontrado para este perodo.';
                                 list.parentElement.appendChild(emptyMessage);
                             }
                             emptyMessage.style.display = '';
@@ -1120,10 +1677,11 @@
                 });
             }
 
-            // Configura filtros para concluídos e cancelados
+            // Configura filtros para concludos e cancelados
             setupPeriodFilters('concluidos', 'green-600', 'green-600');
             setupPeriodFilters('cancelados', 'red-600', 'red-600');
         });
     </script>
 
 </x-app-layout>
+

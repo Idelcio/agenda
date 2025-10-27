@@ -6,6 +6,8 @@
     $defaultStart = $model?->inicio?->format('Y-m-d\TH:i') ?? now()->addHour()->format('Y-m-d\TH:i');
     $defaultEnd = $model?->fim?->format('Y-m-d\TH:i');
     $defaultWhatsappValue = old('whatsapp_numero', $model->whatsapp_numero ?? ($defaultWhatsapp ?? null));
+    $quickTemplateCollection = collect($quickMessageTemplates ?? []);
+    $quickTemplateLimit = $quickMessageTemplateLimit ?? \App\Models\WhatsAppMessageTemplate::MAX_PER_USER ?? 5;
 @endphp
 
 <form method="POST" action="{{ $action }}" class="space-y-6">
@@ -132,6 +134,44 @@
                 class="mt-1 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Ex.: Olá! Não esqueça do compromisso importante daqui a pouco.">{{ old('whatsapp_mensagem', $model->whatsapp_mensagem ?? '') }}</textarea>
             <x-input-error class="mt-2" :messages="$errors->get('whatsapp_mensagem')" />
+
+            <div class="mt-3 space-y-3 rounded-md border border-indigo-100 bg-indigo-50/60 p-4"
+                data-quick-template-controls data-target="whatsapp_mensagem" data-limit="{{ $quickTemplateLimit }}"
+                data-save-url="{{ route('agenda.quick-messages.store') }}"
+                data-update-url-template="{{ route('agenda.quick-messages.update', ['template' => '__TEMPLATE__']) }}"
+                data-delete-url-template="{{ route('agenda.quick-messages.destroy', ['template' => '__TEMPLATE__']) }}"
+                data-templates='@json($quickTemplateCollection->map(fn($t) => ["id" => $t->id, "message" => $t->message]))'>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                            Mensagens prontas
+                        </span>
+                        <span class="text-xs text-gray-500" data-template-count>
+                            {{ $quickTemplateCollection->count() }}/{{ $quickTemplateLimit }} salvas
+                        </span>
+                    </div>
+                    <button type="button"
+                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:bg-indigo-400"
+                        data-action="save-template">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span data-template-save-label>Guardar mensagem</span>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-500" data-templates-empty
+                    @if ($quickTemplateCollection->isNotEmpty()) style="display: none;" @endif>
+                    Nenhuma mensagem pronta ainda. Clique em "Guardar mensagem" para salvar textos recorrentes.
+                </p>
+
+                <div class="flex gap-3 overflow-x-auto pb-2" data-template-list>
+                    {{-- Cards renderizados dinamicamente pelo JavaScript --}}
+                </div>
+
+                <p class="hidden text-xs font-medium text-emerald-600" data-template-feedback></p>
+            </div>
         </div>
     </div>
 
@@ -277,3 +317,430 @@
         });
     </script>
 @endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+        const quickTemplateContainers = Array.from(document.querySelectorAll('[data-quick-template-controls]'));
+
+        if (!quickTemplateContainers.length) {
+            return;
+        }
+
+        const useIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h2m2-1v18m4-18v18"></path></svg>';
+        const editIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+        const deleteIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+        const normalizeTemplates = (templates) => Array.isArray(templates)
+            ? templates.map((template) => ({
+                id: template.id,
+                message: template.message ?? '',
+            }))
+            : [];
+
+        const findTemplate = (container, templateId) => {
+            return (container.__templates || []).find((template) => String(template.id) === String(templateId));
+        };
+
+        const showFeedback = (container, message, type = 'success') => {
+            const feedback = container.querySelector('[data-template-feedback]');
+            if (!feedback) {
+                return;
+            }
+
+            feedback.textContent = message;
+            feedback.classList.remove('hidden', 'text-emerald-600', 'text-red-600');
+            feedback.classList.add(type === 'error' ? 'text-red-600' : 'text-emerald-600');
+
+            if (feedback.__timeoutId) {
+                window.clearTimeout(feedback.__timeoutId);
+            }
+
+            feedback.__timeoutId = window.setTimeout(() => {
+                feedback.classList.add('hidden');
+                feedback.__timeoutId = null;
+            }, 4000);
+        };
+
+        const applyMessage = (container, targetId, message, successMessage = null) => {
+            const textarea = targetId ? document.getElementById(targetId) : null;
+
+            if (!textarea) {
+                showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
+                return false;
+            }
+
+            if (!message) {
+                showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
+                return false;
+            }
+
+            textarea.value = message;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            textarea.dispatchEvent(new Event('change', { bubbles: true }));
+            textarea.focus();
+
+            if (successMessage) {
+                showFeedback(container, successMessage, 'success');
+            }
+
+            return true;
+        };
+
+        const updateControls = (container) => {
+            const templates = container.__templates || [];
+            const limit = Number(container.dataset.limit || 5);
+            const countLabel = container.querySelector('[data-template-count]');
+            const emptyMessage = container.querySelector('[data-templates-empty]');
+            const saveButton = container.querySelector('[data-action="save-template"]');
+            const isEditing = Boolean(container.dataset.editingTemplateId);
+
+            if (countLabel) {
+                countLabel.textContent = `${templates.length}/${limit} salvas`;
+            }
+
+            if (emptyMessage) {
+                emptyMessage.style.display = templates.length === 0 ? '' : 'none';
+            }
+
+            if (saveButton) {
+                const limitReached = !isEditing && templates.length >= limit;
+                saveButton.disabled = limitReached;
+                saveButton.classList.toggle('opacity-60', limitReached);
+                const saveLabel = saveButton.querySelector('[data-template-save-label]');
+                if (saveLabel) {
+                    saveLabel.textContent = isEditing ? 'Atualizar mensagem' : 'Guardar mensagem';
+                }
+
+                if (limitReached) {
+                    saveButton.setAttribute('title', 'Limite atingido. Exclua uma mensagem salva para adicionar outra.');
+                } else {
+                    saveButton.removeAttribute('title');
+                }
+            }
+        };
+
+        const createActionButton = (container, template, options) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = options.className;
+            button.dataset.action = options.action;
+            button.dataset.templateId = String(template.id);
+            button.dataset.message = template.message;
+
+            const targetId = container.dataset.target;
+            if (targetId) {
+                button.dataset.target = targetId;
+            }
+
+            button.insertAdjacentHTML('beforeend', options.icon);
+            button.appendChild(document.createTextNode(` ${options.label}`));
+
+            return button;
+        };
+
+        const renderTemplates = (container) => {
+            const list = container.querySelector('[data-template-list]');
+            if (!list) {
+                return;
+            }
+
+            const targetId = container.dataset.target;
+            const templates = container.__templates || [];
+
+            list.innerHTML = '';
+
+            templates.forEach((template) => {
+                // Card clicável horizontal
+                const card = document.createElement('div');
+                card.className = 'flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all';
+                card.dataset.templateId = String(template.id);
+                card.dataset.templateMessage = template.message;
+                card.dataset.action = 'apply-template';
+                card.dataset.message = template.message;
+                if (targetId) {
+                    card.dataset.target = targetId;
+                }
+
+                const contentContainer = document.createElement('div');
+                contentContainer.className = 'space-y-3';
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.className = 'text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3';
+                messageParagraph.dataset.templateMessageText = '1';
+                messageParagraph.textContent = template.message;
+
+                const actions = document.createElement('div');
+                actions.className = 'flex flex-wrap gap-2';
+
+                const editBtn = createActionButton(container, template, {
+                    action: 'edit-template',
+                    className: 'inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1',
+                    icon: editIcon,
+                    label: 'Editar',
+                });
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const message = template.message;
+                    const targetId = container.dataset.target;
+                    if (applyMessage(container, targetId, message)) {
+                        container.dataset.selectedTemplateId = String(template.id);
+                        setEditingState(container, template.id);
+                        showFeedback(container, 'Mensagem carregada para edicao. Ajuste e clique em Guardar para atualizar.', 'success');
+                    }
+                });
+
+                const deleteBtn = createActionButton(container, template, {
+                    action: 'delete-template',
+                    className: 'inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1',
+                    icon: deleteIcon,
+                    label: 'Excluir',
+                });
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleDelete(container, deleteBtn, template.id);
+                });
+
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+
+                contentContainer.appendChild(messageParagraph);
+                contentContainer.appendChild(actions);
+                card.appendChild(contentContainer);
+                list.appendChild(card);
+            });
+
+            updateControls(container);
+        };
+
+        const setTemplates = (container, templates) => {
+            container.__templates = normalizeTemplates(templates);
+            renderTemplates(container);
+        };
+
+        const readTemplatesFromDom = (container) => {
+            const list = container.querySelector('[data-template-list]');
+            if (!list) {
+                return [];
+            }
+
+            return Array.from(list.querySelectorAll('[data-template-id]')).map((card) => ({
+                id: card.dataset.templateId,
+                message: card.dataset.templateMessage ?? card.querySelector('[data-template-message-text]')?.textContent ?? '',
+            }));
+        };
+
+        const setEditingState = (container, templateId = null) => {
+            if (templateId) {
+                container.dataset.editingTemplateId = String(templateId);
+            } else {
+                delete container.dataset.editingTemplateId;
+            }
+
+            updateControls(container);
+        };
+
+        const handleSave = async (container, trigger) => {
+            const targetId = trigger.dataset.target || container.dataset.target;
+            const textarea = targetId ? document.getElementById(targetId) : null;
+
+            if (!textarea) {
+                showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
+                return;
+            }
+
+            const message = textarea.value.trim();
+
+            if (!message) {
+                showFeedback(container, 'Escreva uma mensagem antes de salvar.', 'error');
+                return;
+            }
+
+            if (message.length > 500) {
+                showFeedback(container, 'A mensagem pode ter no maximo 500 caracteres.', 'error');
+                return;
+            }
+
+            const saveUrl = container.dataset.saveUrl;
+            const updateUrlTemplate = container.dataset.updateUrlTemplate;
+            const editingTemplateId = container.dataset.editingTemplateId;
+            const isEditing = Boolean(editingTemplateId);
+            const requestUrl = isEditing
+                ? updateUrlTemplate?.replace('__TEMPLATE__', editingTemplateId)
+                : saveUrl;
+            const method = isEditing ? 'PATCH' : 'POST';
+
+            if (!requestUrl) {
+                showFeedback(container, 'Nao foi possivel encontrar a rota para salvar.', 'error');
+                return;
+            }
+
+            trigger.disabled = true;
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        Accept: 'application/json',
+                    },
+                    body: JSON.stringify({ mensagem: message }),
+                });
+
+                const payload = await response.json().catch(() => null);
+
+                if (response.ok) {
+                    setTemplates(container, payload?.templates ?? container.__templates);
+                    setEditingState(container, null);
+                    delete container.dataset.selectedTemplateId;
+                    showFeedback(container, payload?.message ?? (isEditing ? 'Mensagem atualizada.' : 'Mensagem salva.'), 'success');
+                } else {
+                    const errorMessage = payload?.message ?? 'Nao foi possivel salvar a mensagem.';
+                    showFeedback(container, errorMessage, 'error');
+                }
+            } catch (_error) {
+                showFeedback(container, 'Erro ao salvar mensagem. Tente novamente.', 'error');
+            } finally {
+                trigger.disabled = false;
+            }
+        };
+
+        const handleDelete = async (container, trigger, templateId) => {
+            const deleteUrlTemplate = container.dataset.deleteUrlTemplate;
+
+            if (!deleteUrlTemplate) {
+                showFeedback(container, 'Nao foi possivel encontrar a rota para exclusao.', 'error');
+                return;
+            }
+
+            if (!window.confirm('Deseja excluir esta mensagem salva?')) {
+                return;
+            }
+
+            const requestUrl = deleteUrlTemplate.replace('__TEMPLATE__', templateId);
+
+            trigger.disabled = true;
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        Accept: 'application/json',
+                    },
+                });
+
+                const payload = await response.json().catch(() => null);
+
+                if (response.ok) {
+                    setTemplates(container, payload?.templates ?? container.__templates);
+                    if (container.dataset.selectedTemplateId === String(templateId)) {
+                        delete container.dataset.selectedTemplateId;
+                    }
+                    if (container.dataset.editingTemplateId === String(templateId)) {
+                        setEditingState(container, null);
+                    }
+                    showFeedback(container, payload?.message ?? 'Mensagem excluida.', 'success');
+                } else {
+                    const errorMessage = payload?.message ?? 'Nao foi possivel excluir a mensagem.';
+                    showFeedback(container, errorMessage, 'error');
+                }
+            } catch (_error) {
+                showFeedback(container, 'Erro ao excluir mensagem. Tente novamente.', 'error');
+            } finally {
+                trigger.disabled = false;
+            }
+        };
+
+        quickTemplateContainers.forEach((container) => {
+            if (container.dataset.qtBound === '1') {
+                return;
+            }
+            container.dataset.qtBound = '1';
+
+            // Lê templates do atributo data-templates ou do DOM
+            const initialTemplates = container.dataset.templates
+                ? JSON.parse(container.dataset.templates)
+                : readTemplatesFromDom(container);
+
+            setTemplates(container, initialTemplates);
+
+            container.addEventListener('change', (event) => {
+                const checkbox = event.target.closest('input[data-action="select-template"]');
+                if (!checkbox || !container.contains(checkbox)) {
+                    return;
+                }
+
+                if (!checkbox.checked) {
+                    delete container.dataset.selectedTemplateId;
+                    return;
+                }
+
+                container.querySelectorAll('input[data-action="select-template"]').forEach((input) => {
+                    if (input !== checkbox) {
+                        input.checked = false;
+                    }
+                });
+
+                const message = checkbox.dataset.message ?? findTemplate(container, checkbox.dataset.templateId)?.message ?? '';
+                const targetId = checkbox.dataset.target || container.dataset.target;
+
+                if (!applyMessage(container, targetId, message, 'Mensagem aplicada.')) {
+                    checkbox.checked = false;
+                    return;
+                }
+
+                container.dataset.selectedTemplateId = checkbox.dataset.templateId;
+                setEditingState(container, null);
+            });
+
+            container.addEventListener('click', (event) => {
+                let trigger = event.target;
+                while (trigger && trigger !== container && typeof trigger.matches === 'function' && !trigger.matches('button[data-action], div[data-action="apply-template"]')) {
+                    trigger = trigger.parentElement || trigger.parentNode || null;
+                }
+
+                if (!trigger || trigger === container || typeof trigger.matches !== 'function' || !trigger.matches('button[data-action], div[data-action="apply-template"]')) {
+                    return;
+                }
+
+                const action = trigger.dataset.action;
+                const templateId = trigger.dataset.templateId;
+                const targetId = trigger.dataset.target || container.dataset.target;
+
+                if (action === 'apply-template') {
+                    const message = trigger.dataset.message ?? findTemplate(container, templateId)?.message ?? '';
+
+                    if (applyMessage(container, targetId, message, 'Mensagem aplicada.')) {
+                        container.dataset.selectedTemplateId = templateId ?? '';
+                        setEditingState(container, null);
+                    }
+
+                    return;
+                }
+
+                if (action === 'edit-template') {
+                    const message = trigger.dataset.message ?? findTemplate(container, templateId)?.message ?? '';
+
+                    if (applyMessage(container, targetId, message)) {
+                        container.dataset.selectedTemplateId = templateId ?? '';
+                        setEditingState(container, templateId);
+                        showFeedback(container, 'Mensagem carregada para edicao. Ajuste e clique em Guardar para atualizar.', 'success');
+                    }
+
+                    return;
+                }
+
+                if (action === 'save-template') {
+                    handleSave(container, trigger);
+                    return;
+                }
+
+                if (action === 'delete-template' && templateId) {
+                    handleDelete(container, trigger, templateId);
+                }
+            });
+        });
+    });
+</script>

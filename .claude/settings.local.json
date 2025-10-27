@@ -20,7 +20,10 @@
       "Bash(git commit -m \"Fix: Recupera WhatsAppService.php que estava vazio\")",
       "Bash(git push)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(del test_templates.php)",
+      "Bash(git log:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
