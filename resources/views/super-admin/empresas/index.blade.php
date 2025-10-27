@@ -70,8 +70,7 @@
                                 <strong>{{ $empresa->name }}</strong>
                                 <br>
                                 <small class="text-muted">
-                                    {{ $empresa->appointments_count }} compromissos Ã¢â‚¬Â¢
-                                    {{ $empresa->clientes_count }} clientes
+                                    {{ $empresa->appointments_count }} compromissos &bull; {{ $empresa->clientes_count }} clientes
                                 </small>
                             </div>
                         </td>

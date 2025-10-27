@@ -158,16 +158,16 @@
             padding: 1rem 1.25rem;
             box-shadow: 0 10px 30px -15px rgba(15, 23, 42, 0.2);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
             margin-bottom: 1.5rem;
             position: sticky;
             top: 1rem;
             z-index: 10;
         }
 
-        .top-bar-left {
+        .top-bar-main {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -212,10 +212,14 @@
             gap: 0.5rem;
             background: #f1f5f9;
             color: #1e293b;
-            padding: 0.5rem 0.85rem;
+            padding: 0.55rem 1rem;
             border-radius: 9999px;
             font-weight: 600;
             white-space: nowrap;
+            align-self: flex-start;
+            margin-left: 3.25rem;
+            box-shadow: 0 18px 38px -26px rgba(30, 58, 138, 0.9);
+            border: 1px solid rgba(15, 23, 42, 0.05);
         }
 
         .user-chip i {
@@ -281,6 +285,11 @@
             .top-bar {
                 position: static;
                 margin-bottom: 2rem;
+                gap: 1rem;
+            }
+
+            .user-chip {
+                margin-left: 0;
             }
 
             .sidebar-toggle,
@@ -351,7 +360,12 @@
 
         <div class="layout-content">
             <header class="top-bar">
-                <div class="top-bar-left">
+                <div class="user-chip">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ auth()->user()->name }}</span>
+                </div>
+
+                <div class="top-bar-main">
                     <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Abrir menu"
                         aria-expanded="false">
                         <i class="fas fa-bars"></i>
@@ -361,11 +375,6 @@
                         <h4>@yield('page-title', 'Dashboard')</h4>
                         <small>@yield('page-subtitle', '')</small>
                     </div>
-                </div>
-
-                <div class="user-chip">
-                    <i class="fas fa-user-circle"></i>
-                    <span>{{ auth()->user()->name }}</span>
                 </div>
             </header>
 
