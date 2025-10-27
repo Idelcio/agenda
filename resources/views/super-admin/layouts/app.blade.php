@@ -226,11 +226,59 @@
             color: #1d4ed8;
         }
 
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-status i {
+            font-size: 1rem;
+        }
+
+        .badge-status.ativo {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-status.vencido {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-status.bloqueado {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+
         .main-shell {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 25px 45px -30px rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+            transition: transform 0.25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card .value {
+            font-size: clamp(1.5rem, 2vw, 2.25rem);
+            font-weight: 700;
+            color: #0f172a;
         }
 
         .alert {
@@ -244,6 +292,15 @@
 
         body.sidebar-open {
             overflow: hidden;
+        }
+
+        .table thead th {
+            white-space: nowrap;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
         }
 
         @media (min-width: 576px) {
@@ -295,6 +352,18 @@
             .sidebar-toggle,
             .sidebar-close {
                 display: none;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .table-responsive {
+                border-radius: 1rem;
+                box-shadow: 0 18px 40px -32px rgba(15, 23, 42, 0.55);
+                overflow: hidden;
+            }
+
+            .table td {
+                font-size: 0.95rem;
             }
         }
     </style>
