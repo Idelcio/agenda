@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Escolha seu Plano - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
-    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #25D366, #128C7E, #075E54);
@@ -362,14 +361,15 @@
 
 <body>
     <div class="container">
-        @if($hasActiveSubscription)
+        @if ($hasActiveSubscription)
             <a href="{{ route('dashboard') }}" class="back-link">
                 ← Voltar para o Dashboard
             </a>
         @else
             <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                 @csrf
-                <button type="submit" class="back-link" style="background: none; border: none; cursor: pointer; font: inherit;">
+                <button type="submit" class="back-link"
+                    style="background: none; border: none; cursor: pointer; font: inherit;">
                     ← Sair
                 </button>
             </form>
@@ -380,104 +380,108 @@
             <p>Acesso completo e ilimitado à plataforma. Cancele quando quiser.</p>
         </div>
 
-        @if(session('welcome'))
-        <div class="alert alert-welcome">
-            <h2>🎉 {{ session('welcome') }}</h2>
-            <p>Complete seu cadastro escolhendo um dos planos abaixo e tenha acesso imediato a todos os recursos!</p>
-        </div>
+        @if (session('welcome'))
+            <div class="alert alert-welcome">
+                <h2>🎉 {{ session('welcome') }}</h2>
+                <p>Complete seu cadastro escolhendo um dos planos abaixo e tenha acesso imediato a todos os recursos!
+                </p>
+            </div>
         @endif
 
-        @if($hasActiveSubscription)
-        <div class="alert alert-success">
-            ✓ Você já possui uma assinatura ativa! <a href="{{ route('subscription.current') }}" style="color: var(--accent); text-decoration: underline;">Ver detalhes</a>
-        </div>
+        @if ($hasActiveSubscription)
+            <div class="alert alert-success">
+                ✓ Você já possui uma assinatura ativa! <a href="{{ route('subscription.current') }}"
+                    style="color: var(--accent); text-decoration: underline;">Ver detalhes</a>
+            </div>
         @endif
 
         <div class="plans-grid">
-            @foreach($plans as $key => $plan)
-            @php
-                // Calcula o preço final com desconto
-                $finalPrice = $plan['price'];
-                if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0) {
-                    $finalPrice = $plan['price'] * (1 - $plan['discount_percent'] / 100);
-                }
-                $pricePerMonth = $finalPrice / $plan['duration_months'];
-            @endphp
-            <div class="plan-card {{ $key === 'semiannual' ? 'popular' : '' }}">
-                @if($key === 'semiannual')
-                <div class="popular-badge">Mais Popular</div>
-                @endif
-
-                <div class="plan-header">
-                    <h2 class="plan-name">{{ $plan['name'] }}</h2>
-                    <p class="plan-description">{{ $plan['description'] }}</p>
-                </div>
-
-                <div class="plan-pricing">
-                    @if(isset($plan['discount_percent']) && $plan['discount_percent'] > 0)
-                        <div style="text-align: center; margin-bottom: 0.5rem;">
-                            <span style="text-decoration: line-through; color: #94a3b8; font-size: 1.2rem;">
-                                R$ {{ number_format($plan['price'], 2, ',', '.') }}
-                            </span>
-                        </div>
+            @foreach ($plans as $key => $plan)
+                @php
+                    // Calcula o preço final com desconto
+                    $finalPrice = $plan['price'];
+                    if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0) {
+                        $finalPrice = $plan['price'] * (1 - $plan['discount_percent'] / 100);
+                    }
+                    $pricePerMonth = $finalPrice / $plan['duration_months'];
+                @endphp
+                <div class="plan-card {{ $key === 'semiannual' ? 'popular' : '' }}">
+                    @if ($key === 'semiannual')
+                        <div class="popular-badge">Mais Popular</div>
                     @endif
-                    <div class="price-total">
-                        <span class="price-currency">R$</span>
-                        <span class="price-value">{{ number_format($finalPrice, 2, ',', '.') }}</span>
+
+                    <div class="plan-header">
+                        <h2 class="plan-name">{{ $plan['name'] }}</h2>
+                        <p class="plan-description">{{ $plan['description'] }}</p>
                     </div>
-                    <div class="price-period">
-                        @if($plan['duration_months'] == 1)
-                            por mês
-                        @else
-                            a cada {{ $plan['duration_months'] }} meses
+
+                    <div class="plan-pricing">
+                        @if (isset($plan['discount_percent']) && $plan['discount_percent'] > 0)
+                            <div style="text-align: center; margin-bottom: 0.5rem;">
+                                <span style="text-decoration: line-through; color: #94a3b8; font-size: 1.2rem;">
+                                    R$ {{ number_format($plan['price'], 2, ',', '.') }}
+                                </span>
+                            </div>
+                        @endif
+                        <div class="price-total">
+                            <span class="price-currency">R$</span>
+                            <span class="price-value">{{ number_format($finalPrice, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="price-period">
+                            @if ($plan['duration_months'] == 1)
+                                por mês
+                            @else
+                                a cada {{ $plan['duration_months'] }} meses
+                            @endif
+                        </div>
+
+                        @if ($plan['duration_months'] > 1)
+                            <div class="price-monthly">
+                                <strong>R$ {{ number_format($pricePerMonth, 2, ',', '.') }}</strong> por mês
+                            </div>
+                        @endif
+
+                        @if ($plan['discount_percent'] > 0)
+                            <div class="discount-badge">
+                                🔥 Economize {{ $plan['discount_percent'] }}%
+                            </div>
                         @endif
                     </div>
 
-                    @if($plan['duration_months'] > 1)
-                    <div class="price-monthly">
-                        <strong>R$ {{ number_format($pricePerMonth, 2, ',', '.') }}</strong> por mês
-                    </div>
-                    @endif
+                    <ul class="plan-features">
+                        <li>Agendamentos ilimitados</li>
+                        <li>Clientes ilimitados</li>
+                        <li>Envios automáticos via WhatsApp</li>
+                        <li>Chatbot inteligente</li>
+                        <li>Respostas em tempo real</li>
+                        <li>Relatórios e dashboard completo</li>
+                        <li>Suporte técnico prioritário</li>
+                        <li>Atualizações gratuitas</li>
+                    </ul>
 
-                    @if($plan['discount_percent'] > 0)
-                    <div class="discount-badge">
-                        🔥 Economize {{ $plan['discount_percent'] }}%
-                    </div>
+                    @if ($hasActiveSubscription)
+                        <button class="plan-button secondary" disabled>
+                            Você já tem uma assinatura ativa
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.checkout') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="plan_type" value="{{ $key }}">
+                            <button type="submit"
+                                class="plan-button {{ $key === 'semiannual' ? 'primary' : 'secondary' }}">
+                                Escolher {{ $plan['name'] }}
+                            </button>
+                        </form>
                     @endif
                 </div>
-
-                <ul class="plan-features">
-                    <li>Agendamentos ilimitados</li>
-                    <li>Clientes ilimitados</li>
-                    <li>Envios automáticos via WhatsApp</li>
-                    <li>Chatbot inteligente</li>
-                    <li>Respostas em tempo real</li>
-                    <li>Relatórios e dashboard completo</li>
-                    <li>Suporte técnico prioritário</li>
-                    <li>Atualizações gratuitas</li>
-                </ul>
-
-                @if($hasActiveSubscription)
-                <button class="plan-button secondary" disabled>
-                    Você já tem uma assinatura ativa
-                </button>
-                @else
-                <form action="{{ route('subscription.checkout') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="plan_type" value="{{ $key }}">
-                    <button type="submit" class="plan-button {{ $key === 'semiannual' ? 'primary' : 'secondary' }}">
-                        Escolher {{ $plan['name'] }}
-                    </button>
-                </form>
-                @endif
-            </div>
             @endforeach
         </div>
 
         <div class="guarantee-section">
             <h3>📱 Como funciona após o pagamento?</h3>
             <p style="margin-bottom: 1rem;">
-                Após confirmar seu pagamento, nossa equipe técnica entrará em contato via WhatsApp em até <strong>24 horas</strong>
+                Após confirmar seu pagamento, nossa equipe técnica entrará em contato via WhatsApp em até <strong>24
+                    horas</strong>
                 para configurar suas credenciais da API Brasil e você começar a usar a plataforma.
             </p>
             <p style="font-size: 0.95rem; color: var(--text-secondary);">
@@ -488,7 +492,8 @@
         <div class="guarantee-section">
             <h3>💳 Pagamento 100% Seguro</h3>
             <p>
-                Todos os pagamentos são processados pelo Mercado Pago, líder em segurança de pagamentos online na América Latina.
+                Todos os pagamentos são processados pelo Mercado Pago, líder em segurança de pagamentos online na
+                América Latina.
                 Seus dados estão protegidos com a mais alta tecnologia de criptografia.
             </p>
         </div>

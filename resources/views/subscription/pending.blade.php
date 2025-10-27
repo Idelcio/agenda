@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pagamento Pendente - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #f59e0b, #f97316, #ea580c);
@@ -57,10 +57,13 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 opacity: 1;
             }
+
             50% {
                 transform: scale(1.05);
                 opacity: 0.9;

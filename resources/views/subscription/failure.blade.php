@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pagamento Rejeitado - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c);
@@ -59,9 +59,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
         }
 
         h1 {

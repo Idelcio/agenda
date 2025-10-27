@@ -7,8 +7,7 @@
     <title>{{ config('app.name', 'Agendoo') }}</title>
 
     <!-- Ícones e Manifesto -->
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
-    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <link rel="alternate icon" type="image/png" sizes="32x32" href="{{ asset('logo2.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo2.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">

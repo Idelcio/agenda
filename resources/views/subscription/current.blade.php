@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Minha Assinatura - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
-    <link rel="alternate icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #25D366, #128C7E, #075E54);
@@ -266,8 +265,8 @@
 
         <div class="header">
             <h1>Minha Assinatura</h1>
-            @if($subscription->isActive())
-            <span class="status-badge status-active">✓ Ativa</span>
+            @if ($subscription->isActive())
+                <span class="status-badge status-active">✓ Ativa</span>
             @endif
         </div>
 
@@ -277,17 +276,29 @@
                     <span class="detail-label">Plano</span>
                     <span class="plan-name">
                         @switch($subscription->plan_type)
-                            @case('monthly') Mensal @break
-                            @case('quarterly') Trimestral @break
-                            @case('semiannual') Semestral @break
-                            @case('annual') Anual @break
+                            @case('monthly')
+                                Mensal
+                            @break
+
+                            @case('quarterly')
+                                Trimestral
+                            @break
+
+                            @case('semiannual')
+                                Semestral
+                            @break
+
+                            @case('annual')
+                                Anual
+                            @break
                         @endswitch
                     </span>
                 </div>
 
                 <div class="detail-row">
                     <span class="detail-label">Valor Pago</span>
-                    <span class="detail-value highlight">R$ {{ number_format($subscription->amount, 2, ',', '.') }}</span>
+                    <span class="detail-value highlight">R$
+                        {{ number_format($subscription->amount, 2, ',', '.') }}</span>
                 </div>
 
                 <div class="detail-row">

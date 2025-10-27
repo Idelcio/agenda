@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Pagamento Aprovado - {{ config('app.name') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('logo2.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicons/logo2.png') }}">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #25D366, #128C7E, #075E54);
@@ -63,6 +63,7 @@
                 transform: scale(0);
                 opacity: 0;
             }
+
             to {
                 transform: scale(1);
                 opacity: 1;
@@ -203,10 +204,11 @@
         </div>
 
         <p style="font-size: 0.95rem; color: var(--text-secondary);">
-            Após a configuração, você poderá criar agendamentos, cadastrar clientes e enviar lembretes automáticos via WhatsApp.
+            Após a configuração, você poderá criar agendamentos, cadastrar clientes e enviar lembretes automáticos via
+            WhatsApp.
         </p>
 
-        @if($hasWhatsAppCredentials ?? false)
+        @if ($hasWhatsAppCredentials ?? false)
             <a href="{{ route('dashboard') }}" class="btn">
                 Ir para o Dashboard
             </a>
