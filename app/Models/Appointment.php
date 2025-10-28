@@ -102,22 +102,20 @@ class Appointment extends Model
 
     /**
      * 🔔 Escopo para compromissos que precisam de lembrete.
-     * Converte para UTC para comparar corretamente com o banco.
+     * Usa horário local (America/Sao_Paulo) pois o banco salva neste timezone.
      */
     public function scopeDueForReminder($query)
     {
-        // Pega a hora atual no timezone da aplicação e converte para UTC
-        $nowUtc = now()->setTimezone('UTC');
+        $now = now(); // Já está em America/Sao_Paulo
 
         Log::info('🔎 Verificando lembretes pendentes', [
-            'app_time' => now()->toDateTimeString(),
-            'utc_time' => $nowUtc->toDateTimeString(),
+            'now' => $now->toDateTimeString(),
         ]);
 
         return $query->where('notificar_whatsapp', true)
             ->where('status_lembrete', 'pendente')
             ->whereNotNull('lembrar_em')
-            ->where('lembrar_em', '<=', $nowUtc);
+            ->where('lembrar_em', '<=', $now);
     }
 
 
