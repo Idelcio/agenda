@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Appointment extends Model
@@ -103,20 +102,22 @@ class Appointment extends Model
 
     /**
      * 🔔 Escopo para compromissos que precisam de lembrete.
-     * Usa o horário do banco para evitar diferença de timezone.
+     * Converte para UTC para comparar corretamente com o banco.
      */
     public function scopeDueForReminder($query)
     {
-        $dbNow = DB::select('SELECT NOW() AS db_time')[0]->db_time;
+        // Pega a hora atual no timezone da aplicação e converte para UTC
+        $nowUtc = now()->setTimezone('UTC');
 
         Log::info('🔎 Verificando lembretes pendentes', [
-            'db_time' => $dbNow,
+            'app_time' => now()->toDateTimeString(),
+            'utc_time' => $nowUtc->toDateTimeString(),
         ]);
 
         return $query->where('notificar_whatsapp', true)
             ->where('status_lembrete', 'pendente')
             ->whereNotNull('lembrar_em')
-            ->where('lembrar_em', '<=', DB::raw('NOW()'));
+            ->where('lembrar_em', '<=', $nowUtc);
     }
 
 
