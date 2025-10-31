@@ -144,7 +144,7 @@
                         </a>
                     </div>
                     <p class="text-sm text-gray-600 mb-4">
-                        Visualize seus compromissos por dia, semana ou ms. Clique em um horrio para criar novo
+                        Visualize seus compromissos por dia, semana ou mês. Clique em um horário para criar novo
                         agendamento.
                     </p>
                     <div id="fullcalendar"></div>
@@ -731,7 +731,7 @@
                             </button>
                             <button data-filter="mes" data-section="concluidos"
                                 class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
-                                Este Ms
+                                Este Mês
                             </button>
                             <button data-filter="todos" data-section="concluidos"
                                 class="filter-tab-concluidos active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-green-600 text-green-600 transition">
@@ -909,7 +909,7 @@
                             </button>
                             <button data-filter="mes" data-section="cancelados"
                                 class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
-                                Este Ms
+                                Este Mês
                             </button>
                             <button data-filter="todos" data-section="cancelados"
                                 class="filter-tab-cancelados active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-red-600 text-red-600 transition">
