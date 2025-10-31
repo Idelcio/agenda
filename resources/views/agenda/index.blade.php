@@ -1631,7 +1631,14 @@
                         let visibleCount = 0;
 
                         items.forEach(item => {
-                            const itemDate = new Date(item.dataset.date + 'T00:00:00');
+                            const dateStr = item.dataset.date;
+                            if (!dateStr) {
+                                item.style.display = 'none';
+                                return;
+                            }
+
+                            const [year, month, day] = dateStr.split('-').map(Number);
+                            const itemDate = new Date(year, month - 1, day);
                             let shouldShow = false;
 
                             switch (filter) {
