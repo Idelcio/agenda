@@ -1,29 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php:*)",
-      "Bash(cat:*)",
-      "Bash(mysql:*)",
-      "Bash(tasklist:*)",
-      "Bash(findstr:*)",
-      "Bash(timeout 60 php artisan:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run build:*)",
-      "Bash(dir:*)",
-      "Bash(composer show)",
-      "Bash(composer require barryvdh/laravel-dompdf)",
-      "Bash(git log --name-only --pretty=format: --since=\"2 days ago\")",
-      "Bash(powershell -Command \"Get-Item ''app\\Services\\WhatsAppService.php'' | Select-Object Length, Name\")",
-      "Bash(copy /Y appServicesWhatsAppService_backup.php appServicesWhatsAppService.php)",
-      "Bash(del appServicesWhatsAppService_backup.php)",
-      "Bash(git add app/Services/WhatsAppService.php)",
-      "Bash(git commit -m \"Fix: Recupera WhatsAppService.php que estava vazio\")",
-      "Bash(git push)",
+      "Bash(git push:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(del test_templates.php)",
-      "Bash(git log:*)",
-      "Bash(find:*)"
+      "Bash(php artisan view:clear:*)"
     ],
     "deny": [],
     "ask": []
