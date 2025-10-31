@@ -1594,100 +1594,101 @@
                                         }
                                     });
                                 });
+                            }
 
-                                // Sistema de filtros por perodo
-                                function setupPeriodFilters(section, borderColor, textColor) {
-                                    const tabs = document.querySelectorAll(`.filter-tab-${section}`);
-                                    const list = document.getElementById(`${section}-list`);
+                            // Sistema de filtros por perodo
+                            function setupPeriodFilters(section, borderColor, textColor) {
+                                const tabs = document.querySelectorAll(`.filter-tab-${section}`);
+                                const list = document.getElementById(`${section}-list`);
 
-                                    if (!list) return;
+                                if (!list) return;
 
-                                    tabs.forEach(tab => {
-                                        tab.addEventListener('click', () => {
-                                            const filter = tab.dataset.filter;
+                                tabs.forEach(tab => {
+                                    tab.addEventListener('click', () => {
+                                        const filter = tab.dataset.filter;
 
-                                            // Atualiza estilo das abas
-                                            tabs.forEach(t => {
-                                                t.classList.remove('active', `border-${borderColor}`,
-                                                    `text-${textColor}`);
-                                                t.classList.add('border-transparent');
-                                            });
-                                            tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
-                                            tab.classList.remove('border-transparent');
+                                        // Atualiza estilo das abas
+                                        tabs.forEach(t => {
+                                            t.classList.remove('active', `border-${borderColor}`,
+                                                `text-${textColor}`);
+                                            t.classList.add('border-transparent');
+                                        });
+                                        tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
+                                        tab.classList.remove('border-transparent');
 
-                                            // Filtra os itens
-                                            const items = list.querySelectorAll('.appointment-item');
-                                            const hoje = new Date();
-                                            hoje.setHours(0, 0, 0, 0);
+                                        // Filtra os itens
+                                        const items = list.querySelectorAll('.appointment-item');
+                                        const hoje = new Date();
+                                        hoje.setHours(0, 0, 0, 0);
 
-                                            const inicioSemana = new Date(hoje);
-                                            inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+                                        const inicioSemana = new Date(hoje);
+                                        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
 
-                                            const fimSemana = new Date(inicioSemana);
-                                            fimSemana.setDate(inicioSemana.getDate() + 6);
+                                        const fimSemana = new Date(inicioSemana);
+                                        fimSemana.setDate(inicioSemana.getDate() + 6);
 
-                                            const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                                            const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                                        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                                        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
 
-                                            let visibleCount = 0;
+                                        let visibleCount = 0;
 
-                                            items.forEach(item => {
-                                                const dateStr = item.dataset.date;
-                                                if (!dateStr) {
-                                                    item.style.display = 'none';
-                                                    return;
-                                                }
+                                        items.forEach(item => {
+                                            const dateStr = item.dataset.date;
+                                            if (!dateStr) {
+                                                item.style.display = 'none';
+                                                return;
+                                            }
 
-                                                const [year, month, day] = dateStr.split('-').map(Number);
-                                                const itemDate = new Date(year, month - 1, day);
-                                                let shouldShow = false;
+                                            const [year, month, day] = dateStr.split('-').map(Number);
+                                            const itemDate = new Date(year, month - 1, day);
+                                            let shouldShow = false;
 
-                                                switch (filter) {
-                                                    case 'hoje':
-                                                        shouldShow = itemDate.getTime() === hoje.getTime();
-                                                        break;
-                                                    case 'semana':
-                                                        shouldShow = itemDate >= inicioSemana && itemDate <=
-                                                            fimSemana;
-                                                        break;
-                                                    case 'mes':
-                                                        shouldShow = itemDate >= inicioMes && itemDate <=
-                                                            fimMes;
-                                                        break;
-                                                    case 'todos':
-                                                        shouldShow = true;
-                                                        break;
-                                                }
+                                            switch (filter) {
+                                                case 'hoje':
+                                                    shouldShow = itemDate.getTime() === hoje.getTime();
+                                                    break;
+                                                case 'semana':
+                                                    shouldShow = itemDate >= inicioSemana && itemDate <=
+                                                        fimSemana;
+                                                    break;
+                                                case 'mes':
+                                                    shouldShow = itemDate >= inicioMes && itemDate <=
+                                                        fimMes;
+                                                    break;
+                                                case 'todos':
+                                                    shouldShow = true;
+                                                    break;
+                                            }
 
-                                                if (shouldShow) {
-                                                    item.style.display = '';
-                                                    visibleCount++;
-                                                } else {
-                                                    item.style.display = 'none';
-                                                }
-                                            });
-
-                                            // Mostra mensagem se no h itens
-                                            let emptyMessage = list.parentElement.querySelector('.empty-message');
-                                            if (visibleCount === 0) {
-                                                if (!emptyMessage) {
-                                                    emptyMessage = document.createElement('p');
-                                                    emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
-                                                    emptyMessage.textContent =
-                                                        'Nenhum compromisso encontrado para este perodo.';
-                                                    list.parentElement.appendChild(emptyMessage);
-                                                }
-                                                emptyMessage.style.display = '';
-                                            } else if (emptyMessage) {
-                                                emptyMessage.style.display = 'none';
+                                            if (shouldShow) {
+                                                item.style.display = '';
+                                                visibleCount++;
+                                            } else {
+                                                item.style.display = 'none';
                                             }
                                         });
-                                    });
-                                }
 
-                                // Configura filtros para concludos e cancelados
-                                setupPeriodFilters('concluidos', 'green-600', 'green-600');
-                                setupPeriodFilters('cancelados', 'red-600', 'red-600');
+                                        // Mostra mensagem se no h itens
+                                        let emptyMessage = list.parentElement.querySelector('.empty-message');
+                                        if (visibleCount === 0) {
+                                            if (!emptyMessage) {
+                                                emptyMessage = document.createElement('p');
+                                                emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
+                                                emptyMessage.textContent =
+                                                    'Nenhum compromisso encontrado para este perodo.';
+                                                list.parentElement.appendChild(emptyMessage);
+                                            }
+                                            emptyMessage.style.display = '';
+                                        } else if (emptyMessage) {
+                                            emptyMessage.style.display = 'none';
+                                        }
+                                    });
+                                });
+                            }
+
+                            // Configura filtros para concludos e cancelados
+                            setupPeriodFilters('concluidos', 'green-600', 'green-600');
+                            setupPeriodFilters('cancelados', 'red-600', 'red-600');
         });
     </script>
 
