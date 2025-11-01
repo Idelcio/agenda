@@ -98,7 +98,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>AGENDA SEMANAL</h1>
+        <h1>AGENDA {{ strtoupper($tituloPeriodo ?? 'SEMANAL') }}</h1>
         <div class="periodo">{{ $periodo }}</div>
     </div>
 

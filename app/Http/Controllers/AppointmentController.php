@@ -455,19 +455,44 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         $hoje = now();
+        $periodo = $request->query('periodo', 'semana'); // dia, semana ou mes
 
-        // Define início e fim da semana
-        $inicioSemana = $hoje->copy()->startOfWeek();
-        $fimSemana = $hoje->copy()->endOfWeek();
+        // Define início e fim baseado no período
+        switch ($periodo) {
+            case 'dia':
+                $inicio = $hoje->copy()->startOfDay();
+                $fim = $hoje->copy()->endOfDay();
+                $tituloPeriodo = 'Diária';
+                $periodoTexto = $inicio->format('d/m/Y');
+                $nomeArquivo = 'agenda-diaria-' . $inicio->format('d-m-Y') . '.pdf';
+                break;
 
-        // Busca compromissos da semana
+            case 'mes':
+                $inicio = $hoje->copy()->startOfMonth();
+                $fim = $hoje->copy()->endOfMonth();
+                $tituloPeriodo = 'Mensal';
+                $periodoTexto = $inicio->format('F/Y');
+                $nomeArquivo = 'agenda-mensal-' . $inicio->format('m-Y') . '.pdf';
+                break;
+
+            case 'semana':
+            default:
+                $inicio = $hoje->copy()->startOfWeek();
+                $fim = $hoje->copy()->endOfWeek();
+                $tituloPeriodo = 'Semanal';
+                $periodoTexto = $inicio->format('d/m/Y') . ' - ' . $fim->format('d/m/Y');
+                $nomeArquivo = 'agenda-semanal-' . $inicio->format('d-m-Y') . '.pdf';
+                break;
+        }
+
+        // Busca compromissos do período
         $compromissos = $user->appointments()
             ->with(['destinatario:id,name,whatsapp_number'])
-            ->whereBetween('inicio', [$inicioSemana, $fimSemana])
+            ->whereBetween('inicio', [$inicio, $fim])
             ->orderBy('inicio')
             ->get();
 
-        // Agrupa por dia da semana
+        // Agrupa por dia
         $compromissosPorDia = $compromissos->groupBy(function ($compromisso) {
             return $compromisso->inicio->timezone(config('app.timezone'))->format('Y-m-d');
         });
@@ -475,18 +500,16 @@ class AppointmentController extends Controller
         // Dados para o PDF
         $dados = [
             'empresa' => $user->name,
-            'periodo' => $inicioSemana->format('d/m/Y') . ' - ' . $fimSemana->format('d/m/Y'),
+            'periodo' => $periodoTexto,
+            'tituloPeriodo' => $tituloPeriodo,
             'compromissosPorDia' => $compromissosPorDia,
-            'inicioSemana' => $inicioSemana,
-            'fimSemana' => $fimSemana,
+            'inicioSemana' => $inicio,
+            'fimSemana' => $fim,
         ];
 
         // Gera o PDF
         $pdf = Pdf::loadView('agenda.pdf.semanal', $dados);
         $pdf->setPaper('a4', 'portrait');
-
-        // Nome do arquivo
-        $nomeArquivo = 'agenda-semanal-' . $inicioSemana->format('d-m-Y') . '.pdf';
 
         return $pdf->download($nomeArquivo);
     }
