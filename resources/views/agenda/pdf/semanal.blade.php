@@ -60,9 +60,31 @@
             line-height: 1.3;
         }
 
+        .compromisso.status-concluido {
+            border-left-color: #10b981;
+            background-color: #ecfdf5;
+        }
+
+        .compromisso.status-cancelado {
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .compromisso.status-pendente {
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+
         .hora {
             font-weight: bold;
             font-size: 9pt;
+            color: #000;
+        }
+
+        .titulo {
+            font-size: 8pt;
+            font-weight: bold;
+            margin: 1px 0;
             color: #000;
         }
 
@@ -76,6 +98,38 @@
             font-size: 8pt;
             font-weight: bold;
             color: #000;
+        }
+
+        .status {
+            display: inline-block;
+            font-size: 7pt;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .status.concluido {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .status.cancelado {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .status.pendente {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .descricao {
+            font-size: 7pt;
+            color: #555;
+            margin-top: 2px;
+            font-style: italic;
+            line-height: 1.2;
         }
 
         .vazio {
@@ -131,10 +185,33 @@
                     <div class="vazio">-</div>
                 @else
                     @foreach ($compromissosDia as $compromisso)
-                        <div class="compromisso">
+                        @php
+                            $statusClass = '';
+                            $statusLabel = '';
+                            switch ($compromisso->status) {
+                                case 'concluido':
+                                    $statusClass = 'concluido';
+                                    $statusLabel = 'CONCLUÍDO';
+                                    break;
+                                case 'cancelado':
+                                    $statusClass = 'cancelado';
+                                    $statusLabel = 'CANCELADO';
+                                    break;
+                                case 'pendente':
+                                default:
+                                    $statusClass = 'pendente';
+                                    $statusLabel = 'PENDENTE';
+                                    break;
+                            }
+                        @endphp
+                        <div class="compromisso status-{{ $statusClass }}">
                             <div class="hora">
                                 {{ $compromisso->inicio->timezone(config('app.timezone'))->format('H:i') }}
+                                <span class="status {{ $statusClass }}">{{ $statusLabel }}</span>
                             </div>
+                            @if ($compromisso->titulo)
+                                <div class="titulo">{{ $compromisso->titulo }}</div>
+                            @endif
                             <div class="cliente">
                                 {{ $compromisso->contact_name ?? $compromisso->destinatario->name ?? 'Sem nome' }}
                             </div>
@@ -149,6 +226,9 @@
                                     -
                                 @endif
                             </div>
+                            @if ($compromisso->descricao)
+                                <div class="descricao">{{ $compromisso->descricao }}</div>
+                            @endif
                         </div>
                     @endforeach
                 @endif
