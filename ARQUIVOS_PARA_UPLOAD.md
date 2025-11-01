@@ -1,38 +1,65 @@
 # Arquivos para Upload Manual - Deploy
 
 ## Última Atualização do Commit
-**Commit:** 2e3854f - Feat: Adiciona seleção de período para geração de PDF
+**Commit:** b4ae93a - Feat: Adiciona status e descrição dos compromissos no PDF
 **Data:** 2025-11-01
 
 ---
 
-## Arquivos Modificados (Último Commit)
+## RESUMO DAS ALTERAÇÕES DESTA SESSÃO
+
+### Funcionalidades Implementadas:
+1. **Seleção de período para PDF** - Dia, Semana, Mês
+2. **Mês Anterior** - Opção para gerar PDF do mês passado
+3. **Período Personalizado** - Modal para escolher data início/fim
+4. **Status no PDF** - Badges coloridos (Pendente/Concluído/Cancelado)
+5. **Descrição no PDF** - Mostra descrição do compromisso quando disponível
+
+---
+
+## ⚠️ ARQUIVOS QUE VOCÊ PRECISA FAZER UPLOAD
+
+### Arquivos Obrigatórios (TODOS):
+
+1. **app/Http/Controllers/AppointmentController.php**
+   - Lógica do backend para PDF (período, mês anterior, personalizado)
+
+2. **resources/views/agenda/index.blade.php**
+   - Dropdown com 5 opções de PDF + Modal personalizado
+
+3. **resources/views/agenda/pdf/semanal.blade.php**
+   - Template do PDF com status, título e descrição
+
+4. **public/build/manifest.json**
+   - Manifesto dos assets compilados (após npm run build)
+
+---
+
+## Detalhes das Mudanças
 
 ### 1. app/Http/Controllers/AppointmentController.php
-**Caminho completo:** `app/Http/Controllers/AppointmentController.php`
-
-**Mudanças:**
-- Método `gerarPdfSemanal()` agora aceita parâmetro `periodo` (dia/semana/mes)
-- Switch para definir início/fim baseado no período
-- Nomes de arquivo dinâmicos por tipo de período
-
----
+**O que mudou:**
+- Aceita `periodo`: dia, semana, mes, personalizado
+- Aceita `mes_offset`: -1 (mês anterior), 0 (atual), +1 (próximo)
+- Aceita `data_inicio` e `data_fim` para período personalizado
+- Gera nomes de arquivo dinâmicos
 
 ### 2. resources/views/agenda/index.blade.php
-**Caminho completo:** `resources/views/agenda/index.blade.php`
-
-**Mudanças:**
-- Botão "Gerar PDF Semanal" substituído por dropdown com Alpine.js
-- Três opções: PDF do Dia, Semana e Mês
-- Menu dropdown com animações
-
----
+**O que mudou:**
+- Dropdown com 5 opções:
+  * PDF do Dia Atual
+  * PDF da Semana Atual
+  * PDF do Mês Atual
+  * PDF do Mês Anterior (novo!)
+  * Período Personalizado... (novo!)
+- Modal Alpine.js para escolher datas personalizadas
 
 ### 3. resources/views/agenda/pdf/semanal.blade.php
-**Caminho completo:** `resources/views/agenda/pdf/semanal.blade.php`
-
-**Mudanças:**
-- Título do PDF agora é dinâmico (AGENDA DIÁRIA/SEMANAL/MENSAL)
+**O que mudou:**
+- Exibe status com badge colorido (Pendente/Concluído/Cancelado)
+- Mostra título do compromisso quando disponível
+- Inclui descrição em itálico
+- Bordas e cores diferentes por status
 
 ---
 
@@ -53,30 +80,19 @@
 
 ---
 
-## LISTA COMPLETA DE ARQUIVOS PARA UPLOAD
+## 📋 LISTA RESUMIDA - ARQUIVOS PARA UPLOAD
 
-### PHP (Backend)
+### ✅ Arquivos OBRIGATÓRIOS (4 arquivos):
+
 ```
 app/Http/Controllers/AppointmentController.php
-```
-
-### Blade (Views)
-```
 resources/views/agenda/index.blade.php
 resources/views/agenda/pdf/semanal.blade.php
-```
-
-### JavaScript (precisa compilar)
-```
-resources/js/calendar.js
-```
-
-### Assets Compilados (após npm run build)
-```
-public/build/assets/app-[hash].js
-public/build/assets/app-[hash].css
 public/build/manifest.json
 ```
+
+### ⚠️ IMPORTANTE:
+Você **NÃO** precisa fazer upload dos arquivos JavaScript compilados desta vez, pois não houve alteração no `resources/js/calendar.js` nesta sessão. O `manifest.json` é suficiente.
 
 ---
 
