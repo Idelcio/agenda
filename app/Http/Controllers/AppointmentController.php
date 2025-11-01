@@ -348,9 +348,12 @@ class AppointmentController extends Controller
         // Se há appointment_id, busca o compromisso
         $appointment = $appointmentId ? Appointment::find($appointmentId) : null;
 
-        // Adiciona instruções se for um compromisso
+        // Adiciona instruções se for um compromisso E tipo for 'compromisso'
         if ($appointment && !$request->hasFile('attachment')) {
-            $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para confirmar\n❌ Digite *2* para cancelar";
+            $tipoMensagem = $appointment->tipo_mensagem ?? 'compromisso';
+            if ($tipoMensagem === 'compromisso') {
+                $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para confirmar\n❌ Digite *2* para cancelar";
+            }
         }
 
         try {
