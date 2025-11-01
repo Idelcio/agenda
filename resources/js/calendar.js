@@ -159,7 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Carregar eventos do backend
         events: async function(info, successCallback, failureCallback) {
             try {
-                const response = await fetch('/agenda/eventos');
+                const startDate = info.start.toISOString();
+                const endDate = info.end.toISOString();
+                const url = `/agenda/eventos?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`;
+
+                const response = await fetch(url);
                 const data = await response.json();
                 successCallback(data);
             } catch (error) {
