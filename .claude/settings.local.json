@@ -4,7 +4,10 @@
       "Bash(git push:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(php artisan view:clear:*)"
+      "Bash(php artisan view:clear:*)",
+      "Bash(npm run build:*)",
+      "Bash(git restore:*)",
+      "Bash(php artisan:*)"
     ],
     "deny": [],
     "ask": []

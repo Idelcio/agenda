@@ -40,6 +40,12 @@ class WhatsAppReminderService
         // Verifica o tipo de mensagem para decidir se envia botões
         $tipoMensagem = $appointment->tipo_mensagem ?? 'compromisso';
 
+        Log::info('📩 Enviando lembrete', [
+            'appointment_id' => $appointment->id,
+            'tipo_mensagem' => $tipoMensagem,
+            'titulo' => $appointment->titulo,
+        ]);
+
         if ($tipoMensagem === 'compromisso') {
             // Adiciona instruções para resposta 1 ou 2 apenas para compromissos
             $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para CONFIRMAR\n❌ Digite *2* para CANCELAR";

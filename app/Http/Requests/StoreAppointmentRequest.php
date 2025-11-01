@@ -28,6 +28,7 @@ class StoreAppointmentRequest extends FormRequest
             'notificar_whatsapp' => ['boolean'],
             'whatsapp_numero' => ['nullable', 'string', 'regex:/^\\+[0-9]{8,16}$/'],
             'whatsapp_mensagem' => ['nullable', 'string', 'max:500'],
+            'tipo_mensagem' => ['nullable', 'string', 'in:compromisso,aviso'],
             'antecedencia_minutos' => ['nullable', 'integer', 'min:5', 'max:10080'],
         ];
     }
