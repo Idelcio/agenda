@@ -37,8 +37,14 @@ class WhatsAppReminderService
                 $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\a\\s H:i')
             );
 
-        // Adiciona instruções para resposta 1 ou 2
-        $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para CONFIRMAR\n❌ Digite *2* para CANCELAR";
+        // Verifica o tipo de mensagem para decidir se envia botões
+        $tipoMensagem = $appointment->tipo_mensagem ?? 'compromisso';
+
+        if ($tipoMensagem === 'compromisso') {
+            // Adiciona instruções para resposta 1 ou 2 apenas para compromissos
+            $mensagem .= "\n\n*Responda:*\n✅ Digite *1* para CONFIRMAR\n❌ Digite *2* para CANCELAR";
+        }
+        // Se for tipo 'aviso', não adiciona os botões - mensagem apenas informativa
 
         $this->sendQuickMessage(
             $appointment,

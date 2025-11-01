@@ -25,6 +25,7 @@ class Appointment extends Model
         'notificar_whatsapp',
         'whatsapp_numero',
         'whatsapp_mensagem',
+        'tipo_mensagem',
         'antecedencia_minutos',
         'lembrar_em',
         'lembrete_enviado_em',

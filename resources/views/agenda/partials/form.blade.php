@@ -172,6 +172,32 @@
 
                 <p class="hidden text-xs font-medium text-emerald-600" data-template-feedback></p>
             </div>
+
+            <div class="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
+                <x-input-label for="tipo_mensagem" value="Tipo de Mensagem" class="mb-2" />
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <input id="tipo_compromisso" name="tipo_mensagem" type="radio" value="compromisso"
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                            @checked(old('tipo_mensagem', $model->tipo_mensagem ?? 'compromisso') === 'compromisso') />
+                        <label for="tipo_compromisso" class="ml-2 block text-sm text-gray-900">
+                            📅 <strong>Compromisso</strong> - Cliente pode confirmar ou cancelar (envia botões 1 e 2)
+                        </label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="tipo_aviso" name="tipo_mensagem" type="radio" value="aviso"
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                            @checked(old('tipo_mensagem', $model->tipo_mensagem ?? 'compromisso') === 'aviso') />
+                        <label for="tipo_aviso" class="ml-2 block text-sm text-gray-900">
+                            🔔 <strong>Aviso/Lembrete</strong> - Apenas informativo, sem necessidade de resposta
+                        </label>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-blue-700">
+                    💡 Use "Aviso" para lembretes simples como "Não esqueça de estudar inglês hoje!" ou avisos gerais que não precisam de confirmação.
+                </p>
+                <x-input-error class="mt-2" :messages="$errors->get('tipo_mensagem')" />
+            </div>
         </div>
     </div>
 
