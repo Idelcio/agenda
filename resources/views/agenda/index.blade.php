@@ -134,7 +134,20 @@
                             </svg>
                             <h3 class="text-lg font-semibold text-gray-900">Calendrio de Agendamentos</h3>
                         </div>
-                        <div class="relative inline-block text-left" x-data="{ open: false }">
+                        <div class="relative inline-block text-left" x-data="{
+                            open: false,
+                            showModal: false,
+                            dataInicio: '',
+                            dataFim: '',
+                            gerarPdfPersonalizado() {
+                                if (this.dataInicio && this.dataFim) {
+                                    const url = `{{ route('agenda.pdf-semanal') }}?periodo=personalizado&data_inicio=${this.dataInicio}&data_fim=${this.dataFim}`;
+                                    window.open(url, '_blank');
+                                    this.showModal = false;
+                                    this.open = false;
+                                }
+                            }
+                        }">
                             <button @click="open = !open" type="button"
                                 class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,6 +187,85 @@
                                         </svg>
                                         PDF do Mês Atual
                                     </a>
+                                    <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'mes', 'mes_offset' => -1]) }}" target="_blank"
+                                        class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        PDF do Mês Anterior
+                                    </a>
+                                    <div class="border-t border-gray-100"></div>
+                                    <button @click="showModal = true; open = false" type="button"
+                                        class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        Período Personalizado...
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Modal de Período Personalizado -->
+                            <div x-show="showModal" x-cloak
+                                class="fixed inset-0 z-50 overflow-y-auto"
+                                style="display: none;">
+                                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                                    <div x-show="showModal"
+                                        x-transition:enter="ease-out duration-300"
+                                        x-transition:enter-start="opacity-0"
+                                        x-transition:enter-end="opacity-100"
+                                        x-transition:leave="ease-in duration-200"
+                                        x-transition:leave-start="opacity-100"
+                                        x-transition:leave-end="opacity-0"
+                                        class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                                        @click="showModal = false"></div>
+
+                                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+                                    <div x-show="showModal"
+                                        x-transition:enter="ease-out duration-300"
+                                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                        x-transition:leave="ease-in duration-200"
+                                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                        class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                                        <div>
+                                            <div class="mt-3 text-center sm:mt-0 sm:text-left">
+                                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                                    Selecionar Período Personalizado
+                                                </h3>
+                                                <div class="mt-4 space-y-4">
+                                                    <div>
+                                                        <label for="data_inicio" class="block text-sm font-medium text-gray-700">
+                                                            Data Início
+                                                        </label>
+                                                        <input type="date" x-model="dataInicio" id="data_inicio"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm">
+                                                    </div>
+                                                    <div>
+                                                        <label for="data_fim" class="block text-sm font-medium text-gray-700">
+                                                            Data Fim
+                                                        </label>
+                                                        <input type="date" x-model="dataFim" id="data_fim"
+                                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                            <button type="button" @click="gerarPdfPersonalizado()"
+                                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                                Gerar PDF
+                                            </button>
+                                            <button type="button" @click="showModal = false"
+                                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:mt-0 sm:w-auto sm:text-sm">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

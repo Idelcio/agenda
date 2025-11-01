@@ -455,7 +455,8 @@ class AppointmentController extends Controller
     {
         $user = $request->user();
         $hoje = now();
-        $periodo = $request->query('periodo', 'semana'); // dia, semana ou mes
+        $periodo = $request->query('periodo', 'semana'); // dia, semana, mes ou personalizado
+        $mesOffset = $request->query('mes_offset', 0); // Para mês anterior/próximo
 
         // Define início e fim baseado no período
         switch ($periodo) {
@@ -468,11 +469,34 @@ class AppointmentController extends Controller
                 break;
 
             case 'mes':
-                $inicio = $hoje->copy()->startOfMonth();
-                $fim = $hoje->copy()->endOfMonth();
+                // Aplica offset de meses (ex: -1 para mês anterior, +1 para próximo)
+                $dataBase = $hoje->copy()->addMonths($mesOffset);
+                $inicio = $dataBase->copy()->startOfMonth();
+                $fim = $dataBase->copy()->endOfMonth();
                 $tituloPeriodo = 'Mensal';
                 $periodoTexto = $inicio->format('F/Y');
                 $nomeArquivo = 'agenda-mensal-' . $inicio->format('m-Y') . '.pdf';
+                break;
+
+            case 'personalizado':
+                // Período personalizado com datas específicas
+                $dataInicio = $request->query('data_inicio');
+                $dataFim = $request->query('data_fim');
+
+                if ($dataInicio && $dataFim) {
+                    $inicio = \Carbon\Carbon::parse($dataInicio)->startOfDay();
+                    $fim = \Carbon\Carbon::parse($dataFim)->endOfDay();
+                    $tituloPeriodo = 'Personalizada';
+                    $periodoTexto = $inicio->format('d/m/Y') . ' - ' . $fim->format('d/m/Y');
+                    $nomeArquivo = 'agenda-' . $inicio->format('d-m-Y') . '-a-' . $fim->format('d-m-Y') . '.pdf';
+                } else {
+                    // Fallback para semana atual se não informar datas
+                    $inicio = $hoje->copy()->startOfWeek();
+                    $fim = $hoje->copy()->endOfWeek();
+                    $tituloPeriodo = 'Semanal';
+                    $periodoTexto = $inicio->format('d/m/Y') . ' - ' . $fim->format('d/m/Y');
+                    $nomeArquivo = 'agenda-semanal-' . $inicio->format('d-m-Y') . '.pdf';
+                }
                 break;
 
             case 'semana':

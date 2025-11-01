@@ -1,95 +1,174 @@
-# 📦 Arquivos para Upload Manual
+# Arquivos para Upload Manual - Deploy
 
-## 🎯 PRIORIDADE MÁXIMA (Correção de timezone)
-
-### ✅ Obrigatório - Corrige horário dos lembretes:
-- **app/Models/Appointment.php** ⚠️ CRÍTICO
-
----
-
-## 📋 FUNCIONALIDADES COMPLETAS (Mensagens Prontas + Correções)
-
-Se o servidor ainda não tem as mensagens prontas, envie também:
-
-### 🆕 Novos arquivos (criar no servidor):
-1. **app/Http/Controllers/QuickMessageTemplateController.php**
-2. **app/Http/Requests/StoreWhatsAppMessageTemplateRequest.php**
-3. **app/Models/WhatsAppMessageTemplate.php**
-4. **database/migrations/2025_10_27_085252_create_whats_app_message_templates_table.php**
-
-### 📝 Arquivos modificados (substituir):
-5. **app/Http/Controllers/AppointmentController.php**
-6. **app/Models/User.php**
-7. **app/Services/WhatsAppService.php**
-8. **resources/views/agenda/index.blade.php**
-9. **resources/views/agenda/partials/form.blade.php**
-10. **routes/web.php**
+## Última Atualização do Commit
+**Commit:** 2e3854f - Feat: Adiciona seleção de período para geração de PDF
+**Data:** 2025-11-01
 
 ---
 
-## 🚀 Comandos pós-upload (OBRIGATÓRIO)
+## Arquivos Modificados (Último Commit)
 
-Após fazer upload dos arquivos, execute no servidor:
+### 1. app/Http/Controllers/AppointmentController.php
+**Caminho completo:** `app/Http/Controllers/AppointmentController.php`
+
+**Mudanças:**
+- Método `gerarPdfSemanal()` agora aceita parâmetro `periodo` (dia/semana/mes)
+- Switch para definir início/fim baseado no período
+- Nomes de arquivo dinâmicos por tipo de período
+
+---
+
+### 2. resources/views/agenda/index.blade.php
+**Caminho completo:** `resources/views/agenda/index.blade.php`
+
+**Mudanças:**
+- Botão "Gerar PDF Semanal" substituído por dropdown com Alpine.js
+- Três opções: PDF do Dia, Semana e Mês
+- Menu dropdown com animações
+
+---
+
+### 3. resources/views/agenda/pdf/semanal.blade.php
+**Caminho completo:** `resources/views/agenda/pdf/semanal.blade.php`
+
+**Mudanças:**
+- Título do PDF agora é dinâmico (AGENDA DIÁRIA/SEMANAL/MENSAL)
+
+---
+
+## Commits Anteriores Importantes
+
+### Commit 88339fd - Navegação do calendário
+**Arquivo:** `resources/js/calendar.js`
+- Permite navegar entre meses no calendário
+- **IMPORTANTE:** Precisa rodar `npm run build` para gerar `public/build/assets/app-*.js`
+
+---
+
+### Commit 8f1923d, c6a1e5d, 6ccf996, 054be30, 19b6325 - Fixes diversos
+**Arquivo:** `resources/views/agenda/index.blade.php`
+- Correção de filtros de período (dia/semana/mês)
+- Correção de bugs JavaScript
+- Correção de ortografia ("Mês")
+
+---
+
+## LISTA COMPLETA DE ARQUIVOS PARA UPLOAD
+
+### PHP (Backend)
+```
+app/Http/Controllers/AppointmentController.php
+```
+
+### Blade (Views)
+```
+resources/views/agenda/index.blade.php
+resources/views/agenda/pdf/semanal.blade.php
+```
+
+### JavaScript (precisa compilar)
+```
+resources/js/calendar.js
+```
+
+### Assets Compilados (após npm run build)
+```
+public/build/assets/app-[hash].js
+public/build/assets/app-[hash].css
+public/build/manifest.json
+```
+
+---
+
+## PROCEDIMENTO DE UPLOAD MANUAL
+
+### Passo 1: Compilar Assets
+No ambiente local:
+```bash
+npm run build
+```
+
+### Passo 2: Upload via FTP/SFTP
+Faça upload dos seguintes arquivos para **AMBOS** os servidores:
+
+#### Backend (PHP)
+- `app/Http/Controllers/AppointmentController.php`
+
+#### Views (Blade)
+- `resources/views/agenda/index.blade.php`
+- `resources/views/agenda/pdf/semanal.blade.php`
+
+#### JavaScript (opcional, se você editar JS no servidor)
+- `resources/js/calendar.js`
+
+#### Assets Compilados (IMPORTANTE)
+- `public/build/assets/app-*.js` (arquivo com hash no nome)
+- `public/build/assets/app-*.css` (arquivo com hash no nome)
+- `public/build/manifest.json`
+
+**NOTA:** Os arquivos em `public/build/assets/` têm nomes com hash (ex: app-abc123.js).
+Você pode enviar toda a pasta `public/build/` para garantir.
+
+### Passo 3: Limpar Cache no Servidor
+Após upload, execute **EM CADA SERVIDOR**:
 
 ```bash
-# 1. Rodar migration (se enviou novos arquivos)
-php artisan migrate --force
-
-# 2. Limpar TODOS os caches
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
 php artisan optimize:clear
-
-# 3. Recriar cache de rotas
+php artisan config:cache
 php artisan route:cache
-
-# 4. Verificar se rotas foram criadas
-php artisan route:list | grep quick-messages
+php artisan view:cache
 ```
+
+Ou se tiver acesso apenas via painel:
+- Acesse qualquer rota do sistema que force o recarregamento
+- Delete manualmente os arquivos em `bootstrap/cache/` se tiver acesso FTP
 
 ---
 
-## ✅ Verificação final
+## VERIFICAÇÃO PÓS-DEPLOY
 
-### Teste 1: Timezone corrigido
-```bash
-grep -A 3 "scopeDueForReminder" app/Models/Appointment.php
-```
-
-Deve mostrar:
-```php
-public function scopeDueForReminder($query)
-{
-    // Pega a hora atual no timezone da aplicação e converte para UTC
-    $nowUtc = now()->setTimezone('UTC');
-```
-
-### Teste 2: Mensagens prontas funcionando
-```bash
-php artisan route:list | grep quick-messages
-```
-
-Deve mostrar 3 rotas:
-- POST agenda/quick-messages
-- PATCH agenda/quick-messages/{template}
-- DELETE agenda/quick-messages/{template}
+### Testar no navegador:
+1. Acesse `/agenda`
+2. Verifique se o botão "Gerar PDF" aparece
+3. Clique e veja se abre menu dropdown com 3 opções
+4. Teste gerar PDF do Dia, Semana e Mês
+5. Teste navegar entre meses no calendário
+6. Teste os filtros Dia/Semana/Mês
 
 ---
 
-## 📊 Resumo
+## TROUBLESHOOTING
 
-| Situação | Arquivos necessários |
-|----------|---------------------|
-| **Só corrigir timezone** | Apenas `app/Models/Appointment.php` |
-| **Funcionalidade completa** | Todos os 10 arquivos listados acima |
+### Se o dropdown não aparecer:
+- Verifique se o arquivo `public/build/manifest.json` foi atualizado
+- Limpe cache do navegador (Ctrl+F5)
+- Verifique se Alpine.js está carregando (F12 > Console)
+
+### Se os PDFs não gerarem corretamente:
+- Verifique permissões da pasta `storage/`
+- Execute `php artisan storage:link`
+- Verifique logs em `storage/logs/laravel.log`
+
+### Se o calendário não navegar entre meses:
+- Verifique se `public/build/assets/app-*.js` foi atualizado
+- Limpe cache do navegador
+- Verifique console do navegador (F12) por erros JavaScript
 
 ---
 
-## ⚠️ IMPORTANTE
+## OPÇÃO ALTERNATIVA: USAR GIT NO SERVIDOR
 
-Sempre faça backup antes de substituir arquivos:
+Se os servidores têm acesso Git:
+
 ```bash
-cp app/Models/Appointment.php app/Models/Appointment.php.backup
+# No servidor
+cd /caminho/do/projeto
+git pull origin main
+npm run build
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
+
+Muito mais simples e seguro!
