@@ -446,8 +446,8 @@
                         </div>
 
                         <p class="text-sm text-red-700 mb-4">
-                            Estes compromissos atingiram o horrio programado. Configure e envie manualmente ou aguarde
-                            o envio automtico.
+                            Estes compromissos atingiram o horário programado. Configure e envie manualmente ou aguarde
+                            o envio automático.
                         </p>
 
                         <div class="space-y-4">
@@ -528,88 +528,7 @@
                                                         class="text-xs" />
                                                     <textarea id="mensagem_{{ $appointment->id }}" name="mensagem" rows="3"
                                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-                                                        placeholder="Digite a mensagem do lembrete" required>{{ old('mensagem', $appointment->whatsapp_mensagem ?? sprintf('Ol! Voc tem um agendamento de %s em %s.', $appointment->titulo, $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\s H:i'))) }}</textarea>
-                                                </div>
-
-                                                <div class="mt-3 space-y-3 rounded-md border border-indigo-100 bg-indigo-50/60 p-3"
-                                                    data-quick-template-controls data-target="mensagem_{{ $appointment->id }}"
-                                                    data-limit="{{ $quickMessageTemplateLimit }}"
-                                                    data-save-url="{{ route('agenda.quick-messages.store') }}"
-                                                    data-update-url-template="{{ route('agenda.quick-messages.update', ['template' => '__TEMPLATE__']) }}"
-                                                    data-delete-url-template="{{ route('agenda.quick-messages.destroy', ['template' => '__TEMPLATE__']) }}">
-                                                    <div class="flex flex-wrap items-center justify-between gap-2">
-                                                        <div class="flex flex-wrap items-center gap-2">
-                                                            <span class="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-                                                                Mensagens prontas
-                                                            </span>
-                                                            <span class="text-xs text-gray-500" data-template-count>
-                                                                {{ $quickMessageTemplates->count() }}/{{ $quickMessageTemplateLimit }} salvas
-                                                            </span>
-                                                        </div>
-                                                        <button type="button"
-                                                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:bg-indigo-400"
-                                                            data-action="save-template">
-                                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2" d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                            <span data-template-save-label>Guardar mensagem</span>
-                                                        </button>
-                                                    </div>
-
-                                                    <p class="text-xs text-gray-500" data-templates-empty
-                                                        @if ($quickMessageTemplates->isNotEmpty()) style="display: none;" @endif>
-                                                        Nenhuma mensagem pronta ainda. Clique em "Guardar mensagem" para salvar textos recorrentes.
-                                                    </p>
-
-                                                    <div class="flex gap-3 overflow-x-auto pb-2" data-template-list>
-                                                        @foreach ($quickMessageTemplates as $template)
-                                                            <div class="flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all"
-                                                                data-template-id="{{ $template->id }}"
-                                                                data-template-message="{{ e($template->message) }}"
-                                                                data-action="apply-template"
-                                                                data-message="{{ e($template->message) }}"
-                                                                data-target="mensagem_{{ $appointment->id }}">
-                                                                <div class="space-y-3">
-                                                                    <p class="text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3" data-template-message-text>{{ $template->message }}</p>
-                                                                    <div class="flex flex-wrap gap-2">
-                                                                        <button type="button"
-                                                                            class="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
-                                                                            data-action="edit-template"
-                                                                            data-template-id="{{ $template->id }}"
-                                                                            data-message="{{ e($template->message) }}"
-                                                                            data-target="mensagem_{{ $appointment->id }}"
-                                                                            onclick="event.stopPropagation()">
-                                                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
-                                                                                viewBox="0 0 24 24">
-                                                                                <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round" stroke-width="2"
-                                                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                            </svg>
-                                                                            Editar
-                                                                        </button>
-                                                                        <button type="button"
-                                                                            class="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1"
-                                                                            data-action="delete-template"
-                                                                            data-template-id="{{ $template->id }}"
-                                                                            onclick="event.stopPropagation()">
-                                                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
-                                                                                    viewBox="0 0 24 24">
-                                                                                    <path stroke-linecap="round"
-                                                                                        stroke-linejoin="round" stroke-width="2"
-                                                                                        d="M6 18L18 6M6 6l12 12" />
-                                                                                </svg>
-                                                                                Excluir
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-
-                                                    <p class="hidden text-xs font-medium text-emerald-600" data-template-feedback></p>
+                                                        placeholder="Digite a mensagem do lembrete" required>{{ old('mensagem', $appointment->whatsapp_mensagem ?? sprintf('Olá! Você tem um agendamento de %s em %s.', $appointment->titulo, $appointment->inicio?->timezone(config('app.timezone'))->format('d/m/Y \\à\\s H:i'))) }}</textarea>
                                                 </div>
 
                                                 <div>
