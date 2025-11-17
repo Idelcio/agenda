@@ -93,6 +93,7 @@ Route::middleware(['auth', 'verified', 'subscription'])->group(function () {
 
     // Clientes
     Route::resource('clientes', ClienteController::class);
+    Route::post('/clientes/send-mass-message', [ClienteController::class, 'sendMassMessage'])->name('clientes.send-mass-message');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

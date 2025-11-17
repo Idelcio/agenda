@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendMassMessageJob;
+use App\Jobs\SendMediaMessageJob;
+use App\Models\MassMessage;
+use App\Models\MassMessageItem;
+use App\Models\MediaMessage;
+use App\Models\MediaMessageItem;
 use App\Models\User;
 use App\Services\WhatsAppService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -171,5 +178,156 @@ class ClienteController extends Controller
 
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente excluído com sucesso!');
+    }
+
+    /**
+     * Processa envio em massa (texto, imagem ou ambos) com possibilidade de agendamento.
+     */
+    public function sendMassMessage(Request $request)
+    {
+        $tipoEnvio = $request->input('tipo_envio');
+        $agendamentoTipo = $request->input('agendamento_tipo');
+
+        $validated = $request->validate([
+            'client_ids' => ['required', 'json'],
+            'titulo' => ['required', 'string', 'max:150'],
+            'tipo_envio' => ['required', Rule::in(['texto', 'texto_midia', 'midia'])],
+            'mensagem' => [
+                Rule::requiredIf(fn () => $tipoEnvio === 'texto'),
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'arquivo' => [
+                Rule::requiredIf(fn () => in_array($tipoEnvio, ['texto_midia', 'midia'])),
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,gif,pdf',
+                'max:10240',
+            ],
+            'agendamento_tipo' => ['required', Rule::in(['imediato', 'agendado'])],
+            'scheduled_for' => [
+                Rule::requiredIf(fn () => $agendamentoTipo === 'agendado'),
+                'nullable',
+                'date',
+            ],
+        ], [
+            'titulo.required' => 'Informe um titulo para identificar o envio.',
+            'mensagem.required' => 'Informe o conteudo da mensagem.',
+            'arquivo.required' => 'Selecione um arquivo para enviar.',
+            'scheduled_for.required' => 'Informe a data e hora para agendamento.',
+        ]);
+
+        $clientIds = json_decode($validated['client_ids'], true);
+
+        if (empty($clientIds) || ! is_array($clientIds)) {
+            return redirect()->route('clientes.index')
+                ->with('error', 'Nenhum cliente foi selecionado.');
+        }
+
+        $clientes = User::where('user_id', auth()->id())
+            ->where('tipo', 'cliente')
+            ->whereIn('id', $clientIds)
+            ->whereNotNull('whatsapp_number')
+            ->get();
+
+        if ($clientes->isEmpty()) {
+            return redirect()->route('clientes.index')
+                ->with('error', 'Nenhum cliente com WhatsApp foi encontrado.');
+        }
+
+        $scheduledFor = now();
+
+        if ($validated['agendamento_tipo'] === 'agendado') {
+            try {
+                $scheduledFor = Carbon::parse($validated['scheduled_for']);
+            } catch (\Exception $e) {
+                throw ValidationException::withMessages([
+                    'scheduled_for' => 'Data e hora de agendamento invalidas.',
+                ]);
+            }
+
+            if ($scheduledFor->lessThanOrEqualTo(now())) {
+                throw ValidationException::withMessages([
+                    'scheduled_for' => 'Escolha um horario futuro para agendar o envio.',
+                ]);
+            }
+        }
+
+        $destinatarios = $clientes->count();
+        $scheduledLabel = $scheduledFor->greaterThan(now())
+            ? 'O envio esta agendado para ' . $scheduledFor->format('d/m/Y H:i') . '.'
+            : 'O envio sera iniciado em instantes.';
+
+        if ($validated['tipo_envio'] === 'texto') {
+            $massMessage = MassMessage::create([
+                'user_id' => auth()->id(),
+                'titulo' => $validated['titulo'],
+                'mensagem' => $validated['mensagem'],
+                'total_destinatarios' => $destinatarios,
+                'status' => 'pendente',
+                'scheduled_for' => $scheduledFor,
+            ]);
+
+            foreach ($clientes as $cliente) {
+                MassMessageItem::create([
+                    'mass_message_id' => $massMessage->id,
+                    'cliente_id' => $cliente->id,
+                    'telefone' => $cliente->whatsapp_number,
+                    'status' => 'pendente',
+                ]);
+            }
+
+            $dispatchAt = $scheduledFor->greaterThan(now()) ? $scheduledFor : now();
+            SendMassMessageJob::dispatch($massMessage->id)->delay($dispatchAt);
+
+            Log::info('Envio em massa (texto) configurado', [
+                'mass_message_id' => $massMessage->id,
+                'user_id' => auth()->id(),
+                'total_clientes' => $destinatarios,
+                'scheduled_for' => $dispatchAt,
+            ]);
+        } else {
+            $arquivo = $request->file('arquivo');
+            $extension = strtolower($arquivo->getClientOriginalExtension());
+            $tipoArquivo = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'imagem' : 'pdf';
+
+            $arquivoPath = $arquivo->store('media_messages', 'local');
+            $fullPath = storage_path('app/' . $arquivoPath);
+
+            $mediaMessage = MediaMessage::create([
+                'user_id' => auth()->id(),
+                'titulo' => $validated['titulo'],
+                'mensagem' => $validated['mensagem'],
+                'arquivo_path' => $fullPath,
+                'tipo_arquivo' => $tipoArquivo,
+                'total_destinatarios' => $destinatarios,
+                'status' => 'pendente',
+                'scheduled_for' => $scheduledFor,
+            ]);
+
+            foreach ($clientes as $cliente) {
+                MediaMessageItem::create([
+                    'media_message_id' => $mediaMessage->id,
+                    'cliente_id' => $cliente->id,
+                    'telefone' => $cliente->whatsapp_number,
+                    'status' => 'pendente',
+                ]);
+            }
+
+            $dispatchAt = $scheduledFor->greaterThan(now()) ? $scheduledFor : now();
+            SendMediaMessageJob::dispatch($mediaMessage->id)->delay($dispatchAt);
+
+            Log::info('Envio em massa com midia configurado', [
+                'media_message_id' => $mediaMessage->id,
+                'user_id' => auth()->id(),
+                'total_clientes' => $destinatarios,
+                'tipo_arquivo' => $tipoArquivo,
+                'scheduled_for' => $dispatchAt,
+            ]);
+        }
+
+        return redirect()->route('clientes.index')
+            ->with('success', "Envio configurado para {$destinatarios} cliente(s). {$scheduledLabel}");
     }
 }

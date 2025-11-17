@@ -23,6 +23,67 @@ class WhatsAppWebhookController extends Controller
             return response('Não autorizado', Response::HTTP_UNAUTHORIZED);
         }
         Log::info('🚀 Webhook bruto recebido', $request->all());
+        // 1️⃣ Detecta o device_id vindo do webhook
+        $deviceId = data_get($request, 'data.device_id')
+            ?? data_get($request, 'data.data.device_id')
+            ?? data_get($request, 'data.data.session')
+            ?? null;
+
+        // 🔹 Detecta o session token (para mensagens recebidas)
+        $sessionToken = data_get($request, 'session')
+            ?? data_get($request, 'data.session')
+            ?? null;
+
+        // 2️⃣ Busca a empresa que está usando esse device_id
+        $empresa = null;
+
+        if ($deviceId) {
+            $empresa = User::where('tipo', 'empresa')
+                ->where('apibrasil_device_id', $deviceId)
+                ->first();
+        }
+
+        // 3️⃣ fallback: tenta localizar pela origem da mensagem
+        if (!$empresa) {
+            $fromNumber = $this->normalizeNumber(
+                data_get($request, 'data.data.from') ??
+                    data_get($request, 'data.from')
+            );
+
+            $empresa = User::where('tipo', 'empresa')
+                ->where('whatsapp_number', $fromNumber)
+                ->first();
+        }
+
+        // 4️⃣ fallback: tenta localizar pelo session token
+        if (!$empresa && $sessionToken) {
+            $empresa = User::where('tipo', 'empresa')
+                ->where('apibrasil_device_token', $sessionToken)
+                ->first();
+        }
+
+        if (!$empresa) {
+            Log::warning("❌ Nenhuma empresa correspondente ao webhook.", [
+                'device_id' => $deviceId,
+                'session_token' => $sessionToken,
+                'from' => $fromNumber ?? null,
+            ]);
+            return response('OK', 200);
+        }
+
+        // 4️⃣ Ajusta o WhatsAppService para usar as credenciais dessa empresa
+        $whatsApp->setDeviceCredentials(
+            $empresa->apibrasil_device_token,
+            $empresa->apibrasil_device_id,
+        );
+
+        Log::info("🏢 Credenciais carregadas da empresa correta", [
+            'empresa_id' => $empresa->id,
+            'device_id' => $empresa->apibrasil_device_id,
+            'device_token' => $empresa->apibrasil_device_token,
+        ]);
+
+
 
 
         // 🔹 Tipo de evento vindo da API Brasil
@@ -37,10 +98,23 @@ class WhatsAppWebhookController extends Controller
 
 
         // 🔹 Captura número e conteúdo corretamente
-        $from = $this->normalizeNumber(data_get($request, 'data.from'));
+        // API Brasil pode fornecer o remetente em diferentes campos; prioriza o campo interno do evento
+        $from = $this->normalizeNumber(
+            data_get($request, 'data.data.from') ??
+                data_get($request, 'data.data.remote') ??
+                data_get($request, 'data.from') ??
+                data_get($request, 'data.remote') ??
+                null
+        );
 
         // 🔹 IGNORA MENSAGENS ENVIADAS PELO PRÓPRIO SISTEMA (fromMe = true)
-        $isFromMe = data_get($request, 'data.data.id.fromMe', false);
+        // API Brasil varia a localização do flag; inspecionamos todas as possibilidades
+        $isFromMe = (bool) (
+            data_get($request, 'data.data.id.fromMe') ??
+            data_get($request, 'data.data.fromMe') ??
+            data_get($request, 'data.fromMe') ??
+            false
+        );
 
         if ($isFromMe) {
             Log::info('🚫 Mensagem ignorada (enviada pelo próprio sistema)', [
@@ -57,6 +131,12 @@ class WhatsAppWebhookController extends Controller
             data_get($request, 'body') ??
             ''
         ));
+        $sessionId =
+            data_get($request, 'data.session') ??
+            data_get($request, 'data.device.id') ??
+            data_get($request, 'data.data.session') ??
+            data_get($request, 'data.data.device_id') ??
+            null;
 
         // 🔹 Pega legenda caso seja mídia
         $caption = data_get($request, 'data.data.caption');
@@ -80,20 +160,57 @@ class WhatsAppWebhookController extends Controller
             return response('OK', Response::HTTP_OK);
         }
 
+        // 🔹 Cria variação do número (com/sem o 9) para busca mais flexível
+        $fromVariation = null;
+        if ($from && preg_match('/^55(\d{2})9(\d{8})$/', $from, $matches)) {
+            // Se tem 9, cria versão sem o 9: 5511987654321 -> 551187654321
+            $fromVariation = '55' . $matches[1] . $matches[2];
+        } elseif ($from && preg_match('/^55(\d{2})(\d{8})$/', $from, $matches)) {
+            // Se não tem 9, cria versão com o 9: 551187654321 -> 5511987654321
+            $fromVariation = '55' . $matches[1] . '9' . $matches[2];
+        }
+
+        Log::info('🔍 Buscando usuário/cliente', [
+            'numero_original' => $from,
+            'numero_variacao' => $fromVariation,
+        ]);
+
         // 🔹 Localiza o usuário pelo número do WhatsApp (principal ou cliente vinculado)
-        $user = $from ? User::where('whatsapp_number', $from)->first() : null;
+        // 🔹 Busca tanto com o número original quanto com a variação (com/sem o 9)
+        $user = $from ? User::where(function ($query) use ($from, $fromVariation) {
+            $query->where('whatsapp_number', $from);
+            if ($fromVariation) {
+                $query->orWhere('whatsapp_number', $fromVariation);
+            }
+        })->first() : null;
 
         // 🔹 Se não encontrou, verifica se é um cliente vinculado a alguma empresa
         if (!$user && $from) {
-            $user = User::whereHas('clientes', function ($query) use ($from) {
-                $query->where('whatsapp_number', $from);
+            $user = User::whereHas('clientes', function ($query) use ($from, $fromVariation) {
+                $query->where(function ($q) use ($from, $fromVariation) {
+                    $q->where('whatsapp_number', $from);
+                    if ($fromVariation) {
+                        $q->orWhere('whatsapp_number', $fromVariation);
+                    }
+                });
             })->first();
 
             // Se encontrou a empresa, pega o cliente real
             if ($user) {
-                $user = $user->clientes()->where('whatsapp_number', $from)->first();
+                $user = $user->clientes()->where(function ($query) use ($from, $fromVariation) {
+                    $query->where('whatsapp_number', $from);
+                    if ($fromVariation) {
+                        $query->orWhere('whatsapp_number', $fromVariation);
+                    }
+                })->first();
             }
         }
+
+        Log::info('📋 Resultado da busca de usuário', [
+            'encontrado' => $user ? 'sim' : 'não',
+            'user_id' => $user?->id,
+            'user_name' => $user?->name,
+        ]);
 
         // 🔹 Registra a mensagem recebida
         ChatbotMessage::create([
@@ -119,6 +236,11 @@ class WhatsAppWebhookController extends Controller
 
         // 🔹 Processa o comando (1, 2, MENU, etc.)
         [$reply, $meta] = $this->handleCommand($user, $from, $body);
+        if (is_array($meta)) {
+            $meta['session'] = $sessionId;
+        } else {
+            $meta = ['session' => $sessionId];
+        }
 
         // 🔹 Responde o usuário
         $this->sendReply($whatsApp, $from, $reply, $user, $meta);
@@ -135,15 +257,32 @@ class WhatsAppWebhookController extends Controller
         // 🔹 Normaliza o número removendo caracteres especiais
         $cleanNumber = preg_replace('/\D+/', '', $whatsappNumber);
 
+        // 🔹 Cria variação do número (com/sem o 9) para busca mais flexível
+        $numberVariation = null;
+        if (preg_match('/^55(\d{2})9(\d{8})$/', $cleanNumber, $matches)) {
+            // Se tem 9, cria versão sem o 9: 5511987654321 -> 551187654321
+            $numberVariation = '55' . $matches[1] . $matches[2];
+        } elseif (preg_match('/^55(\d{2})(\d{8})$/', $cleanNumber, $matches)) {
+            // Se não tem 9, cria versão com o 9: 551187654321 -> 5511987654321
+            $numberVariation = '55' . $matches[1] . '9' . $matches[2];
+        }
+
         Log::info('🔍 Buscando compromisso', [
             'whatsapp_original' => $whatsappNumber,
             'whatsapp_limpo' => $cleanNumber,
+            'whatsapp_variacao' => $numberVariation,
             'comando' => $normalized,
         ]);
 
         // 🔹 Busca o compromisso mais recente com lembrete enviado E QUE AINDA NÃO FOI RESPONDIDO
+        // 🔹 Busca tanto com o número original quanto com a variação (com/sem o 9)
         $appointment = Appointment::query()
-            ->where('whatsapp_numero', $cleanNumber)
+            ->where(function ($query) use ($cleanNumber, $numberVariation) {
+                $query->where('whatsapp_numero', $cleanNumber);
+                if ($numberVariation) {
+                    $query->orWhere('whatsapp_numero', $numberVariation);
+                }
+            })
             ->where('status_lembrete', 'enviado') // Só lembretes enviados
             ->where('status', 'pendente') // Só compromissos ainda pendentes (não confirmados nem cancelados)
             ->latest('lembrete_enviado_em')
@@ -295,7 +434,7 @@ TXT;
         return 'Não entendi o comando. Envie MENU para ver as opções.';
     }
 
-    private function sendReply(WhatsAppService $service, string $to, string $message, ?User $user = null, ?array $meta = null): void
+    private function sendReply(WhatsAppService $service, string $to, ?string $message, ?User $user = null, ?array $meta = null): void
     {
         if (!$message) {
             Log::info('⚠️ Mensagem vazia, não enviando resposta');
@@ -303,54 +442,55 @@ TXT;
         }
 
         try {
-            // 🔹 Busca TODAS as empresas com device_token configurado
-            $empresas = User::where('tipo', 'empresa')
-                ->whereNotNull('apibrasil_device_token')
-                ->where('apibrasil_device_token', '!=', '')
-                ->get();
+            $sessionToken = data_get($meta, 'session');
 
-            if ($empresas->isEmpty()) {
-                Log::error('❌ Nenhuma empresa com device_token encontrada');
+            Log::info('🔍 Sessão detectada no webhook', [
+                'sessionToken' => $sessionToken,
+                'empresaEncontrada' => null,
+            ]);
+
+            if (! $sessionToken) {
+                Log::warning('❌ Nenhuma sessão informada no webhook; abortando envio.');
                 return;
             }
 
-            $empresaAtiva = null;
+            $empresaAtiva = User::where('tipo', 'empresa')
+                ->where('apibrasil_device_token', $sessionToken)
+                ->first();
 
-            // 🔹 Testa cada empresa até encontrar uma com sessão CONECTADA
-            foreach ($empresas as $empresa) {
-                Log::info('🔍 Testando sessão da empresa', [
-                    'empresa_id' => $empresa->id,
-                    'empresa_nome' => $empresa->name,
+            if (! $empresaAtiva) {
+                Log::warning('❌ Nenhuma empresa correspondente à sessão. Abortando envio.', [
+                    'session' => $sessionToken,
+                    'to' => $to,
+                    'user_id' => $user?->id,
                 ]);
-
-                try {
-                    // Verifica se a sessão está conectada
-                    $status = $service->checkDeviceStatus($empresa->apibrasil_device_token);
-
-                    if ($status['connected'] ?? false) {
-                        $empresaAtiva = $empresa;
-                        Log::info('✅ Sessão CONECTADA encontrada!', [
-                            'empresa_id' => $empresa->id,
-                            'empresa_nome' => $empresa->name,
-                        ]);
-                        break;
-                    } else {
-                        Log::warning('⚠️ Sessão DESCONECTADA', [
-                            'empresa_id' => $empresa->id,
-                            'empresa_nome' => $empresa->name,
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::warning('⚠️ Erro ao verificar status da sessão', [
-                        'empresa_id' => $empresa->id,
-                        'erro' => $e->getMessage(),
-                    ]);
-                    continue;
-                }
+                return;
             }
 
-            if (!$empresaAtiva) {
-                Log::error('❌ Nenhuma empresa com sessão CONECTADA encontrada');
+            Log::info('🔍 Sessão detectada no webhook', [
+                'sessionToken' => $sessionToken,
+                'empresaEncontrada' => $empresaAtiva->id,
+            ]);
+
+            // 🔹 Testa a(s) sessão(ões) da empresa até encontrar uma CONECTADA
+            // 🔹 Verifica se a sessão está conectada
+            try {
+                $status = $service->checkDeviceStatus($empresaAtiva->apibrasil_device_token);
+                if (!($status['connected'] ?? false)) {
+                    Log::error('❌ Sessão não conectada para esta empresa', [
+                        'empresa_id' => $empresaAtiva->id,
+                        'empresa_nome' => $empresaAtiva->name,
+                        'session' => $sessionToken,
+                    ]);
+                    return;
+                }
+            } catch (\Exception $e) {
+                Log::warning('⚠️ Erro ao verificar status da sessão', [
+                    'empresa_id' => $empresaAtiva->id,
+                    'empresa_nome' => $empresaAtiva->name,
+                    'erro' => $e->getMessage(),
+                    'session' => $sessionToken,
+                ]);
                 return;
             }
 
@@ -376,7 +516,6 @@ TXT;
                 'conteudo' => $message,
                 'payload' => $meta,
             ]);
-
         } catch (RuntimeException $exception) {
             Log::warning('WhatsApp service not configured', ['exception' => $exception->getMessage()]);
         } catch (\Throwable $exception) {
@@ -418,16 +557,7 @@ TXT;
             $clean = '55' . $clean;
         }
 
-        // 🔹 Corrige números sem o 9 (ex: 555184871703 → 5551984871703)
-        if (strlen($clean) === 12 && str_starts_with($clean, '55')) {
-            $ddd = substr($clean, 2, 2);
-            $resto = substr($clean, 4);
-
-            // Se o primeiro dígito após o DDD for entre 6 e 9, insere o 9
-            if (preg_match('/^[6-9]/', $resto)) {
-                $clean = '55' . $ddd . '9' . $resto;
-            }
-        }
+        // 🔹 NÃO força inserção do "9" — assume que vem correto da origem
 
         // 🔹 Remove zeros à esquerda se houver
         $clean = ltrim($clean, '0');
