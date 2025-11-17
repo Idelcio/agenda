@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\MassMessage;
 use App\Models\WhatsAppMessageTemplate;
 use App\Services\WhatsAppReminderService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -124,7 +125,7 @@ class AppointmentController extends Controller
         // Busca apenas os clientes cadastrados pela empresa logada
         $usuarios = User::where('user_id', $user->id)
             ->where('tipo', 'cliente')
-            ->orderBy('name')
+            ->orderByRaw('LOWER(name)')
             ->get(['id', 'name', 'whatsapp_number']);
 
         $quickMessageTemplates = $user->quickMessageTemplates()
@@ -215,7 +216,7 @@ class AppointmentController extends Controller
         // Busca apenas os clientes cadastrados pela empresa logada
         $usuarios = User::where('user_id', $user->id)
             ->where('tipo', 'cliente')
-            ->orderBy('name')
+            ->orderByRaw('LOWER(name)')
             ->get(['id', 'name', 'whatsapp_number']);
 
         return view('agenda.edit', [
@@ -420,10 +421,44 @@ class AppointmentController extends Controller
                     'status' => $appointment->status,
                     'whatsapp' => $appointment->notificar_whatsapp,
                     'description' => $appointment->descricao,
+                    'type' => 'appointment',
                 ];
             });
 
-        return response()->json($events);
+        $massMessages = $user->massMessages()
+            ->with(['items.cliente:id,name'])
+            ->whereBetween('scheduled_for', [$startDate, $endDate])
+            ->orderBy('scheduled_for')
+            ->get()
+            ->map(function (MassMessage $massMessage) {
+                $start = $massMessage->scheduled_for ?? $massMessage->created_at;
+                $end = $start ? $start->copy()->addMinutes(15) : null;
+                $destinatarios = $massMessage->items
+                    ->pluck('cliente.name')
+                    ->filter()
+                    ->values();
+
+                return [
+                    'id' => 'mass-message-' . $massMessage->id,
+                    'title' => $massMessage->titulo ?: 'Mensagem em massa',
+                    'start' => $start?->toIso8601String(),
+                    'end' => $end?->toIso8601String(),
+                    'allDay' => false,
+                    'status' => $massMessage->status ?? 'pendente',
+                    'whatsapp' => false,
+                    'description' => $massMessage->mensagem,
+                    'type' => 'mass_message',
+                    'total_destinatarios' => $massMessage->total_destinatarios,
+                    'destinatarios_nomes' => $destinatarios,
+                ];
+            });
+
+        $allEvents = $events
+            ->values()
+            ->concat(collect($massMessages)->values())
+            ->values();
+
+        return response()->json($allEvents);
     }
 
     private function syncReminder(Appointment $appointment, ?int $antecedenciaMinutos): void

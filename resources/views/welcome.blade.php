@@ -291,6 +291,148 @@
             content: "💬";
         }
 
+        .pricing-section {
+            background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), rgba(18, 140, 126, 0.08));
+            border-radius: 24px;
+            padding: 3rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .pricing-section h2 {
+            text-align: center;
+            font-size: clamp(1.8rem, 3vw, 2.2rem);
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+        }
+
+        .pricing-section > p {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin: 0 0 2rem 0;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(37, 211, 102, 0.2);
+            border-color: var(--accent);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 15px 40px rgba(37, 211, 102, 0.25);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pricing-card h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+
+        .pricing-price {
+            display: flex;
+            align-items: baseline;
+            gap: 0.3rem;
+        }
+
+        .pricing-price .currency {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .pricing-price .amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .pricing-price .period {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: start;
+            gap: 0.6rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+
+        .pricing-features li::before {
+            content: "✓";
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .pricing-features li.highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .pricing-cta {
+            margin-top: auto;
+            padding: 1rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pricing-cta:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
         footer {
             font-size: 0.85rem;
             color: var(--text-secondary);
@@ -363,6 +505,19 @@
 
             .step-card {
                 padding: 1.5rem;
+            }
+
+            .pricing-section {
+                padding: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .pricing-card {
+                padding: 2rem;
             }
         }
     </style>
@@ -473,6 +628,86 @@
                     <h3>Acompanhe e gerencie</h3>
                     <p>Visualize tudo no dashboard: status, horários, clientes e respostas organizados. Edite, reagende
                         ou envie novos lembretes quando precisar.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing-section">
+            <h2>Nossos Planos</h2>
+            <p>Escolha o plano ideal para o seu negócio - todos com mensagem em massa incluída</p>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Plano Mensal</h3>
+                    <div class="pricing-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">89,90</span>
+                        <span class="period">/mês</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Agenda completa com WhatsApp integrado</li>
+                        <li>Cadastro ilimitado de clientes</li>
+                        <li>Envio automático de lembretes</li>
+                        <li class="highlight">Mensagem em massa incluída</li>
+                        <li>Dashboard com relatórios</li>
+                        <li>Suporte técnico via WhatsApp</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="pricing-cta">Começar agora</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Plano Trimestral</h3>
+                    <div class="pricing-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">242,91</span>
+                        <span class="period">/3 meses</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Tudo do plano mensal</li>
+                        <li>Apenas R$ 80,97/mês</li>
+                        <li>Economia de 10% (3 meses)</li>
+                        <li class="highlight">Mensagem em massa incluída</li>
+                        <li>Suporte prioritário</li>
+                        <li>Atualizações gratuitas</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="pricing-cta">Assinar trimestral</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <span class="pricing-badge">Mais Popular</span>
+                    <h3>Plano Semestral</h3>
+                    <div class="pricing-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">458,15</span>
+                        <span class="period">/6 meses</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Tudo do plano mensal</li>
+                        <li>Apenas R$ 76,36/mês</li>
+                        <li>Economia de 15% (6 meses)</li>
+                        <li class="highlight">Mensagem em massa incluída</li>
+                        <li>Suporte VIP prioritário</li>
+                        <li>Melhor custo-benefício</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="pricing-cta">Assinar semestral</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Plano Anual</h3>
+                    <div class="pricing-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">863,92</span>
+                        <span class="period">/ano</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Tudo do plano mensal</li>
+                        <li>Apenas R$ 71,99/mês</li>
+                        <li>Economia de 20% (12 meses)</li>
+                        <li class="highlight">Mensagem em massa incluída</li>
+                        <li>12 meses de acesso garantido</li>
+                        <li>Suporte VIP prioritário</li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="pricing-cta">Assinar anual</a>
                 </div>
             </div>
         </section>

@@ -24,7 +24,8 @@
                 <option value="">Selecionar usuário...</option>
                 @if (isset($usuarios))
                     @foreach ($usuarios as $usuario)
-                        <option value="{{ $usuario->id }}" @selected((int) old('destinatario_user_id', $model->destinatario_user_id ?? '') === $usuario->id)>
+                        <option value="{{ $usuario->id }}" data-whatsapp="{{ $usuario->whatsapp_number }}"
+                            @selected((int) old('destinatario_user_id', $model->destinatario_user_id ?? '') === $usuario->id)>
                             {{ $usuario->name }} @if ($usuario->whatsapp_number)
                                 ({{ $usuario->whatsapp_number }})
                             @endif
@@ -279,8 +280,10 @@
         </div>
     </div>
 
-    <div>
-        <x-primary-button>{{ $submitLabel ?? ($isEdit ? 'Atualizar compromisso' : 'Salvar compromisso') }}</x-primary-button>
+    <div class="flex justify-center">
+        <button type="submit" class="inline-flex items-center justify-center px-8 py-4 bg-green-600 border border-transparent rounded-xl font-bold text-base text-white uppercase tracking-wider hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg hover:shadow-xl">
+            {{ $submitLabel ?? ($isEdit ? 'Atualizar compromisso' : 'Salvar compromisso') }}
+        </button>
 
         @if ($isEdit)
             <a href="{{ route('agenda.index') }}"
@@ -388,8 +391,19 @@
             }, 4000);
         };
 
+        const resolveTextarea = (container, targetId) => {
+            if (!targetId) {
+                return null;
+            }
+
+            const form = container.closest('form');
+            const selector = `#${targetId}`;
+
+            return (form ? form.querySelector(selector) : null) ?? document.getElementById(targetId);
+        };
+
         const applyMessage = (container, targetId, message, successMessage = null) => {
-            const textarea = targetId ? document.getElementById(targetId) : null;
+            const textarea = resolveTextarea(container, targetId);
 
             if (!textarea) {
                 showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
@@ -568,7 +582,7 @@
 
         const handleSave = async (container, trigger) => {
             const targetId = trigger.dataset.target || container.dataset.target;
-            const textarea = targetId ? document.getElementById(targetId) : null;
+            const textarea = resolveTextarea(container, targetId);
 
             if (!textarea) {
                 showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
@@ -768,5 +782,32 @@
                 }
             });
         });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const select = document.getElementById('destinatario_user_id');
+        const whatsappInput = document.getElementById('whatsapp_numero');
+
+        if (!select || !whatsappInput) {
+            return;
+        }
+
+        const fillWhatsapp = () => {
+            const option = select.selectedOptions?.[0];
+            if (!option) return;
+
+            const number = (option.dataset.whatsapp || '').trim()
+                || (option.textContent || '').match(/\((\d{10,13})\)/)?.[1]
+                || '';
+
+            if (number) {
+                whatsappInput.value = number;
+            }
+        };
+
+        fillWhatsapp();
+        select.addEventListener('change', fillWhatsapp);
     });
 </script>

@@ -20,13 +20,15 @@
 
     $quickMessageTemplates = $quickMessageTemplates ?? collect();
     $quickMessageTemplateLimit = $quickMessageTemplateLimit ?? 5;
-    $quickTemplateOptions = $quickMessageTemplates->map(function ($template) {
-        return [
-            'id' => $template->id,
-            'message' => $template->message,
-            'preview' => Str::limit($template->message, 80),
-        ];
-    })->values();
+    $quickTemplateOptions = $quickMessageTemplates
+        ->map(function ($template) {
+            return [
+                'id' => $template->id,
+                'message' => $template->message,
+                'preview' => Str::limit($template->message, 80),
+            ];
+        })
+        ->values();
 @endphp
 
 <x-app-layout>
@@ -56,7 +58,7 @@
             @endif
 
             {{-- Estatsticas Principais --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div
                     class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 shadow-md sm:rounded-lg border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
@@ -156,7 +158,8 @@
                                 </svg>
                                 Gerar PDF
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
@@ -165,15 +168,18 @@
                                 <div class="py-1" role="menu">
                                     <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'dia']) }}" target="_blank"
                                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         PDF do Dia Atual
                                     </a>
-                                    <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'semana']) }}" target="_blank"
+                                    <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'semana']) }}"
+                                        target="_blank"
                                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -181,15 +187,18 @@
                                     </a>
                                     <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'mes']) }}" target="_blank"
                                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         PDF do Mês Atual
                                     </a>
-                                    <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'mes', 'mes_offset' => -1]) }}" target="_blank"
+                                    <a href="{{ route('agenda.pdf-semanal', ['periodo' => 'mes', 'mes_offset' => -1]) }}"
+                                        target="_blank"
                                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -198,7 +207,8 @@
                                     <div class="border-t border-gray-100"></div>
                                     <button @click="showModal = true; open = false" type="button"
                                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
@@ -208,24 +218,20 @@
                             </div>
 
                             <!-- Modal de Período Personalizado -->
-                            <div x-show="showModal" x-cloak
-                                class="fixed inset-0 z-50 overflow-y-auto"
+                            <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto"
                                 style="display: none;">
-                                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                                    <div x-show="showModal"
-                                        x-transition:enter="ease-out duration-300"
-                                        x-transition:enter-start="opacity-0"
-                                        x-transition:enter-end="opacity-100"
+                                <div
+                                    class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                                    <div x-show="showModal" x-transition:enter="ease-out duration-300"
+                                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                                         x-transition:leave="ease-in duration-200"
-                                        x-transition:leave-start="opacity-100"
-                                        x-transition:leave-end="opacity-0"
+                                        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                                         class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
                                         @click="showModal = false"></div>
 
                                     <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-                                    <div x-show="showModal"
-                                        x-transition:enter="ease-out duration-300"
+                                    <div x-show="showModal" x-transition:enter="ease-out duration-300"
                                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                                         x-transition:leave="ease-in duration-200"
@@ -239,14 +245,16 @@
                                                 </h3>
                                                 <div class="mt-4 space-y-4">
                                                     <div>
-                                                        <label for="data_inicio" class="block text-sm font-medium text-gray-700">
+                                                        <label for="data_inicio"
+                                                            class="block text-sm font-medium text-gray-700">
                                                             Data Início
                                                         </label>
                                                         <input type="date" x-model="dataInicio" id="data_inicio"
                                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm">
                                                     </div>
                                                     <div>
-                                                        <label for="data_fim" class="block text-sm font-medium text-gray-700">
+                                                        <label for="data_fim"
+                                                            class="block text-sm font-medium text-gray-700">
                                                             Data Fim
                                                         </label>
                                                         <input type="date" x-model="dataFim" id="data_fim"
@@ -278,6 +286,35 @@
                 </div>
             </div>
 
+            {{-- Modal de Criação de Compromisso (Mobile) --}}
+            <div id="mobile-appointment-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50" style="display: none;">
+                <div class="relative top-0 mx-auto p-5 w-full h-full md:h-auto md:top-20 md:max-w-3xl">
+                    <div class="relative bg-white rounded-lg shadow-xl">
+                        <!-- Header do Modal -->
+                        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Novo Compromisso</h3>
+                            <button type="button" onclick="closeMobileAppointmentModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Corpo do Modal -->
+                        <div class="p-6 overflow-y-auto" style="max-height: calc(100vh - 200px);">
+                            @include('agenda.partials.form', [
+                                'appointment' => null,
+                                'defaultWhatsapp' => $defaultWhatsapp,
+                                'usuarios' => $usuarios,
+                                'submitLabel' => 'Salvar Compromisso',
+                                'action' => route('agenda.store'),
+                                'httpMethod' => 'POST',
+                            ])
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Estatsticas de Lembretes WhatsApp --}}
             <div class="bg-white shadow-md sm:rounded-lg border-t-4 border-green-500">
                 <div class="p-6">
@@ -298,7 +335,7 @@
                             <p class="text-2xl font-bold text-green-900 mt-1">{{ $stats['lembretes_enviados'] }}</p>
                         </div>
                         <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                            <p class="text-xs uppercase font-semibold text-yellow-600">Aguardando Horrio</p>
+                            <p class="text-xs uppercase font-semibold text-yellow-600">Aguardando Horário</p>
                             <p class="text-2xl font-bold text-yellow-900 mt-1">{{ $stats['lembretes_pendentes'] }}</p>
                         </div>
                         <div class="bg-red-50 p-4 rounded-lg border border-red-200">
@@ -309,7 +346,7 @@
                 </div>
             </div>
 
-            <div class="bg-white shadow sm:rounded-lg border-t-4 border-indigo-500">
+            <div class="hidden md:block bg-white shadow sm:rounded-lg border-t-4 border-indigo-500">
                 <div class="p-6">
                     <!-- Wrapper flex responsivo -->
                     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
@@ -329,7 +366,7 @@
                                     Registre o compromisso no seu sistema interno.
                                 </p>
                                 <p class="text-sm text-gray-500 mt-1">
-                                     <span class="font-medium">Importante:</span> Este formulrio apenas
+                                    <span class="font-medium">Importante:</span> Este formulrio apenas
                                     <strong>salva na sua agenda</strong>. Para <strong>notificar o cliente</strong>,
                                     configure o lembrete por WhatsApp abaixo.
                                 </p>
@@ -354,11 +391,103 @@
                         'appointment' => null,
                         'defaultWhatsapp' => $defaultWhatsapp,
                         'usuarios' => $usuarios,
-                        'submitLabel' => 'Salvar no Sistema',
+                        'submitLabel' => 'Salvar suas Alterações',
                         'action' => route('agenda.store'),
                         'httpMethod' => 'POST',
                     ])
                 </div>
+            </div>
+
+            {{-- Envio em Massa de WhatsApp --}}
+            <div class="bg-white shadow-md sm:rounded-lg border-l-4 border-green-500 p-6" x-data="{
+                selectedClients: [],
+                agendamento: '',
+                allClients: {{ $usuarios->whereNotNull('whatsapp_number')->pluck('id')->toJson() }},
+                toggleAll() {
+                    if (this.selectedClients.length === this.allClients.length) {
+                        this.selectedClients = [];
+                    } else {
+                        this.selectedClients = [...this.allClients];
+                    }
+                },
+                openMassModal() {
+                    if (this.selectedClients.length === 0) {
+                        return;
+                    }
+                    this.agendamento = '';
+                    if (this.$refs.massMessageForm) {
+                        this.$refs.massMessageForm.reset();
+                    }
+                    this.$refs.massMessageModal.classList.remove('hidden');
+                    this.$refs.massMessageModal.classList.add('flex');
+                },
+                closeMassModal() {
+                    this.$refs.massMessageModal.classList.add('hidden');
+                    this.$refs.massMessageModal.classList.remove('flex');
+                }
+            }">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-900">Envio em Massa de WhatsApp</h3>
+                    </div>
+                    <button type="button" @click="openMassModal()" :disabled="selectedClients.length === 0"
+                        :class="selectedClients.length > 0 ? 'bg-green-600 hover:bg-green-700' :
+                            'bg-gray-300 cursor-not-allowed'"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        Enviar para <span x-text="selectedClients.length"> </span> Cliente(s)
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="client_selector" class="block text-sm font-semibold text-gray-700">
+                            Selecione os clientes:
+                        </label>
+                        @if ($usuarios->whereNotNull('whatsapp_number')->count() > 0)
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" @click="toggleAll()"
+                                    :checked="selectedClients.length === allClients.length && allClients.length > 0"
+                                    class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm font-medium text-gray-700">Selecionar todos</span>
+                            </label>
+                        @endif
+                    </div>
+                    @if ($usuarios->whereNotNull('whatsapp_number')->count() > 0)
+                        <select id="client_selector" multiple x-model="selectedClients" size="8"
+                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                            @foreach ($usuarios as $usuario)
+                                @if ($usuario->whatsapp_number)
+                                    <option value="{{ $usuario->id }}">{{ $usuario->name }}
+                                        (+{{ $usuario->whatsapp_number }})
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <p class="mt-2 text-xs text-gray-500 hidden md:block">
+                            💡 Dica: Segure <strong>Ctrl</strong> (Windows) ou <strong>Cmd</strong> (Mac) para
+                            selecionar múltiplos clientes
+                        </p>
+                    @else
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
+                            <p class="text-gray-500">
+                                Nenhum cliente com WhatsApp cadastrado.
+                                <a href="{{ route('clientes.index') }}"
+                                    class="text-green-600 hover:underline font-semibold">Cadastrar cliente</a>
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Modal de Envio em Massa -->
+                @include('agenda.partials.mass-message-modal')
             </div>
 
 
@@ -768,7 +897,7 @@
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-2" aria-label="Filtros de perodo">
                             <button data-filter="hoje" data-section="concluidos"
-                                class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
+                                class="filter-tab-concluidos active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-green-600 text-green-600 transition">
                                 Hoje
                             </button>
                             <button data-filter="semana" data-section="concluidos"
@@ -780,7 +909,7 @@
                                 Este Mês
                             </button>
                             <button data-filter="todos" data-section="concluidos"
-                                class="filter-tab-concluidos active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-green-600 text-green-600 transition">
+                                class="filter-tab-concluidos px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-green-500 hover:text-green-600 transition">
                                 Todos
                             </button>
                         </nav>
@@ -946,7 +1075,7 @@
                     <div class="mb-4 border-b border-gray-200">
                         <nav class="flex space-x-2" aria-label="Filtros de perodo">
                             <button data-filter="hoje" data-section="cancelados"
-                                class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
+                                class="filter-tab-cancelados active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-red-600 text-red-600 transition">
                                 Hoje
                             </button>
                             <button data-filter="semana" data-section="cancelados"
@@ -958,7 +1087,7 @@
                                 Este Mês
                             </button>
                             <button data-filter="todos" data-section="cancelados"
-                                class="filter-tab-cancelados active px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-red-600 text-red-600 transition">
+                                class="filter-tab-cancelados px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent hover:border-red-500 hover:text-red-600 transition">
                                 Todos
                             </button>
                         </nav>
@@ -1149,6 +1278,10 @@
                     <p class="uppercase text-xs font-semibold text-slate-500">Descrição</p>
                     <p class="mt-1 whitespace-pre-line" data-modal-description>-</p>
                 </div>
+                <div class="hidden" data-modal-extra-container>
+                    <p class="uppercase text-xs font-semibold text-slate-500">Envio</p>
+                    <p class="mt-1" data-modal-extra>-</p>
+                </div>
                 <div>
                     <p class="uppercase text-xs font-semibold text-slate-500">Lembrete via WhatsApp</p>
                     <p class="mt-1" data-modal-whatsapp>-</p>
@@ -1219,524 +1352,588 @@
                     }, 4000);
                 };
 
-                                                                                    const getTextarea = (container) => {
-                                    const targetId = container.dataset.target;
-                                    return targetId ? document.getElementById(targetId) : null;
-                                };
-
-                                const findTemplateById = (templateId) => {
-                                    return quickTemplates.find((template) => String(template.id) === String(templateId));
-                                };
-
-                                const setEditingState = (container, templateId = null) => {
-                                    const saveButton = container.querySelector('[data-action="save-template"]');
-
-                                    if (templateId) {
-                                        container.dataset.editingTemplateId = String(templateId);
-                                        if (saveButton) {
-                                            saveButton.dataset.mode = 'update';
-                                            saveButton.disabled = false;
-                                            saveButton.classList.remove('opacity-60');
-                                            saveButton.removeAttribute('title');
-                                        }
-                                    } else {
-                                        delete container.dataset.editingTemplateId;
-                                        if (saveButton) {
-                                            delete saveButton.dataset.mode;
-                                        }
-                                    }
-                                };
-
-                                const applyMessageToTextarea = (container, message, successMessage = null, targetId = null) => {
-                                    const textarea = targetId
-                                        ? document.getElementById(targetId)
-                                        : getTextarea(container);
-
-                                    if (!textarea) {
-                                        showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
-                                        return false;
-                                    }
-
-                                    if (!message) {
-                                        showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
-                                        return false;
-                                    }
-
-                                    textarea.value = message;
-                                    textarea.focus();
-                                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                                    textarea.dispatchEvent(new Event('change', { bubbles: true }));
-
-                                    if (successMessage) {
-                                        showFeedback(container, successMessage, 'success');
-                                    }
-
-                                    return true;
-                                };
-
-                                const createActionButton = (classes, action, iconSvg, label, template) => {
-                                    const button = document.createElement('button');
-                                    button.type = 'button';
-                                    button.className = classes;
-                                    button.dataset.action = action;
-                                    button.dataset.templateId = String(template.id);
-                                    button.innerHTML = `${iconSvg} ${label}`;
-
-                                    if (action === 'apply-template' || action === 'edit-template') {
-                                        button.dataset.message = template.message;
-                                    }
-
-                                    return button;
-                                };
-
-                                const renderTemplateList = (container) => {
-                                    const list = container.querySelector('[data-template-list]');
-                                    if (!list) {
-                                        return;
-                                    }
-
-                                    // Renderizar apenas uma vez globalmente
-                                    if (list.dataset.rendered === '1') {
-                                        return;
-                                    }
-                                    list.dataset.rendered = '1';
-
-                                    const selectedId = container.dataset.selectedTemplateId ?? null;
-
-                                    list.innerHTML = '';
-                                    list.className = 'flex gap-3 overflow-x-auto pb-2';
-
-                                    if (!quickTemplates.length) {
-                                        delete container.dataset.selectedTemplateId;
-                                        return;
-                                    }
-
-                                    const useIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h2m2-1v18m4-18v18"></path></svg>';
-                                    const editIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
-                                    const deleteIcon = '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-
-                                    quickTemplates.forEach((template) => {
-                                        const wrapper = document.createElement('div');
-                                        wrapper.className = 'flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all';
-                                        wrapper.dataset.templateId = String(template.id);
-                                        wrapper.dataset.templateMessage = template.message;
-                                        wrapper.dataset.action = 'apply-template';
-                                        wrapper.dataset.message = template.message;
-                                        if (container.dataset.target) {
-                                            wrapper.dataset.target = container.dataset.target;
-                                        }
-
-                                        const contentContainer = document.createElement('div');
-                                        contentContainer.className = 'space-y-3';
-
-                                        const messageParagraph = document.createElement('p');
-                                        messageParagraph.className = 'text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3';
-                                        messageParagraph.setAttribute('data-template-message-text', '');
-                                        messageParagraph.textContent = template.message;
-
-                                        const actions = document.createElement('div');
-                                        actions.className = 'flex flex-wrap gap-2';
-
-                                        const editButton = createActionButton(
-                                            'inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1',
-                                            'edit-template',
-                                            editIcon,
-                                            'Editar',
-                                            template
-                                        );
-                                        editButton.setAttribute('onclick', 'event.stopPropagation()');
-
-                                        const deleteButton = createActionButton(
-                                            'inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1',
-                                            'delete-template',
-                                            deleteIcon,
-                                            'Excluir',
-                                            template
-                                        );
-                                        deleteButton.setAttribute('onclick', 'event.stopPropagation()');
-
-                                        if (container.dataset.target) {
-                                            editButton.dataset.target = container.dataset.target;
-                                        }
-
-                                        actions.appendChild(editButton);
-                                        actions.appendChild(deleteButton);
-
-                                        contentContainer.appendChild(messageParagraph);
-                                        contentContainer.appendChild(actions);
-                                        wrapper.appendChild(contentContainer);
-                                        list.appendChild(wrapper);
-                                    });
-
-                                };
-
-                                const updateTemplateControls = () => {
-                                    quickTemplateContainers.forEach((container) => {
-                                        const select = container.querySelector('.quick-template-select');
-                                        const applyButton = container.querySelector('[data-action="apply-template"]');
-                                        const deleteButton = container.querySelector('[data-action="delete-template"]');
-                                        const saveButton = container.querySelector('[data-action="save-template"]');
-                                        const countLabel = container.querySelector('[data-template-count]');
-                                        const emptyMessage = container.querySelector('[data-templates-empty]');
-                                        const limit = Number(container.dataset.limit || templateLimit);
-                                        const isEditing = Boolean(container.dataset.editingTemplateId);
-
-                                        if (countLabel) {
-                                            countLabel.textContent = `${quickTemplates.length}/${limit} mensagens salvas`;
-                                        }
-
-                                        if (emptyMessage) {
-                                            emptyMessage.style.display = quickTemplates.length === 0 ? '' : 'none';
-                                        }
-
-                                        if (select) {
-                                            const previousValue = select.value;
-                                            select.innerHTML = '';
-
-                                            const placeholder = document.createElement('option');
-                                            placeholder.value = '';
-                                            placeholder.textContent = quickTemplates.length
-                                                ? 'Selecione uma mensagem salva'
-                                                : 'Nenhuma mensagem salva';
-                                            select.appendChild(placeholder);
-
-                                            quickTemplates.forEach((template) => {
-                                                const option = document.createElement('option');
-                                                option.value = String(template.id);
-                                                option.textContent = template.preview;
-                                                option.dataset.message = template.message;
-                                                select.appendChild(option);
-                                            });
-
-                                            if (previousValue && quickTemplates.some((template) => String(template.id) === previousValue)) {
-                                                select.value = previousValue;
-                                            }
-                                        }
-
-                                        const hasTemplates = quickTemplates.length > 0;
-
-                                        if (applyButton) {
-                                            applyButton.disabled = !hasTemplates;
-                                        }
-
-                                        if (deleteButton) {
-                                            deleteButton.disabled = !hasTemplates;
-                                        }
-
-                                        if (saveButton) {
-                                            const limitReached = !isEditing && quickTemplates.length >= limit;
-                                            saveButton.disabled = limitReached;
-                                            saveButton.classList.toggle('opacity-60', limitReached);
-
-                                            if (limitReached) {
-                                                saveButton.setAttribute(
-                                                    'title',
-                                                    'Limite atingido. Exclua uma mensagem salva para adicionar outra.'
-                                                );
-                                            } else {
-                                                saveButton.removeAttribute('title');
-                                            }
-                                        }
-
-                                        renderTemplateList(container);
-                                    });
-                                };
-
-                                updateTemplateControls();
-
-                                quickTemplateContainers.forEach((container) => {
-                                    container.addEventListener('click', async (event) => {
-                                        const target = event.target;
-
-                    let trigger = target;
-                    while (trigger && trigger !== container) {
-                        if (typeof trigger.matches === 'function' && trigger.matches('button[data-action], div[data-action="apply-template"]')) {
-                            break;
-                        }
-                        trigger = trigger.parentElement || trigger.parentNode || null;
+                const getTextarea = (container, overrideTargetId = null) => {
+                    const targetId = overrideTargetId || container.dataset.target;
+                    if (!targetId) {
+                        return null;
                     }
 
-                    if (!trigger || trigger === container || typeof trigger.matches !== 'function' || !trigger.matches('button[data-action], div[data-action="apply-template"]')) {
+                    const form = container.closest('form');
+                    const selector = `#${targetId}`;
+
+                    return (form ? form.querySelector(selector) : null) ?? document.getElementById(targetId);
+                };
+
+                const findTemplateById = (templateId) => {
+                    return quickTemplates.find((template) => String(template.id) === String(templateId));
+                };
+
+                const setEditingState = (container, templateId = null) => {
+                    const saveButton = container.querySelector('[data-action="save-template"]');
+
+                    if (templateId) {
+                        container.dataset.editingTemplateId = String(templateId);
+                        if (saveButton) {
+                            saveButton.dataset.mode = 'update';
+                            saveButton.disabled = false;
+                            saveButton.classList.remove('opacity-60');
+                            saveButton.removeAttribute('title');
+                        }
+                    } else {
+                        delete container.dataset.editingTemplateId;
+                        if (saveButton) {
+                            delete saveButton.dataset.mode;
+                        }
+                    }
+                };
+
+                const applyMessageToTextarea = (container, message, successMessage = null, targetId = null) => {
+                    const textarea = getTextarea(container, targetId);
+
+                    if (!textarea) {
+                        showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
+                        return false;
+                    }
+
+                    if (!message) {
+                        showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
+                        return false;
+                    }
+
+                    textarea.value = message;
+                    textarea.focus();
+                    textarea.dispatchEvent(new Event('input', {
+                        bubbles: true
+                    }));
+                    textarea.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+
+                    if (successMessage) {
+                        showFeedback(container, successMessage, 'success');
+                    }
+
+                    return true;
+                };
+
+                const createActionButton = (classes, action, iconSvg, label, template) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = classes;
+                    button.dataset.action = action;
+                    button.dataset.templateId = String(template.id);
+                    button.innerHTML = `${iconSvg} ${label}`;
+
+                    if (action === 'apply-template' || action === 'edit-template') {
+                        button.dataset.message = template.message;
+                    }
+
+                    return button;
+                };
+
+                const renderTemplateList = (container) => {
+                    const list = container.querySelector('[data-template-list]');
+                    if (!list) {
                         return;
                     }
 
-                                        const action = trigger.dataset.action;
-                                        const saveUrl = container.dataset.saveUrl;
-                                        const updateUrlTemplate = container.dataset.updateUrlTemplate;
-                                        const deleteUrlTemplate = container.dataset.deleteUrlTemplate;
+                    // Renderizar apenas uma vez globalmente
+                    if (list.dataset.rendered === '1') {
+                        return;
+                    }
+                    list.dataset.rendered = '1';
 
-                                        if (action === 'apply-template') {
-                                            event.preventDefault();
+                    const selectedId = container.dataset.selectedTemplateId ?? null;
 
-                                            const templateId = trigger.dataset.templateId;
-            const message = trigger.dataset.message ?? findTemplateById(templateId)?.message ?? '';
-            const targetId = trigger.dataset.target || container.dataset.target;
+                    list.innerHTML = '';
+                    list.className = 'flex gap-3 overflow-x-auto pb-2';
 
-            if (!applyMessageToTextarea(container, message, 'Mensagem aplicada.', targetId)) {
-                return;
-            }
+                    if (!quickTemplates.length) {
+                        delete container.dataset.selectedTemplateId;
+                        return;
+                    }
 
-                                            container.dataset.selectedTemplateId = templateId ?? '';
-                                            setEditingState(container, null);
-                                            updateTemplateControls();
-                                            return;
-                                        }
+                    const useIcon =
+                        '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h2m2-1v18m4-18v18"></path></svg>';
+                    const editIcon =
+                        '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+                    const deleteIcon =
+                        '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
 
-                                        if (action === 'edit-template') {
-                                            event.preventDefault();
+                    quickTemplates.forEach((template) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className =
+                            'flex-shrink-0 w-64 rounded-lg border border-indigo-200 bg-white shadow-sm p-4 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all';
+                        wrapper.dataset.templateId = String(template.id);
+                        wrapper.dataset.templateMessage = template.message;
+                        wrapper.dataset.action = 'apply-template';
+                        wrapper.dataset.message = template.message;
+                        if (container.dataset.target) {
+                            wrapper.dataset.target = container.dataset.target;
+                        }
 
-                                            const templateId = trigger.dataset.templateId;
-            const message = trigger.dataset.message ?? findTemplateById(templateId)?.message ?? '';
-            const targetId = trigger.dataset.target || container.dataset.target;
+                        const contentContainer = document.createElement('div');
+                        contentContainer.className = 'space-y-3';
 
-            if (!applyMessageToTextarea(container, message, null, targetId)) {
-                return;
-            }
+                        const messageParagraph = document.createElement('p');
+                        messageParagraph.className =
+                            'text-sm text-slate-800 whitespace-pre-line leading-relaxed line-clamp-3';
+                        messageParagraph.setAttribute('data-template-message-text', '');
+                        messageParagraph.textContent = template.message;
 
-                                            container.dataset.selectedTemplateId = templateId ?? '';
-                                            setEditingState(container, templateId);
-                                            updateTemplateControls();
-                                            showFeedback(container, 'Mensagem carregada para edicao. Ajuste e clique em Guardar para atualizar.', 'success');
-                                            return;
-                                        }
+                        const actions = document.createElement('div');
+                        actions.className = 'flex flex-wrap gap-2';
 
-                                        if (action === 'save-template') {
-                                            event.preventDefault();
+                        const editButton = createActionButton(
+                            'inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1',
+                            'edit-template',
+                            editIcon,
+                            'Editar',
+                            template
+                        );
+                        editButton.setAttribute('onclick', 'event.stopPropagation()');
 
-                                            const textarea = getTextarea(container);
+                        const deleteButton = createActionButton(
+                            'inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1',
+                            'delete-template',
+                            deleteIcon,
+                            'Excluir',
+                            template
+                        );
+                        deleteButton.setAttribute('onclick', 'event.stopPropagation()');
 
-                                            if (!textarea) {
-                                                showFeedback(container, 'Campo de mensagem nao encontrado.', 'error');
-                                                return;
-                                            }
+                        if (container.dataset.target) {
+                            editButton.dataset.target = container.dataset.target;
+                        }
 
-                                            const message = textarea.value.trim();
+                        actions.appendChild(editButton);
+                        actions.appendChild(deleteButton);
 
-                                            if (!message) {
-                                                showFeedback(container, 'Escreva uma mensagem antes de salvar.', 'error');
-                                                return;
-                                            }
+                        contentContainer.appendChild(messageParagraph);
+                        contentContainer.appendChild(actions);
+                        wrapper.appendChild(contentContainer);
+                        list.appendChild(wrapper);
+                    });
 
-                                            if (message.length > 500) {
-                                                showFeedback(container, 'A mensagem pode ter no maximo 500 caracteres.', 'error');
-                                                return;
-                                            }
+                };
 
-                                            if (!csrfToken) {
-                                                showFeedback(container, 'Token CSRF nao encontrado. Recarregue a pagina.', 'error');
-                                                return;
-                                            }
+                const updateTemplateControls = () => {
+                    quickTemplateContainers.forEach((container) => {
+                        const select = container.querySelector('.quick-template-select');
+                        const applyButton = container.querySelector('[data-action="apply-template"]');
+                        const deleteButton = container.querySelector('[data-action="delete-template"]');
+                        const saveButton = container.querySelector('[data-action="save-template"]');
+                        const countLabel = container.querySelector('[data-template-count]');
+                        const emptyMessage = container.querySelector('[data-templates-empty]');
+                        const limit = Number(container.dataset.limit || templateLimit);
+                        const isEditing = Boolean(container.dataset.editingTemplateId);
 
-                                            const editingTemplateId = container.dataset.editingTemplateId;
-                                            const isEditing = Boolean(editingTemplateId);
-                                            const requestUrl = isEditing
-                                                ? updateUrlTemplate?.replace('__TEMPLATE__', editingTemplateId)
-                                                : saveUrl;
-                                            const method = isEditing ? 'PATCH' : 'POST';
+                        if (countLabel) {
+                            countLabel.textContent =
+                                `${quickTemplates.length}/${limit} mensagens salvas`;
+                        }
 
-                                            if (!requestUrl) {
-                                                showFeedback(container, 'Nao foi possivel encontrar a rota para salvar.', 'error');
-                                                return;
-                                            }
+                        if (emptyMessage) {
+                            emptyMessage.style.display = quickTemplates.length === 0 ? '' : 'none';
+                        }
 
-                                            trigger.disabled = true;
+                        if (select) {
+                            const previousValue = select.value;
+                            select.innerHTML = '';
 
-                                            try {
-                                                const response = await fetch(requestUrl, {
-                                                    method,
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'X-CSRF-TOKEN': csrfToken,
-                                                        Accept: 'application/json',
-                                                    },
-                                                    body: JSON.stringify({ mensagem: message }),
-                                                });
+                            const placeholder = document.createElement('option');
+                            placeholder.value = '';
+                            placeholder.textContent = quickTemplates.length ?
+                                'Selecione uma mensagem salva' :
+                                'Nenhuma mensagem salva';
+                            select.appendChild(placeholder);
 
-                                                const payload = await parseJson(response);
+                            quickTemplates.forEach((template) => {
+                                const option = document.createElement('option');
+                                option.value = String(template.id);
+                                option.textContent = template.preview;
+                                option.dataset.message = template.message;
+                                select.appendChild(option);
+                            });
 
-                                                if (response.ok) {
-                                                    quickTemplates = Array.isArray(payload?.templates) ? payload.templates : [];
-                                                    setEditingState(container, null);
-                                                    if (!isEditing && quickTemplates.length) {
-                                                        container.dataset.selectedTemplateId = String(quickTemplates[0].id);
-                                                    }
-                                                    updateTemplateControls();
-                                                    showFeedback(
-                                                        container,
-                                                        payload?.message ?? (isEditing ? 'Mensagem atualizada.' : 'Mensagem salva.'),
-                                                        'success'
-                                                    );
-                                                } else {
-                                                    const errorMessage = payload?.message ?? 'Nao foi possivel salvar a mensagem.';
-                                                    showFeedback(container, errorMessage, 'error');
-                                                }
-                                            } catch (_error) {
-                                                showFeedback(container, 'Erro ao salvar mensagem. Tente novamente.', 'error');
-                                            } finally {
-                                                trigger.disabled = false;
-                                            }
+                            if (previousValue && quickTemplates.some((template) => String(template
+                                    .id) === previousValue)) {
+                                select.value = previousValue;
+                            }
+                        }
 
-                                            return;
-                                        }
+                        const hasTemplates = quickTemplates.length > 0;
 
-                                        if (action === 'delete-template') {
-                                            event.preventDefault();
+                        if (applyButton) {
+                            applyButton.disabled = !hasTemplates;
+                        }
 
-                                            const templateId = trigger.dataset.templateId ??
-                                                trigger.closest('[data-template-id]')?.dataset.templateId;
+                        if (deleteButton) {
+                            deleteButton.disabled = !hasTemplates;
+                        }
 
-                                            if (!templateId) {
-                                                showFeedback(container, 'Mensagem salva nao encontrada.', 'error');
-                                                return;
-                                            }
+                        if (saveButton) {
+                            const limitReached = !isEditing && quickTemplates.length >= limit;
+                            saveButton.disabled = limitReached;
+                            saveButton.classList.toggle('opacity-60', limitReached);
 
-                                            if (!deleteUrlTemplate) {
-                                                showFeedback(container, 'Nao foi possivel encontrar a rota para exclusao.', 'error');
-                                                return;
-                                            }
+                            if (limitReached) {
+                                saveButton.setAttribute(
+                                    'title',
+                                    'Limite atingido. Exclua uma mensagem salva para adicionar outra.'
+                                );
+                            } else {
+                                saveButton.removeAttribute('title');
+                            }
+                        }
 
-                                            if (!csrfToken) {
-                                                showFeedback(container, 'Token CSRF nao encontrado. Recarregue a pagina.', 'error');
-                                                return;
-                                            }
+                        renderTemplateList(container);
+                    });
+                };
 
-                                            if (!window.confirm('Deseja excluir esta mensagem salva?')) {
-                                                return;
-                                            }
+                updateTemplateControls();
 
-                                            const requestUrl = deleteUrlTemplate.replace('__TEMPLATE__', templateId);
-                                            trigger.disabled = true;
+                quickTemplateContainers.forEach((container) => {
+                    container.addEventListener('click', async (event) => {
+                        const target = event.target;
 
-                                            try {
-                                                const response = await fetch(requestUrl, {
-                                                    method: 'DELETE',
-                                                    headers: {
-                                                        'X-CSRF-TOKEN': csrfToken,
-                                                        Accept: 'application/json',
-                                                    },
-                                                });
+                        let trigger = target;
+                        while (trigger && trigger !== container) {
+                            if (typeof trigger.matches === 'function' && trigger.matches(
+                                    'button[data-action], div[data-action="apply-template"]')) {
+                                break;
+                            }
+                            trigger = trigger.parentElement || trigger.parentNode || null;
+                        }
 
-                                                const payload = await parseJson(response);
+                        if (!trigger || trigger === container || typeof trigger.matches !==
+                            'function' || !trigger.matches(
+                                'button[data-action], div[data-action="apply-template"]')) {
+                            return;
+                        }
 
-                                                if (response.ok) {
-                                                    quickTemplates = Array.isArray(payload?.templates) ? payload.templates : [];
-                                                    if (container.dataset.editingTemplateId === String(templateId)) {
-                                                        setEditingState(container, null);
-                                                    }
-                                                    if (container.dataset.selectedTemplateId === String(templateId)) {
-                                                        delete container.dataset.selectedTemplateId;
-                                                    }
-                                                    updateTemplateControls();
-                                                    showFeedback(container, payload?.message ?? 'Mensagem excluida.', 'success');
-                                                } else {
-                                                    const errorMessage = payload?.message ?? 'Nao foi possivel excluir a mensagem.';
-                                                    showFeedback(container, errorMessage, 'error');
-                                                }
-                                            } catch (_error) {
-                                                showFeedback(container, 'Erro ao excluir mensagem. Tente novamente.', 'error');
-                                            } finally {
-                                                trigger.disabled = false;
-                                            }
-                                        }
-                                    });
-                                });
+                        const action = trigger.dataset.action;
+                        const saveUrl = container.dataset.saveUrl;
+                        const updateUrlTemplate = container.dataset.updateUrlTemplate;
+                        const deleteUrlTemplate = container.dataset.deleteUrlTemplate;
+
+                        if (action === 'apply-template') {
+                            event.preventDefault();
+
+                            const templateId = trigger.dataset.templateId;
+                            const message = trigger.dataset.message ?? findTemplateById(
+                                templateId)?.message ?? '';
+                            const targetId = trigger.dataset.target || container.dataset.target;
+
+                            if (!applyMessageToTextarea(container, message,
+                                    'Mensagem aplicada.', targetId)) {
+                                return;
                             }
 
-                            // Sistema de filtros por perodo
-                            function setupPeriodFilters(section, borderColor, textColor) {
-                                const tabs = document.querySelectorAll(`.filter-tab-${section}`);
-                                const list = document.getElementById(`${section}-list`);
+                            container.dataset.selectedTemplateId = templateId ?? '';
+                            setEditingState(container, null);
+                            updateTemplateControls();
+                            return;
+                        }
 
-                                if (!list) return;
+                        if (action === 'edit-template') {
+                            event.preventDefault();
 
-                                tabs.forEach(tab => {
-                                    tab.addEventListener('click', () => {
-                                        const filter = tab.dataset.filter;
+                            const templateId = trigger.dataset.templateId;
+                            const message = trigger.dataset.message ?? findTemplateById(
+                                templateId)?.message ?? '';
+                            const targetId = trigger.dataset.target || container.dataset.target;
 
-                                        // Atualiza estilo das abas
-                                        tabs.forEach(t => {
-                                            t.classList.remove('active', `border-${borderColor}`,
-                                                `text-${textColor}`);
-                                            t.classList.add('border-transparent');
-                                        });
-                                        tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
-                                        tab.classList.remove('border-transparent');
-
-                                        // Filtra os itens
-                                        const items = list.querySelectorAll('.appointment-item');
-                                        const hoje = new Date();
-                                        hoje.setHours(0, 0, 0, 0);
-
-                                        const inicioSemana = new Date(hoje);
-                                        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
-
-                                        const fimSemana = new Date(inicioSemana);
-                                        fimSemana.setDate(inicioSemana.getDate() + 6);
-
-                                        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                                        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-
-                                        let visibleCount = 0;
-
-                                        items.forEach(item => {
-                                            const dateStr = item.dataset.date;
-                                            if (!dateStr) {
-                                                item.style.display = 'none';
-                                                return;
-                                            }
-
-                                            const [year, month, day] = dateStr.split('-').map(Number);
-                                            const itemDate = new Date(year, month - 1, day);
-                                            let shouldShow = false;
-
-                                            switch (filter) {
-                                                case 'hoje':
-                                                    shouldShow = itemDate.getTime() === hoje.getTime();
-                                                    break;
-                                                case 'semana':
-                                                    shouldShow = itemDate >= inicioSemana && itemDate <=
-                                                        fimSemana;
-                                                    break;
-                                                case 'mes':
-                                                    shouldShow = itemDate >= inicioMes && itemDate <=
-                                                        fimMes;
-                                                    break;
-                                                case 'todos':
-                                                    shouldShow = true;
-                                                    break;
-                                            }
-
-                                            if (shouldShow) {
-                                                item.style.display = '';
-                                                visibleCount++;
-                                            } else {
-                                                item.style.display = 'none';
-                                            }
-                                        });
-
-                                        // Mostra mensagem se no h itens
-                                        let emptyMessage = list.parentElement.querySelector('.empty-message');
-                                        if (visibleCount === 0) {
-                                            if (!emptyMessage) {
-                                                emptyMessage = document.createElement('p');
-                                                emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
-                                                emptyMessage.textContent =
-                                                    'Nenhum compromisso encontrado para este perodo.';
-                                                list.parentElement.appendChild(emptyMessage);
-                                            }
-                                            emptyMessage.style.display = '';
-                                        } else if (emptyMessage) {
-                                            emptyMessage.style.display = 'none';
-                                        }
-                                    });
-                                });
+                            if (!applyMessageToTextarea(container, message, null, targetId)) {
+                                return;
                             }
 
-                            // Configura filtros para concludos e cancelados
-                            setupPeriodFilters('concluidos', 'green-600', 'green-600');
-                            setupPeriodFilters('cancelados', 'red-600', 'red-600');
+                            container.dataset.selectedTemplateId = templateId ?? '';
+                            setEditingState(container, templateId);
+                            updateTemplateControls();
+                            showFeedback(container,
+                                'Mensagem carregada para edicao. Ajuste e clique em Guardar para atualizar.',
+                                'success');
+                            return;
+                        }
+
+                        if (action === 'save-template') {
+                            event.preventDefault();
+
+                            const textarea = getTextarea(container);
+
+                            if (!textarea) {
+                                showFeedback(container, 'Campo de mensagem nao encontrado.',
+                                    'error');
+                                return;
+                            }
+
+                            const message = textarea.value.trim();
+
+                            if (!message) {
+                                showFeedback(container, 'Escreva uma mensagem antes de salvar.',
+                                    'error');
+                                return;
+                            }
+
+                            if (message.length > 500) {
+                                showFeedback(container,
+                                    'A mensagem pode ter no maximo 500 caracteres.', 'error'
+                                );
+                                return;
+                            }
+
+                            if (!csrfToken) {
+                                showFeedback(container,
+                                    'Token CSRF nao encontrado. Recarregue a pagina.',
+                                    'error');
+                                return;
+                            }
+
+                            const editingTemplateId = container.dataset.editingTemplateId;
+                            const isEditing = Boolean(editingTemplateId);
+                            const requestUrl = isEditing ?
+                                updateUrlTemplate?.replace('__TEMPLATE__', editingTemplateId) :
+                                saveUrl;
+                            const method = isEditing ? 'PATCH' : 'POST';
+
+                            if (!requestUrl) {
+                                showFeedback(container,
+                                    'Nao foi possivel encontrar a rota para salvar.',
+                                    'error');
+                                return;
+                            }
+
+                            trigger.disabled = true;
+
+                            try {
+                                const response = await fetch(requestUrl, {
+                                    method,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': csrfToken,
+                                        Accept: 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        mensagem: message
+                                    }),
+                                });
+
+                                const payload = await parseJson(response);
+
+                                if (response.ok) {
+                                    quickTemplates = Array.isArray(payload?.templates) ? payload
+                                        .templates : [];
+                                    setEditingState(container, null);
+                                    if (!isEditing && quickTemplates.length) {
+                                        container.dataset.selectedTemplateId = String(
+                                            quickTemplates[0].id);
+                                    }
+                                    updateTemplateControls();
+                                    showFeedback(
+                                        container,
+                                        payload?.message ?? (isEditing ?
+                                            'Mensagem atualizada.' : 'Mensagem salva.'),
+                                        'success'
+                                    );
+                                } else {
+                                    const errorMessage = payload?.message ??
+                                        'Nao foi possivel salvar a mensagem.';
+                                    showFeedback(container, errorMessage, 'error');
+                                }
+                            } catch (_error) {
+                                showFeedback(container,
+                                    'Erro ao salvar mensagem. Tente novamente.', 'error');
+                            } finally {
+                                trigger.disabled = false;
+                            }
+
+                            return;
+                        }
+
+                        if (action === 'delete-template') {
+                            event.preventDefault();
+
+                            const templateId = trigger.dataset.templateId ??
+                                trigger.closest('[data-template-id]')?.dataset.templateId;
+
+                            if (!templateId) {
+                                showFeedback(container, 'Mensagem salva nao encontrada.',
+                                    'error');
+                                return;
+                            }
+
+                            if (!deleteUrlTemplate) {
+                                showFeedback(container,
+                                    'Nao foi possivel encontrar a rota para exclusao.',
+                                    'error');
+                                return;
+                            }
+
+                            if (!csrfToken) {
+                                showFeedback(container,
+                                    'Token CSRF nao encontrado. Recarregue a pagina.',
+                                    'error');
+                                return;
+                            }
+
+                            if (!window.confirm('Deseja excluir esta mensagem salva?')) {
+                                return;
+                            }
+
+                            const requestUrl = deleteUrlTemplate.replace('__TEMPLATE__',
+                                templateId);
+                            trigger.disabled = true;
+
+                            try {
+                                const response = await fetch(requestUrl, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': csrfToken,
+                                        Accept: 'application/json',
+                                    },
+                                });
+
+                                const payload = await parseJson(response);
+
+                                if (response.ok) {
+                                    quickTemplates = Array.isArray(payload?.templates) ? payload
+                                        .templates : [];
+                                    if (container.dataset.editingTemplateId === String(
+                                            templateId)) {
+                                        setEditingState(container, null);
+                                    }
+                                    if (container.dataset.selectedTemplateId === String(
+                                            templateId)) {
+                                        delete container.dataset.selectedTemplateId;
+                                    }
+                                    updateTemplateControls();
+                                    showFeedback(container, payload?.message ??
+                                        'Mensagem excluida.', 'success');
+                                } else {
+                                    const errorMessage = payload?.message ??
+                                        'Nao foi possivel excluir a mensagem.';
+                                    showFeedback(container, errorMessage, 'error');
+                                }
+                            } catch (_error) {
+                                showFeedback(container,
+                                    'Erro ao excluir mensagem. Tente novamente.', 'error');
+                            } finally {
+                                trigger.disabled = false;
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Sistema de filtros por perodo
+            function setupPeriodFilters(section, borderColor, textColor) {
+                const tabs = document.querySelectorAll(`.filter-tab-${section}`);
+                const list = document.getElementById(`${section}-list`);
+
+                if (!list) return;
+
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const filter = tab.dataset.filter;
+
+                        // Atualiza estilo das abas
+                        tabs.forEach(t => {
+                            t.classList.remove('active', `border-${borderColor}`,
+                                `text-${textColor}`);
+                            t.classList.add('border-transparent');
+                        });
+                        tab.classList.add('active', `border-${borderColor}`, `text-${textColor}`);
+                        tab.classList.remove('border-transparent');
+
+                        // Filtra os itens
+                        const items = list.querySelectorAll('.appointment-item');
+                        const hoje = new Date();
+                        hoje.setHours(0, 0, 0, 0);
+
+                        const inicioSemana = new Date(hoje);
+                        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+
+                        const fimSemana = new Date(inicioSemana);
+                        fimSemana.setDate(inicioSemana.getDate() + 6);
+
+                        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                        const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+                        let visibleCount = 0;
+
+                        items.forEach(item => {
+                            const dateStr = item.dataset.date;
+                            if (!dateStr) {
+                                item.style.display = 'none';
+                                return;
+                            }
+
+                            const [year, month, day] = dateStr.split('-').map(Number);
+                            const itemDate = new Date(year, month - 1, day);
+                            let shouldShow = false;
+
+                            switch (filter) {
+                                case 'hoje':
+                                    shouldShow = itemDate.getTime() === hoje.getTime();
+                                    break;
+                                case 'semana':
+                                    shouldShow = itemDate >= inicioSemana && itemDate <=
+                                        fimSemana;
+                                    break;
+                                case 'mes':
+                                    shouldShow = itemDate >= inicioMes && itemDate <=
+                                        fimMes;
+                                    break;
+                                case 'todos':
+                                    shouldShow = true;
+                                    break;
+                            }
+
+                            if (shouldShow) {
+                                item.style.display = '';
+                                visibleCount++;
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+
+                        // Mostra mensagem se no h itens
+                        let emptyMessage = list.parentElement.querySelector('.empty-message');
+                        if (visibleCount === 0) {
+                            if (!emptyMessage) {
+                                emptyMessage = document.createElement('p');
+                                emptyMessage.className = 'empty-message text-sm text-gray-600 mt-4';
+                                emptyMessage.textContent =
+                                    'Nenhum compromisso encontrado para este perodo.';
+                                list.parentElement.appendChild(emptyMessage);
+                            }
+                            emptyMessage.style.display = '';
+                        } else if (emptyMessage) {
+                            emptyMessage.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Configura filtros para concludos e cancelados
+            setupPeriodFilters('concluidos', 'green-600', 'green-600');
+            setupPeriodFilters('cancelados', 'red-600', 'red-600');
+
+            // Ativa o filtro "hoje" por padrão ao carregar a página
+            setTimeout(() => {
+                const concluidosHojeTab = document.querySelector('[data-filter="hoje"][data-section="concluidos"]');
+                const canceladosHojeTab = document.querySelector('[data-filter="hoje"][data-section="cancelados"]');
+
+                if (concluidosHojeTab) {
+                    concluidosHojeTab.click();
+                }
+
+                if (canceladosHojeTab) {
+                    canceladosHojeTab.click();
+                }
+            }, 100);
         });
     </script>
 
 </x-app-layout>
-

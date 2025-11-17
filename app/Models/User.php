@@ -84,6 +84,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Envios em massa cadastrados pelo usuário.
+     */
+    public function massMessages()
+    {
+        return $this->hasMany(MassMessage::class);
+    }
+
+    /**
      * Mensagens de WhatsApp salvas pelo usuário para uso rápido.
      */
     public function quickMessageTemplates(): HasMany
@@ -169,4 +177,3 @@ class User extends Authenticatable
         return $this->activeSubscription()->exists();
     }
 }
-

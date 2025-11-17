@@ -64,16 +64,16 @@ Route::middleware(['auth'])->group(function () {
 */
 use App\Http\Controllers\Web\SubscriptionWebController;
 
+// Rotas de retorno do Mercado Pago (públicas - não requerem autenticação)
+Route::get('/payment/success', [SubscriptionWebController::class, 'success'])->name('payment.success');
+Route::get('/payment/failure', [SubscriptionWebController::class, 'failure'])->name('payment.failure');
+Route::get('/payment/pending', [SubscriptionWebController::class, 'pending'])->name('payment.pending');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/subscription/plans', [SubscriptionWebController::class, 'plans'])->name('subscription.plans');
     Route::post('/subscription/checkout', [SubscriptionWebController::class, 'checkout'])->name('subscription.checkout');
     Route::get('/subscription/current', [SubscriptionWebController::class, 'current'])->name('subscription.current');
     Route::get('/subscription/history', [SubscriptionWebController::class, 'history'])->name('subscription.history');
-
-    // Rotas de retorno do Mercado Pago (não requerem assinatura)
-    Route::get('/payment/success', [SubscriptionWebController::class, 'success'])->name('payment.success');
-    Route::get('/payment/failure', [SubscriptionWebController::class, 'failure'])->name('payment.failure');
-    Route::get('/payment/pending', [SubscriptionWebController::class, 'pending'])->name('payment.pending');
 });
 
 Route::middleware(['auth', 'verified', 'subscription'])->group(function () {

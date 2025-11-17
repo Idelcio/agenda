@@ -103,10 +103,10 @@
         Como funciona
     </header>
     <ul class="space-y-2">
-        <li>â€¢ Os planos base são definidos em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">config/mercadopago.php</code></li>
-        <li>â€¢ As alterações de preço e desconto são salvas em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">storage/app/plans.json</code> e têm prioridade sobre o config</li>
-        <li>â€¢ O sistema utiliza o <strong>PlanService</strong> para mesclar as configurações</li>
-        <li>â€¢ As alterações são aplicadas imediatamente sem necessidade de reiniciar o servidor</li>
+        <li>• Os planos base são definidos em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">config/mercadopago.php</code></li>
+        <li>• As alterações de preço e desconto são salvas em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">storage/app/plans.json</code> e têm prioridade sobre o config</li>
+        <li>• O sistema utiliza o <strong>PlanService</strong> para mesclar as configurações</li>
+        <li>• As alterações são aplicadas imediatamente sem necessidade de reiniciar o servidor</li>
     </ul>
 </section>
 @endsection

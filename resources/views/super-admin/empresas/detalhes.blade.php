@@ -167,7 +167,7 @@
             </div>
             @if ($empresa->valor_pago)
                 <div class="flex flex-col gap-1">
-                    <dt class="font-semibold text-slate-500">Êltimo pagamento</dt>
+                    <dt class="font-semibold text-slate-500">Último pagamento</dt>
                     <dd class="text-base text-slate-900">
                         R$ {{ number_format($empresa->valor_pago, 2, ',', '.') }}
                         @if ($empresa->data_ultimo_pagamento)
@@ -309,7 +309,9 @@
             hideTrialModal();
         }
     });
+
 </script>
 @endsection
+
 
 

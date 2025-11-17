@@ -536,4 +536,89 @@ class SuperAdminController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
+
+    /**
+     * Criar usuário filho para uma empresa
+     */
+    public function storeSubUser(Request $request, $empresaId)
+    {
+        $empresa = User::where('tipo', 'empresa')->findOrFail($empresaId);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $subUser = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'whatsapp_number' => $validated['whatsapp_number'] ?? null,
+            'password' => Hash::make($validated['password']),
+            'usuario_pai_id' => $empresa->id,
+            'tipo' => $empresa->tipo, // Mantém o mesmo tipo da empresa
+            'is_admin' => false,
+            'acesso_ativo' => $empresa->acesso_ativo,
+            'acesso_liberado_ate' => $empresa->acesso_liberado_ate,
+            'plano' => $empresa->plano,
+            // Herda configurações do WhatsApp da empresa pai
+            'apibrasil_device_token' => $empresa->apibrasil_device_token,
+            'apibrasil_device_name' => $empresa->apibrasil_device_name,
+            'apibrasil_device_id' => $empresa->apibrasil_device_id,
+            'apibrasil_setup_completed' => true, // Já considera setup completo (usa credenciais do pai)
+        ]);
+
+        return redirect()
+            ->route('super-admin.empresas.detalhes', $empresaId)
+            ->with('success', 'Usuário filho criado com sucesso!');
+    }
+
+    /**
+     * Atualizar usuário filho
+     */
+    public function updateSubUser(Request $request, $empresaId, $subUserId)
+    {
+        $empresa = User::where('tipo', 'empresa')->findOrFail($empresaId);
+        $subUser = User::where('usuario_pai_id', $empresa->id)->findOrFail($subUserId);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $subUserId,
+            'whatsapp_number' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $updateData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'whatsapp_number' => $validated['whatsapp_number'] ?? null,
+        ];
+
+        // Atualiza senha apenas se fornecida
+        if (!empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        $subUser->update($updateData);
+
+        return redirect()
+            ->route('super-admin.empresas.detalhes', $empresaId)
+            ->with('success', 'Usuário filho atualizado com sucesso!');
+    }
+
+    /**
+     * Deletar usuário filho
+     */
+    public function deleteSubUser($empresaId, $subUserId)
+    {
+        $empresa = User::where('tipo', 'empresa')->findOrFail($empresaId);
+        $subUser = User::where('usuario_pai_id', $empresa->id)->findOrFail($subUserId);
+
+        $subUser->delete();
+
+        return redirect()
+            ->route('super-admin.empresas.detalhes', $empresaId)
+            ->with('success', 'Usuário filho deletado com sucesso!');
+    }
 }

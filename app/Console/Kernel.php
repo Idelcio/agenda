@@ -29,6 +29,12 @@ class Kernel extends ConsoleKernel
             ->dailyAt('06:00')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/recorrentes.log'));
+
+        // 📨 Processa mensagens agendadas a cada minuto
+        $schedule->command('messages:process-scheduled')
+            ->everyMinute()
+            ->withoutOverlapping(2)
+            ->appendOutputTo(storage_path('logs/scheduled-messages.log'));
     }
 
     /**

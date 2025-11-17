@@ -116,9 +116,9 @@
                 <i class="fa-solid fa-info-circle mr-2"></i>Informações
             </p>
             <ul class="mt-2 space-y-1">
-                <li>â€¢ Mensagens enviadas no mês atual: <strong>{{ $empresa->requisicoes_mes_atual }}</strong></li>
-                <li>â€¢ Total de mensagens enviadas: <strong>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</strong></li>
-                <li>â€¢ Cadastrado em: <strong>{{ $empresa->created_at->format('d/m/Y H:i') }}</strong></li>
+                <li>• Mensagens enviadas no mês atual: <strong>{{ $empresa->requisicoes_mes_atual }}</strong></li>
+                <li>• Total de mensagens enviadas: <strong>{{ number_format($empresa->total_requisicoes, 0, ',', '.') }}</strong></li>
+                <li>• Cadastrado em: <strong>{{ $empresa->created_at->format('d/m/Y H:i') }}</strong></li>
             </ul>
         </div>
 

@@ -13,27 +13,27 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // 🔹 Campo para identificar super admin
-            $table->boolean('is_super_admin')->default(false)->after('tipo');
+            $table->boolean('is_super_admin')->default(false);
 
             // 🔹 Controle de acesso por período
-            $table->timestamp('acesso_liberado_ate')->nullable()->after('is_super_admin');
-            $table->boolean('acesso_ativo')->default(true)->after('acesso_liberado_ate');
+            $table->timestamp('acesso_liberado_ate')->nullable();
+            $table->boolean('acesso_ativo')->default(true);
 
             // 🔹 Estatísticas de uso
-            $table->integer('total_requisicoes')->default(0)->after('acesso_ativo');
-            $table->integer('requisicoes_mes_atual')->default(0)->after('total_requisicoes');
-            $table->date('ultimo_reset_requisicoes')->nullable()->after('requisicoes_mes_atual');
+            $table->integer('total_requisicoes')->default(0);
+            $table->integer('requisicoes_mes_atual')->default(0);
+            $table->date('ultimo_reset_requisicoes')->nullable();
 
             // 🔹 Plano contratado
-            $table->enum('plano', ['trial', 'mensal', 'trimestral', 'semestral', 'anual'])->default('trial')->after('ultimo_reset_requisicoes');
-            $table->integer('limite_requisicoes_mes')->default(100)->after('plano');
+            $table->enum('plano', ['trial', 'mensal', 'trimestral', 'semestral', 'anual'])->default('trial');
+            $table->integer('limite_requisicoes_mes')->default(100);
 
             // 🔹 Informações de pagamento
-            $table->decimal('valor_pago', 10, 2)->nullable()->after('limite_requisicoes_mes');
-            $table->timestamp('data_ultimo_pagamento')->nullable()->after('valor_pago');
+            $table->decimal('valor_pago', 10, 2)->nullable();
+            $table->timestamp('data_ultimo_pagamento')->nullable();
 
             // 🔹 Observações do admin
-            $table->text('observacoes_admin')->nullable()->after('data_ultimo_pagamento');
+            $table->text('observacoes_admin')->nullable();
         });
     }
 

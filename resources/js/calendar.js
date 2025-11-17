@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
         description: appointmentModal.querySelector('[data-modal-description]'),
         whatsapp: appointmentModal.querySelector('[data-modal-whatsapp]'),
         editLink: appointmentModal.querySelector('[data-modal-edit]'),
+        extraInfo: appointmentModal.querySelector('[data-modal-extra]'),
+        extraContainer: appointmentModal.querySelector('[data-modal-extra-container]'),
         closers: appointmentModal.querySelectorAll('[data-modal-close]')
     } : null;
 
@@ -65,8 +67,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const openAppointmentModal = (event) => {
+        const isMassMessage = event.extendedProps.type === 'mass_message';
+
         if (!modalElements) {
-            window.location.href = `/agenda/${event.id}/edit`;
+            if (!isMassMessage) {
+                window.location.href = `/agenda/${event.id}/edit`;
+            }
             return;
         }
 
@@ -103,14 +109,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 : 'Nenhuma descrição registrada.';
         }
 
+        if (modalElements.extraContainer && modalElements.extraInfo) {
+            if (isMassMessage) {
+                const total = event.extendedProps.total_destinatarios ?? 0;
+                const names = Array.isArray(event.extendedProps.destinatarios_nomes)
+                    ? event.extendedProps.destinatarios_nomes
+                    : [];
+
+                let infoText = `${total} cliente(s) selecionado(s)`;
+                if (names.length) {
+                    const maxNames = 5;
+                    const listed = names.slice(0, maxNames).join(', ');
+                    const remaining = names.length - maxNames;
+                    infoText += `: ${listed}`;
+                    if (remaining > 0) {
+                        infoText += ` e mais ${remaining}`;
+                    }
+                } else {
+                    infoText += '.';
+                }
+
+                modalElements.extraInfo.textContent = infoText;
+                modalElements.extraContainer.classList.remove('hidden');
+            } else {
+                modalElements.extraInfo.textContent = '-';
+                modalElements.extraContainer.classList.add('hidden');
+            }
+        }
+
         if (modalElements.whatsapp) {
-            modalElements.whatsapp.textContent = event.extendedProps.whatsapp
-                ? 'Lembretes automáticos via WhatsApp ativados.'
-                : 'Lembretes via WhatsApp não estão ativados.';
+            if (isMassMessage) {
+                const total = event.extendedProps.total_destinatarios ?? 0;
+                modalElements.whatsapp.textContent = `Envio em massa para ${total} cliente(s).`;
+            } else {
+                modalElements.whatsapp.textContent = event.extendedProps.whatsapp
+                    ? 'Lembretes automáticos via WhatsApp ativados.'
+                    : 'Lembretes via WhatsApp não estão ativados.';
+            }
         }
 
         if (modalElements.editLink) {
-            modalElements.editLink.setAttribute('href', `/agenda/${event.id}/edit`);
+            if (isMassMessage) {
+                modalElements.editLink.classList.add('hidden');
+                modalElements.editLink.removeAttribute('href');
+            } else {
+                modalElements.editLink.classList.remove('hidden');
+                modalElements.editLink.setAttribute('href', `/agenda/${event.id}/edit`);
+            }
         }
 
         modalElements.wrapper.classList.remove('hidden');
@@ -175,14 +220,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // Cores por status
         eventDidMount: function(info) {
             const status = info.event.extendedProps.status || 'pendente';
+            const type = info.event.extendedProps.type || 'appointment';
+
             const statusColors = {
                 'pendente': { bg: '#fef3c7', border: '#f59e0b' },
                 'confirmado': { bg: '#d1fae5', border: '#10b981' },
                 'cancelado': { bg: '#fee2e2', border: '#ef4444' },
-                'concluido': { bg: '#e2e8f0', border: '#64748b' }
+                'concluido': { bg: '#e2e8f0', border: '#64748b' },
+                'processando': { bg: '#cffafe', border: '#06b6d4' },
+                'erro': { bg: '#fee2e2', border: '#dc2626' }
             };
 
-            const color = statusColors[status] || statusColors['pendente'];
+            const massMessageColors = {
+                'pendente': { bg: '#ede9fe', border: '#7c3aed' },
+                'processando': { bg: '#e0f2fe', border: '#0284c7' },
+                'concluido': { bg: '#dcfce7', border: '#16a34a' },
+                'erro': { bg: '#fee2e2', border: '#dc2626' }
+            };
+
+            const palette = type === 'mass_message' ? massMessageColors : statusColors;
+            const color = palette[status] || palette['pendente'];
             const textColor = '#111827';
             const descriptionColor = '#475569';
 
@@ -193,6 +250,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const textNodes = info.el.querySelectorAll('.fc-event-title, .fc-event-time, .fc-list-event-title, .fc-event-main-frame, .fc-event-main');
             textNodes.forEach(node => node.style.setProperty('color', textColor, 'important'));
+
+            if (type === 'mass_message') {
+                const mainContainer = info.el.querySelector('.fc-event-main');
+                if (mainContainer && !mainContainer.querySelector('.mass-message-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'mass-message-badge inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-semibold text-violet-700 shadow-sm';
+                    badge.textContent = 'Envio em massa';
+                    mainContainer.prepend(badge);
+                }
+            }
 
             const description = info.event.extendedProps.description;
             if (description) {
@@ -239,8 +306,76 @@ document.addEventListener('DOMContentLoaded', function() {
             openAppointmentModal(info.event);
         },
 
+        // Clicar em uma data (mobile-friendly)
+        dateClick: function(info) {
+            console.log('=== DATECLICK EVENT TRIGGERED ===');
+            console.log('Window width:', window.innerWidth);
+            console.log('Date clicked:', info.dateStr);
+
+            const now = new Date();
+            const clickedDate = new Date(info.date);
+
+            // Remove hora para comparar apenas datas
+            clickedDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (clickedDate < today) {
+                alert('Não é possível criar agendamentos em datas passadas.');
+                return;
+            }
+
+            // Detectar se é mobile
+            const isMobile = window.innerWidth < 768;
+            console.log('isMobile (dateClick):', isMobile);
+
+            // Preencher data/hora
+            const inicioInput = document.querySelector('input[name="inicio"]');
+            console.log('inicioInput found (dateClick):', !!inicioInput);
+
+            if (inicioInput) {
+                const year = info.date.getFullYear();
+                const month = String(info.date.getMonth() + 1).padStart(2, '0');
+                const day = String(info.date.getDate()).padStart(2, '0');
+                const hours = String(info.date.getHours()).padStart(2, '0');
+                const minutes = String(info.date.getMinutes()).padStart(2, '0');
+
+                inicioInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                console.log('inicioInput value set to (dateClick):', inicioInput.value);
+            }
+
+            // Se for mobile, abre o modal
+            if (isMobile) {
+                console.log('Tentando abrir modal mobile via dateClick...');
+                const modal = document.getElementById('mobile-appointment-modal');
+                console.log('Modal element found (dateClick):', !!modal);
+
+                if (modal) {
+                    console.log('Modal classes:', modal.className);
+                    console.log('Modal display before (dateClick):', modal.style.display);
+                    modal.style.display = 'flex';
+                    modal.style.alignItems = 'center';
+                    modal.style.justifyContent = 'center';
+                    document.body.style.overflow = 'hidden';
+                    console.log('Modal display after (dateClick):', modal.style.display);
+                    console.log('Modal aberto no mobile via dateClick');
+                } else {
+                    console.error('Modal não encontrado no dateClick!');
+                }
+            } else {
+                console.log('Desktop mode (dateClick) - scrolling to form');
+                const formSection = document.querySelector('.bg-white.shadow.sm\\:rounded-lg.border-t-4.border-indigo-500');
+                if (formSection) {
+                    formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        },
+
         // Selecionar intervalo para criar
         select: function(info) {
+            console.log('=== SELECT EVENT TRIGGERED ===');
+            console.log('Window width:', window.innerWidth);
+
             const now = new Date();
             if (info.start < now && info.start.toDateString() !== now.toDateString()) {
                 alert('Não é possível criar agendamentos em datas passadas.');
@@ -248,43 +383,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Scroll para o formulário de criar
-            const formSection = document.querySelector('.bg-white.shadow.sm\\:rounded-lg.border-t-4.border-indigo-500');
-            if (formSection) {
-                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Detectar se é mobile
+            const isMobile = window.innerWidth < 768;
+            console.log('isMobile:', isMobile);
 
-                // Preencher automaticamente data/hora no campo datetime-local
-                const inicioInput = document.querySelector('input[name="inicio"]');
+            // Preencher automaticamente data/hora no campo datetime-local
+            const inicioInput = document.querySelector('input[name="inicio"]');
+            console.log('inicioInput found:', !!inicioInput);
 
-                if (inicioInput) {
-                    const year = info.start.getFullYear();
-                    const month = String(info.start.getMonth() + 1).padStart(2, '0');
-                    const day = String(info.start.getDate()).padStart(2, '0');
-                    const hours = String(info.start.getHours()).padStart(2, '0');
-                    const minutes = String(info.start.getMinutes()).padStart(2, '0');
+            if (inicioInput) {
+                const year = info.start.getFullYear();
+                const month = String(info.start.getMonth() + 1).padStart(2, '0');
+                const day = String(info.start.getDate()).padStart(2, '0');
+                const hours = String(info.start.getHours()).padStart(2, '0');
+                const minutes = String(info.start.getMinutes()).padStart(2, '0');
 
-                    // Formato datetime-local: YYYY-MM-DDTHH:mm
-                    inicioInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                // Formato datetime-local: YYYY-MM-DDTHH:mm
+                inicioInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+                console.log('inicioInput value set to:', inicioInput.value);
 
-                    // Adiciona efeito visual para chamar atenção
+                // Adiciona efeito visual para chamar atenção
+                if (!isMobile) {
                     inicioInput.classList.add('ring-2', 'ring-purple-500', 'ring-offset-2');
                     setTimeout(() => {
                         inicioInput.classList.remove('ring-2', 'ring-purple-500', 'ring-offset-2');
                     }, 2000);
                 }
+            }
 
-                // Se tiver fim definido, preenche também
-                if (info.end && !info.allDay) {
-                    const fimInput = document.querySelector('input[name="fim"]');
-                    if (fimInput) {
-                        const endYear = info.end.getFullYear();
-                        const endMonth = String(info.end.getMonth() + 1).padStart(2, '0');
-                        const endDay = String(info.end.getDate()).padStart(2, '0');
-                        const endHours = String(info.end.getHours()).padStart(2, '0');
-                        const endMinutes = String(info.end.getMinutes()).padStart(2, '0');
+            // Se tiver fim definido, preenche também
+            if (info.end && !info.allDay) {
+                const fimInput = document.querySelector('input[name="fim"]');
+                if (fimInput) {
+                    const endYear = info.end.getFullYear();
+                    const endMonth = String(info.end.getMonth() + 1).padStart(2, '0');
+                    const endDay = String(info.end.getDate()).padStart(2, '0');
+                    const endHours = String(info.end.getHours()).padStart(2, '0');
+                    const endMinutes = String(info.end.getMinutes()).padStart(2, '0');
 
-                        fimInput.value = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}`;
-                    }
+                    fimInput.value = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}`;
+                    console.log('fimInput value set to:', fimInput.value);
+                }
+            }
+
+            // Se for mobile, abre o modal
+            if (isMobile) {
+                console.log('Tentando abrir modal mobile...');
+                const modal = document.getElementById('mobile-appointment-modal');
+                console.log('Modal element found:', !!modal);
+
+                if (modal) {
+                    console.log('Modal display before:', modal.style.display);
+                    modal.style.display = 'flex';
+                    modal.style.alignItems = 'center';
+                    modal.style.justifyContent = 'center';
+                    document.body.style.overflow = 'hidden';
+                    console.log('Modal display after:', modal.style.display);
+                    console.log('Modal aberto no mobile');
+                } else {
+                    console.error('Modal não encontrado!');
+                }
+            } else {
+                console.log('Desktop mode - scrolling to form');
+                // Desktop: Scroll para o formulário de criar
+                const formSection = document.querySelector('.bg-white.shadow.sm\\:rounded-lg.border-t-4.border-indigo-500');
+                if (formSection) {
+                    formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }
 
@@ -373,10 +537,32 @@ function getInitialView() {
     }
 
     if (width < 768) {
-        return 'listMonth'; // Mobile: lista
+        return 'dayGridMonth'; // Mobile: mês
     } else if (width < 1024) {
         return 'timeGridDay'; // Tablet: dia
     } else {
         return 'dayGridMonth'; // Desktop: mês
     }
 }
+
+// Função global para fechar o modal de criação de compromisso (Mobile)
+window.closeMobileAppointmentModal = function() {
+    const modal = document.getElementById('mobile-appointment-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        console.log('Modal fechado');
+    }
+}
+
+// Também permite fechar clicando fora do modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('mobile-appointment-modal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                window.closeMobileAppointmentModal();
+            }
+        });
+    }
+});

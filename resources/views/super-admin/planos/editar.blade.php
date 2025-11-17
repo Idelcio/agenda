@@ -149,10 +149,10 @@
             Atenção
         </header>
         <ul class="space-y-2">
-            <li>â€¢ As alterações afetam apenas novos pagamentos.</li>
-            <li>â€¢ Assinaturas ativas mantêm o valor original.</li>
-            <li>â€¢ Os valores são salvos em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">storage/app/plans.json</code>.</li>
-            <li>â€¢ Use sempre valores positivos e coerentes.</li>
+            <li>• As alterações afetam apenas novos pagamentos.</li>
+            <li>• Assinaturas ativas mantêm o valor original.</li>
+            <li>• Os valores são salvos em <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">storage/app/plans.json</code>.</li>
+            <li>• Use sempre valores positivos e coerentes.</li>
         </ul>
     </article>
 </section>
