@@ -297,52 +297,63 @@
 @if (isset($usuarios))
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const destinatarioSelect = document.getElementById('destinatario_user_id');
-            const whatsappInput = document.getElementById('whatsapp_numero');
-            const tituloInput = document.getElementById('titulo');
+            // Remove tudo que não for número e o +55 se existir
+            const cleanNumber = (value) => {
+                return value.replace(/\D/g, '').replace(/^55/, '');
+            };
 
-            if (whatsappInput) {
-                // Remove tudo que não for número e o +55 se existir
-                const cleanNumber = (value) => {
-                    return value.replace(/\D/g, '').replace(/^55/, '');
-                };
+            // 🔹 Busca TODOS os formulários (mobile + desktop) e configura cada um
+            document.querySelectorAll('form').forEach((form) => {
+                const destinatarioSelect = form.querySelector('#destinatario_user_id');
+                const whatsappInput = form.querySelector('#whatsapp_numero');
+                const tituloInput = form.querySelector('#titulo');
 
-                // Formata o número enquanto digita
-                whatsappInput.addEventListener('input', (e) => {
-                    let value = e.target.value;
-                    e.target.value = cleanNumber(value);
-                });
+                // Configura a limpeza do número WhatsApp
+                if (whatsappInput) {
+                    // Formata o número enquanto digita
+                    whatsappInput.addEventListener('input', (e) => {
+                        let value = e.target.value;
+                        e.target.value = cleanNumber(value);
+                    });
 
-                // Remove +55 do valor inicial se existir
-                if (whatsappInput.value) {
-                    whatsappInput.value = cleanNumber(whatsappInput.value);
-                }
-            }
-
-            if (destinatarioSelect && whatsappInput && tituloInput) {
-                // Mapa de usuários com nome e telefone
-                const usuarios = {
-                    @foreach ($usuarios as $usuario)
-                        {{ $usuario->id }}: {
-                            nome: '{{ $usuario->name }}',
-                            telefone: '{{ $usuario->whatsapp_number ? preg_replace('/^55/', '', preg_replace('/\D/', '', $usuario->whatsapp_number)) : '' }}'
-                        },
-                    @endforeach
-                };
-
-                destinatarioSelect.addEventListener('change', (e) => {
-                    const userId = e.target.value;
-                    if (userId && usuarios[userId]) {
-                        // Preenche o telefone
-                        whatsappInput.value = usuarios[userId].telefone;
-
-                        // Preenche o título com o nome do usuário se o título estiver vazio
-                        if (!tituloInput.value || tituloInput.value.trim() === '') {
-                            tituloInput.value = usuarios[userId].nome;
-                        }
+                    // Remove +55 do valor inicial se existir
+                    if (whatsappInput.value) {
+                        whatsappInput.value = cleanNumber(whatsappInput.value);
                     }
-                });
-            }
+                }
+
+                // Configura o auto-fill quando seleciona cliente
+                if (destinatarioSelect && whatsappInput && tituloInput) {
+                    console.log('✅ Auto-fill de WhatsApp habilitado para formulário');
+
+                    destinatarioSelect.addEventListener('change', (e) => {
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        console.log('👤 Cliente selecionado:', selectedOption.text);
+
+                        // Pega o número do atributo data-whatsapp da option selecionada
+                        const whatsappNumber = selectedOption.getAttribute('data-whatsapp');
+                        console.log('📞 Número do data-whatsapp:', whatsappNumber);
+
+                        if (whatsappNumber) {
+                            // Remove o +55 se existir e limpa o número
+                            const cleanedNumber = whatsappNumber.replace(/\D/g, '').replace(/^55/, '');
+                            console.log('🧹 Número limpo:', cleanedNumber);
+
+                            whatsappInput.value = cleanedNumber;
+                            console.log('✅ Campo atualizado com:', whatsappInput.value);
+
+                            // Preenche o título com o nome do usuário se o título estiver vazio
+                            const userName = selectedOption.text.split('(')[0].trim();
+                            if (!tituloInput.value || tituloInput.value.trim() === '') {
+                                tituloInput.value = userName;
+                                console.log('📝 Título preenchido:', userName);
+                            }
+                        } else {
+                            console.warn('⚠️ Nenhum número de WhatsApp encontrado no data-whatsapp');
+                        }
+                    });
+                }
+            });
         });
     </script>
 @endif
@@ -782,32 +793,5 @@
                 }
             });
         });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const select = document.getElementById('destinatario_user_id');
-        const whatsappInput = document.getElementById('whatsapp_numero');
-
-        if (!select || !whatsappInput) {
-            return;
-        }
-
-        const fillWhatsapp = () => {
-            const option = select.selectedOptions?.[0];
-            if (!option) return;
-
-            const number = (option.dataset.whatsapp || '').trim()
-                || (option.textContent || '').match(/\((\d{10,13})\)/)?.[1]
-                || '';
-
-            if (number) {
-                whatsappInput.value = number;
-            }
-        };
-
-        fillWhatsapp();
-        select.addEventListener('change', fillWhatsapp);
     });
 </script>
