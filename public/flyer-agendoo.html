@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendoo - Nunca mais perca um cliente!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .tagline {
+            font-size: 1.3em;
+            font-weight: 300;
+            margin-top: 10px;
+        }
+
+        .problem {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 30px;
+            margin: 30px;
+        }
+
+        .problem h2 {
+            color: #856404;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .problem ul {
+            list-style: none;
+            margin-left: 20px;
+        }
+
+        .problem li {
+            padding: 10px 0;
+            color: #856404;
+            font-size: 1.1em;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .problem li:before {
+            content: "❌";
+            font-size: 1.2em;
+        }
+
+        .solution {
+            padding: 40px 30px;
+            background: linear-gradient(to bottom, #f8f9fa, white);
+        }
+
+        .solution h2 {
+            color: #25D366;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .feature h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .feature p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .benefits {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+        }
+
+        .benefits h2 {
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .benefit-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .benefit-item .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .benefit-item h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .benefit-item p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .cta {
+            background: #25D366;
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #25D366;
+            padding: 20px 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .ideal-for {
+            padding: 40px 30px;
+            background: #f8f9fa;
+        }
+
+        .ideal-for h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .businesses {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .business-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 0.9em;
+        }
+
+        /* Botão flutuante para gerar PDF */
+        .pdf-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 5px 25px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pdf-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .pdf-button:active {
+            transform: translateY(-1px);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .pdf-button {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pdf-button {
+                bottom: 15px;
+                right: 15px;
+                padding: 12px 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 AGENDOO</h1>
+            <div class="tagline">Nunca mais perca um cliente por falta de organização!</div>
+        </div>
+
+        <!-- Problema -->
+        <div class="problem">
+            <h2>😰 Você ainda gerencia sua agenda assim?</h2>
+            <ul>
+                <li>Caderno de papel que você sempre perde ou esquece em casa?</li>
+                <li>Clientes ligam e você não sabe se tem horário disponível?</li>
+                <li>Clientes esquecem do horário e não aparecem?</li>
+                <li>Perde tempo enviando lembretes manualmente pelo WhatsApp?</li>
+                <li>Não sabe se o cliente confirmou ou vai cancelar?</li>
+                <li>Precisa avisar vários clientes e fica horas copiando e colando mensagem?</li>
+            </ul>
+        </div>
+
+        <!-- Solução -->
+        <div class="solution">
+            <h2>✅ A solução está aqui: AGENDOO</h2>
+            <p style="text-align: center; font-size: 1.2em; color: #666; margin-bottom: 30px;">
+                O sistema completo que automatiza sua agenda e se comunica com seus clientes pelo WhatsApp!
+            </p>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📅</div>
+                    <h3>Agenda Inteligente</h3>
+                    <p>Organize todos os compromissos em um calendário visual. Nunca mais esqueça um horário!</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>WhatsApp Automático</h3>
+                    <p>Sistema envia lembretes automaticamente pelo WhatsApp. Você não precisa fazer NADA!</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">✅</div>
+                    <h3>Confirmação Inteligente</h3>
+                    <p>Cliente responde "1" para confirmar ou "2" para cancelar. Sistema atualiza sozinho!</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔁</div>
+                    <h3>Compromissos Recorrentes</h3>
+                    <p>Aulas semanais? Consultas mensais? Configure uma vez e o sistema cria automaticamente!</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📢</div>
+                    <h3>Envio em Massa</h3>
+                    <p>Precisa avisar todos os clientes? Selecione e envie para centenas de pessoas com 1 clique!</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">💾</div>
+                    <h3>Mensagens Prontas</h3>
+                    <p>Salve mensagens que você usa sempre e reutilize com apenas 1 clique!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefícios -->
+        <div class="benefits">
+            <h2>💰 Por que sua empresa PRECISA do Agendoo?</h2>
+
+            <div class="benefit-grid">
+                <div class="benefit-item">
+                    <div class="icon">💸</div>
+                    <h3>Menos Cancelamentos</h3>
+                    <p>Lembretes automáticos reduzem faltas em até 70%</p>
+                </div>
+
+                <div class="benefit-item">
+                    <div class="icon">⏰</div>
+                    <h3>Economize Tempo</h3>
+                    <p>Não perca horas enviando mensagens manualmente</p>
+                </div>
+
+                <div class="benefit-item">
+                    <div class="icon">📈</div>
+                    <h3>Mais Profissional</h3>
+                    <p>Impressione seus clientes com organização de ponta</p>
+                </div>
+
+                <div class="benefit-item">
+                    <div class="icon">🎯</div>
+                    <h3>Foco no que Importa</h3>
+                    <p>Você cuida do seu negócio, o Agendoo cuida da agenda</p>
+                </div>
+
+                <div class="benefit-item">
+                    <div class="icon">📊</div>
+                    <h3>Tudo Organizado</h3>
+                    <p>Histórico completo de todos os compromissos</p>
+                </div>
+
+                <div class="benefit-item">
+                    <div class="icon">🌐</div>
+                    <h3>Acesse de Qualquer Lugar</h3>
+                    <p>Celular, tablet, computador - funciona em todos!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ideal para -->
+        <div class="ideal-for">
+            <h2>🎯 Ideal para:</h2>
+            <div class="businesses">
+                <div class="business-tag">💇 Salões de Beleza</div>
+                <div class="business-tag">🏥 Consultórios Médicos</div>
+                <div class="business-tag">🦷 Dentistas</div>
+                <div class="business-tag">🏋️ Personal Trainers</div>
+                <div class="business-tag">📚 Professores Particulares</div>
+                <div class="business-tag">🔧 Prestadores de Serviço</div>
+                <div class="business-tag">🧘 Estúdios de Yoga/Pilates</div>
+                <div class="business-tag">🐾 Pet Shops</div>
+                <div class="business-tag">🚗 Oficinas Mecânicas</div>
+                <div class="business-tag">🎨 Estúdios de Tatuagem</div>
+                <div class="business-tag">💅 Manicures</div>
+                <div class="business-tag">📸 Fotógrafos</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta">
+            <h2>🚀 Comece Hoje Mesmo!</h2>
+            <p>Transforme a forma como você gerencia seus clientes</p>
+            <a href="#" class="cta-button">QUERO EXPERIMENTAR GRÁTIS</a>
+            <p style="font-size: 0.9em; margin-top: 20px; opacity: 0.8;">
+                Sem compromisso • Fácil de usar • Suporte em português
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>AGENDOO</strong> - A agenda inteligente que trabalha por você</p>
+            <p style="margin-top: 10px; opacity: 0.7;">Desenvolvido com ❤️ para facilitar sua vida</p>
+        </div>
+    </div>
+
+    <!-- Botão flutuante para gerar PDF -->
+    <button class="pdf-button" onclick="gerarPDF()">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Baixar PDF</span>
+    </button>
+
+    <script>
+        function gerarPDF() {
+            // Mostra mensagem de instrução
+            const confirmacao = confirm(
+                '📄 Para salvar como PDF:\n\n' +
+                '1. Clique em OK\n' +
+                '2. Na janela de impressão, escolha "Salvar como PDF" ou "Microsoft Print to PDF"\n' +
+                '3. Clique em Salvar\n\n' +
+                'Pronto! Seu flyer será salvo em PDF.'
+            );
+
+            if (confirmacao) {
+                window.print();
+            }
+        }
+
+        // Atalho de teclado: Ctrl+P ou Cmd+P
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                gerarPDF();
+            }
+        });
+    </script>
+</body>
+</html>

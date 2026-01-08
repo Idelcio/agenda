@@ -26,6 +26,30 @@
             </header>
 
             <div class="flex-1 overflow-y-auto space-y-3 px-6 py-3 pb-6" style="overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                {{-- Alerta de Segurança --}}
+                <div class="rounded-lg border-2 border-amber-400 bg-amber-50 p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div class="space-y-2">
+                            <h4 class="font-bold text-amber-900 text-sm">⚠️ ATENÇÃO: Cuidados com Envio em Massa</h4>
+                            <ul class="text-xs text-amber-800 space-y-1.5 list-disc list-inside">
+                                <li><strong>Risco de bloqueio:</strong> Envios em massa podem fazer o WhatsApp bloquear seu número permanentemente</li>
+                                <li><strong>Números novos:</strong> Se o número for novo, ele DEVE ser validado antes de usar envio em massa</li>
+                                <li><strong>Recomendação:</strong> Use apenas com números validados há mais de 6 meses</li>
+                                <li><strong>Boas práticas:</strong> Evite enviar para mais de 50 contatos por vez e respeite o intervalo entre envios</li>
+                            </ul>
+                            <p class="text-xs font-semibold text-amber-900 mt-2">
+                                💡 Para números novos, comece enviando mensagens individuais e espere respostas antes de usar envio em massa.
+                            </p>
+                            <p class="text-xs font-bold text-red-700 mt-3 pt-2 border-t border-amber-300">
+                                ⚠️ NÃO NOS RESPONSABILIZAMOS SE SEU NÚMERO FOR BLOQUEADO PELO WHATSAPP. Use por sua conta e risco.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="text-sm text-gray-600">
                     <span x-text="selectedClients.length"></span> cliente(s) selecionado(s) &bull; Intervalo de 5s entre envios
                 </div>
