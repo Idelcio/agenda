@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -141,6 +142,23 @@ class User extends Authenticatable
     {
         // Usuários filhos (clientes vinculados à empresa)
         return $this->hasMany(User::class, 'user_id');
+    }
+
+    /**
+     * Tags criadas pela empresa
+     */
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    /**
+     * Tags que este cliente possui (para clientes)
+     */
+    public function clienteTags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'cliente_tag', 'cliente_id', 'tag_id')
+            ->withTimestamps();
     }
 
     /**

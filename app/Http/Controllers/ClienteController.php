@@ -23,10 +23,14 @@ class ClienteController extends Controller
     {
         $clientes = User::where('user_id', auth()->id())
             ->where('tipo', 'cliente')
+            ->with('clienteTags') // Carrega as tags dos clientes
             ->orderBy('name')
             ->paginate(15);
 
-        return view('clientes.index', compact('clientes'));
+        // Carrega as tags da empresa para filtros e gerenciamento
+        $tags = auth()->user()->tags()->orderBy('nome')->get();
+
+        return view('clientes.index', compact('clientes', 'tags'));
     }
 
 
@@ -35,7 +39,8 @@ class ClienteController extends Controller
      */
     public function create()
     {
-        return view('clientes.create');
+        $tags = auth()->user()->tags()->orderBy('nome')->get();
+        return view('clientes.create', compact('tags'));
     }
 
     /**
@@ -46,6 +51,7 @@ class ClienteController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'whatsapp_number' => ['required', 'string', 'max:20'],
+            'tag_ids' => ['nullable', 'string'],
         ]);
 
         $whatsappNumber = $this->normalizeWhatsappNumber($validated['whatsapp_number']);
@@ -60,6 +66,18 @@ class ClienteController extends Controller
             'email' => null,
             'password' => null,
         ]);
+
+        // Adiciona as tags selecionadas ao cliente
+        if (!empty($validated['tag_ids'])) {
+            $tagIds = array_filter(explode(',', $validated['tag_ids']));
+            if (!empty($tagIds)) {
+                // Verifica se todas as tags pertencem ao usuário logado
+                $validTags = auth()->user()->tags()->whereIn('id', $tagIds)->pluck('id')->toArray();
+                if (!empty($validTags)) {
+                    $cliente->clienteTags()->attach($validTags);
+                }
+            }
+        }
 
         // Mensagem de boas-vindas via WhatsApp - DESABILITADO
         // try {
@@ -107,7 +125,11 @@ class ClienteController extends Controller
             abort(403, 'Acesso negado.');
         }
 
-        return view('clientes.edit', compact('cliente'));
+        // Carrega as tags do usuário logado e as tags do cliente
+        $tags = auth()->user()->tags()->orderBy('nome')->get();
+        $cliente->load('clienteTags');
+
+        return view('clientes.edit', compact('cliente', 'tags'));
     }
 
     /**

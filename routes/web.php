@@ -4,6 +4,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuickMessageTemplateController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\Webhook\WhatsAppWebhookController;
 use App\Http\Controllers\WhatsAppSetupController;
 use Illuminate\Support\Facades\Route;
@@ -94,6 +95,16 @@ Route::middleware(['auth', 'verified', 'subscription'])->group(function () {
     // Clientes
     Route::resource('clientes', ClienteController::class);
     Route::post('/clientes/send-mass-message', [ClienteController::class, 'sendMassMessage'])->name('clientes.send-mass-message');
+
+    // Tags
+    Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+    Route::post('/tags', [TagController::class, 'store'])->name('tags.store');
+    Route::patch('/tags/{tag}', [TagController::class, 'update'])->name('tags.update');
+    Route::delete('/tags/{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+    Route::post('/tags/attach', [TagController::class, 'attachToCliente'])->name('tags.attach');
+    Route::post('/tags/detach', [TagController::class, 'detachFromCliente'])->name('tags.detach');
+    Route::post('/tags/attach-multiple', [TagController::class, 'attachToMultipleClientes'])->name('tags.attach-multiple');
+    Route::post('/tags/detach-multiple', [TagController::class, 'detachFromMultipleClientes'])->name('tags.detach-multiple');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

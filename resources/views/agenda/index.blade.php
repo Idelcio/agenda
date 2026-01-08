@@ -401,13 +401,49 @@
             {{-- Envio em Massa de WhatsApp --}}
             <div class="bg-white shadow-md sm:rounded-lg border-l-4 border-green-500 p-6" x-data="{
                 selectedClients: [],
+                selectedTag: '',
                 agendamento: '',
                 allClients: {{ $usuarios->whereNotNull('whatsapp_number')->pluck('id')->toJson() }},
+                clientsByTag: @js($usuarios->whereNotNull('whatsapp_number')->mapWithKeys(function($user) {
+                    return [$user->id => $user->clienteTags->pluck('id')->toArray()];
+                })),
+                filterByTag() {
+                    const selectElement = document.getElementById('client_selector');
+                    const options = selectElement.querySelectorAll('option');
+                    
+                    if (!this.selectedTag) {
+                        // Mostra todas as opções
+                        options.forEach(option => {
+                            option.style.display = '';
+                        });
+                        this.selectedClients = [];
+                        return;
+                    }
+                    
+                    // Oculta opções que não têm a tag selecionada
+                    this.selectedClients = [];
+                    options.forEach(option => {
+                        const clientId = parseInt(option.value);
+                        const clientTags = this.clientsByTag[clientId] || [];
+                        
+                        if (clientTags.includes(parseInt(this.selectedTag))) {
+                            option.style.display = '';
+                            // Seleciona automaticamente os clientes com a tag
+                            this.selectedClients.push(clientId);
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+                },
                 toggleAll() {
-                    if (this.selectedClients.length === this.allClients.length) {
+                    const selectElement = document.getElementById('client_selector');
+                    const visibleOptions = Array.from(selectElement.querySelectorAll('option')).filter(opt => opt.style.display !== 'none');
+                    const visibleIds = visibleOptions.map(opt => parseInt(opt.value));
+                    
+                    if (this.selectedClients.length === visibleIds.length && visibleIds.length > 0) {
                         this.selectedClients = [];
                     } else {
-                        this.selectedClients = [...this.allClients];
+                        this.selectedClients = [...visibleIds];
                     }
                 },
                 openMassModal() {
@@ -446,6 +482,35 @@
                     </button>
                 </div>
 
+                {{-- Filtro por Tags --}}
+                @if($tags->isNotEmpty())
+                    <div class="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                Filtrar por Tag:
+                            </label>
+                            <select x-model="selectedTag" @change="filterByTag()"
+                                class="flex-1 min-w-[200px] rounded-md border-purple-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm">
+                                <option value="">Todas as tags</option>
+                                @foreach($tags as $tag)
+                                    <option value="{{ $tag->id }}">{{ $tag->nome }}</option>
+                                @endforeach
+                            </select>
+                            <button type="button" @click="selectedTag = ''; filterByTag()"
+                                class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium">
+                                Limpar
+                            </button>
+                        </div>
+                        <p class="mt-2 text-xs text-purple-700">
+                            💡 Selecione uma tag para mostrar apenas os clientes com essa tag
+                        </p>
+                    </div>
+                @endif
+
                 <div class="mt-4">
                     <div class="flex items-center justify-between mb-2">
                         <label for="client_selector" class="block text-sm font-semibold text-gray-700">
@@ -467,6 +532,9 @@
                                 @if ($usuario->whatsapp_number)
                                     <option value="{{ $usuario->id }}">{{ $usuario->name }}
                                         (+{{ $usuario->whatsapp_number }})
+                                        @if($usuario->clienteTags->isNotEmpty())
+                                            - [{{ $usuario->clienteTags->pluck('nome')->join(', ') }}]
+                                        @endif
                                     </option>
                                 @endif
                             @endforeach

@@ -4,13 +4,23 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Meus Clientes
             </h2>
-            <a href="{{ route('clientes.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Novo Cliente
-            </a>
+            <div class="flex gap-3">
+                <button onclick="openTagModal()"
+                    class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-900 active:bg-black focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Gerenciar Tags
+                </button>
+                <a href="{{ route('clientes.create') }}"
+                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Novo Cliente
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -31,6 +41,34 @@
                     </svg>
                     Voltar
                 </a>
+            </div>
+
+            {{-- Filtros --}}
+            <div x-data="clienteFilters()" class="bg-white shadow rounded-lg p-4">
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar por nome</label>
+                        <input type="text" x-model="searchTerm" @input="filterClientes"
+                            placeholder="Digite o nome do cliente..."
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+
+                    <div class="min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Tag</label>
+                        <select x-model="selectedTag" @change="filterClientes"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                            <option value="">Todas as tags</option>
+                            @foreach ($tags as $tag)
+                                <option value="{{ $tag->id }}">{{ $tag->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button @click="clearFilters"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition">
+                        Limpar Filtros
+                    </button>
+                </div>
             </div>
 
 
@@ -124,13 +162,16 @@
                                     <tr class="text-left text-xs uppercase text-gray-500">
                                         <th class="px-3 py-2">Nome</th>
                                         <th class="px-3 py-2">WhatsApp</th>
+                                        <th class="px-3 py-2">Tags</th>
                                         <th class="px-3 py-2">Cadastrado em</th>
                                         <th class="px-3 py-2 text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
                                     @foreach ($clientes as $cliente)
-                                        <tr class="hover:bg-gray-50">
+                                        <tr class="hover:bg-gray-50" data-cliente-id="{{ $cliente->id }}"
+                                            data-cliente-name="{{ strtolower($cliente->name) }}"
+                                            data-cliente-tags="{{ $cliente->clienteTags->pluck('id')->implode(',') }}">
                                             <td class="px-3 py-3 font-semibold text-gray-900">{{ $cliente->name }}</td>
                                             <td class="px-3 py-3">
                                                 @if ($cliente->whatsapp_number)
@@ -140,6 +181,64 @@
                                                 @else
                                                     <span class="text-gray-400 text-xs">Não informado</span>
                                                 @endif
+                                            </td>
+                                            <td class="px-3 py-3 relative">
+                                                <div x-data="clienteTags({{ $cliente->id }}, @js($cliente->clienteTags))"
+                                                    class="flex flex-wrap gap-1 items-center">
+                                                    <template x-for="tag in clienteTags" :key="tag.id">
+                                                        <span
+                                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white"
+                                                            :style="`background-color: ${getColorHex(tag.cor)}`">
+                                                            <span x-text="tag.nome"></span>
+                                                            <button @click="removeTag(tag.id)"
+                                                                class="hover:bg-white/20 rounded-full p-0.5">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                                    viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </span>
+                                                    </template>
+
+                                                    {{-- Botão para adicionar tag rapidamente --}}
+                                                    <div class="relative inline-block" x-data="{ open: false }">
+                                                        <button @click="open = !open" type="button"
+                                                            class="inline-flex items-center px-2 py-1 bg-purple-50 text-purple-600 border border-purple-200 rounded-full text-xs font-medium hover:bg-purple-100 transition">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2" d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                            Tag
+                                                        </button>
+
+                                                        <div x-show="open" @click.away="open = false" x-cloak
+                                                            x-transition:enter="transition ease-out duration-100"
+                                                            x-transition:enter-start="transform opacity-0 scale-95"
+                                                            x-transition:enter-end="transform opacity-100 scale-100"
+                                                            x-transition:leave="transition ease-in duration-75"
+                                                            x-transition:leave-start="transform opacity-100 scale-100"
+                                                            x-transition:leave-end="transform opacity-0 scale-95"
+                                                            class="absolute left-0 z-[9999] mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 max-h-64 overflow-y-auto"
+                                                            style="position: absolute;">
+                                                            @if($tags->isEmpty())
+                                                                <div class="px-3 py-2 text-xs text-gray-500 text-center">
+                                                                    Nenhuma tag criada ainda
+                                                                </div>
+                                                            @else
+                                                                @foreach ($tags as $tag)
+                                                                    <button @click="addTag({{ $tag->id }}); open = false" type="button"
+                                                                        class="w-full text-left px-3 py-2 hover:bg-purple-50 flex items-center gap-2 transition">
+                                                                        <span class="w-4 h-4 rounded-full flex-shrink-0"
+                                                                            style="background-color: {{ $tag->cor === 'blue' ? '#3B82F6' : ($tag->cor === 'green' ? '#10B981' : ($tag->cor === 'red' ? '#EF4444' : ($tag->cor === 'yellow' ? '#F59E0B' : ($tag->cor === 'purple' ? '#8B5CF6' : ($tag->cor === 'pink' ? '#EC4899' : ($tag->cor === 'orange' ? '#F97316' : ($tag->cor === 'gray' ? '#6B7280' : ($tag->cor === 'indigo' ? '#6366F1' : '#14B8A6')))))))) }}"></span>
+                                                                        <span class="text-sm text-gray-700">{{ $tag->nome }}</span>
+                                                                    </button>
+                                                                @endforeach
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="px-3 py-3">
                                                 <span
@@ -152,8 +251,7 @@
                                                         Editar
                                                     </a>
 
-                                                    <form method="POST"
-                                                        action="{{ route('clientes.destroy', $cliente) }}"
+                                                    <form method="POST" action="{{ route('clientes.destroy', $cliente) }}"
                                                         onsubmit="return confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.');">
                                                         @csrf
                                                         @method('DELETE')
@@ -179,4 +277,153 @@
             </div>
         </div>
     </div>
+
+    {{-- Tag Management Modal --}}
+    @include('tags.manage-modal')
+
+    <script>
+        // Color mapping helper
+        const colorMap = {
+            'blue': '#3B82F6',
+            'green': '#10B981',
+            'red': '#EF4444',
+            'yellow': '#F59E0B',
+            'purple': '#8B5CF6',
+            'pink': '#EC4899',
+            'orange': '#F97316',
+            'gray': '#6B7280',
+            'indigo': '#6366F1',
+            'teal': '#14B8A6'
+        };
+
+        // Cliente tags component for each row
+        function clienteTags(clienteId, initialTags) {
+            return {
+                clienteId: clienteId,
+                clienteTags: initialTags || [],
+
+                getColorHex(colorValue) {
+                    return colorMap[colorValue] || '#3B82F6';
+                },
+
+                async addTag(tagId) {
+                    try {
+                        const response = await fetch('/tags/attach', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                cliente_id: this.clienteId,
+                                tag_id: tagId
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Adiciona a tag à lista se não existir
+                            if (!this.clienteTags.find(t => t.id === data.tag.id)) {
+                                this.clienteTags.push(data.tag);
+                                this.updateRowTagsAttribute();
+                            }
+                        } else {
+                            alert(data.message || 'Erro ao adicionar tag');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao adicionar tag. Tente novamente.');
+                    }
+                },
+
+                async removeTag(tagId) {
+                    if (!confirm('Deseja remover esta tag do cliente?')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/tags/detach', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                cliente_id: this.clienteId,
+                                tag_id: tagId
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Remove a tag da lista
+                            this.clienteTags = this.clienteTags.filter(t => t.id !== tagId);
+                            this.updateRowTagsAttribute();
+                        } else {
+                            alert(data.message || 'Erro ao remover tag');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao remover tag. Tente novamente.');
+                    }
+                },
+
+                updateRowTagsAttribute() {
+                    // Atualiza o atributo data-cliente-tags para que os filtros funcionem corretamente
+                    const row = document.querySelector(`tr[data-cliente-id="${this.clienteId}"]`);
+                    if (row) {
+                        const tagIds = this.clienteTags.map(t => t.id).join(',');
+                        row.setAttribute('data-cliente-tags', tagIds);
+                    }
+                }
+            }
+        }
+
+        // Cliente filters component
+        function clienteFilters() {
+            return {
+                searchTerm: '',
+                selectedTag: '',
+
+                filterClientes() {
+                    const rows = document.querySelectorAll('tbody tr[data-cliente-id]');
+
+                    rows.forEach(row => {
+                        const clienteName = row.getAttribute('data-cliente-name') || '';
+                        const matchesSearch = !this.searchTerm || clienteName.includes(this.searchTerm.toLowerCase());
+
+                        let matchesTag = true;
+                        if (this.selectedTag) {
+                            const clienteTags = row.getAttribute('data-cliente-tags') || '';
+                            const tagIds = clienteTags ? clienteTags.split(',') : [];
+                            matchesTag = tagIds.includes(this.selectedTag);
+                        }
+
+                        row.style.display = (matchesSearch && matchesTag) ? '' : 'none';
+                    });
+                },
+
+                clearFilters() {
+                    this.searchTerm = '';
+                    this.selectedTag = '';
+                    this.filterClientes();
+                }
+            }
+        }
+
+        // Helper function to open tag modal
+        function openTagModal() {
+            const modalElement = document.getElementById('tagManagerModal');
+            if (modalElement) {
+                const alpineData = Alpine.$data(modalElement);
+                if (alpineData && alpineData.openModal) {
+                    alpineData.openModal();
+                }
+            }
+        }
+    </script>
 </x-app-layout>

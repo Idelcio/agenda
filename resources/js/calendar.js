@@ -5,7 +5,7 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('fullcalendar');
 
     if (!calendarEl) return;
@@ -132,8 +132,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalElements.extraInfo.textContent = infoText;
                 modalElements.extraContainer.classList.remove('hidden');
             } else {
-                modalElements.extraInfo.textContent = '-';
-                modalElements.extraContainer.classList.add('hidden');
+                // Mostrar nome do cliente e tags para compromissos normais
+                const clienteNome = event.extendedProps.cliente_nome;
+                const clienteTags = event.extendedProps.cliente_tags || [];
+
+                if (clienteNome || clienteTags.length > 0) {
+                    const tagColorMap = {
+                        'blue': '#3B82F6',
+                        'green': '#10B981',
+                        'red': '#EF4444',
+                        'yellow': '#F59E0B',
+                        'purple': '#8B5CF6',
+                        'pink': '#EC4899',
+                        'orange': '#F97316',
+                        'gray': '#6B7280',
+                        'indigo': '#6366F1',
+                        'teal': '#14B8A6',
+                        'cyan': '#06B6D4'
+                    };
+
+                    let infoHTML = '';
+                    if (clienteNome) {
+                        infoHTML += `<div class="mb-2"><span class="font-semibold text-gray-700">Cliente:</span> <span class="text-gray-900">${clienteNome}</span></div>`;
+                    }
+
+                    if (clienteTags.length > 0) {
+                        infoHTML += '<div class="flex flex-wrap gap-2 items-center">';
+                        infoHTML += '<span class="font-semibold text-gray-700 text-sm">Tags:</span>';
+                        clienteTags.forEach(tag => {
+                            const bgColor = tagColorMap[tag.cor] || '#6B7280';
+                            infoHTML += `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style="background-color: ${bgColor}">${tag.nome}</span>`;
+                        });
+                        infoHTML += '</div>';
+                    }
+
+                    modalElements.extraInfo.innerHTML = infoHTML;
+                    modalElements.extraContainer.classList.remove('hidden');
+                } else {
+                    modalElements.extraInfo.textContent = '-';
+                    modalElements.extraContainer.classList.add('hidden');
+                }
             }
         }
 
@@ -202,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         expandRows: true,
 
         // Carregar eventos do backend
-        events: async function(info, successCallback, failureCallback) {
+        events: async function (info, successCallback, failureCallback) {
             try {
                 const startDate = info.start.toISOString();
                 const endDate = info.end.toISOString();
@@ -218,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Cores por status
-        eventDidMount: function(info) {
+        eventDidMount: function (info) {
             const status = info.event.extendedProps.status || 'pendente';
             const type = info.event.extendedProps.type || 'appointment';
 
@@ -251,6 +289,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const textNodes = info.el.querySelectorAll('.fc-event-title, .fc-event-time, .fc-list-event-title, .fc-event-main-frame, .fc-event-main');
             textNodes.forEach(node => node.style.setProperty('color', textColor, 'important'));
 
+            // Mapa de cores das tags
+            const tagColorMap = {
+                'blue': '#3B82F6',
+                'green': '#10B981',
+                'red': '#EF4444',
+                'yellow': '#F59E0B',
+                'purple': '#8B5CF6',
+                'pink': '#EC4899',
+                'orange': '#F97316',
+                'gray': '#6B7280',
+                'indigo': '#6366F1',
+                'teal': '#14B8A6',
+                'cyan': '#06B6D4'
+            };
+
             if (type === 'mass_message') {
                 const mainContainer = info.el.querySelector('.fc-event-main');
                 if (mainContainer && !mainContainer.querySelector('.mass-message-badge')) {
@@ -258,6 +311,93 @@ document.addEventListener('DOMContentLoaded', function() {
                     badge.className = 'mass-message-badge inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-semibold text-violet-700 shadow-sm';
                     badge.textContent = 'Envio em massa';
                     mainContainer.prepend(badge);
+                }
+            } else {
+                // Adicionar nome do cliente e tags para compromissos normais
+                const clienteNome = info.event.extendedProps.cliente_nome;
+                const clienteTags = info.event.extendedProps.cliente_tags || [];
+
+                if (clienteNome || clienteTags.length > 0) {
+                    const mainContainer = info.el.querySelector('.fc-event-main');
+                    if (mainContainer && !mainContainer.querySelector('.cliente-info')) {
+                        const clienteInfoDiv = document.createElement('div');
+                        clienteInfoDiv.className = 'cliente-info';
+                        clienteInfoDiv.style.marginTop = '4px';
+                        clienteInfoDiv.style.display = 'flex';
+                        clienteInfoDiv.style.flexWrap = 'wrap';
+                        clienteInfoDiv.style.gap = '4px';
+                        clienteInfoDiv.style.alignItems = 'center';
+
+                        if (clienteNome) {
+                            const nomeSpan = document.createElement('span');
+                            nomeSpan.className = 'cliente-nome';
+                            nomeSpan.textContent = clienteNome;
+                            nomeSpan.style.fontSize = '11px';
+                            nomeSpan.style.fontWeight = '600';
+                            nomeSpan.style.color = '#374151';
+                            clienteInfoDiv.appendChild(nomeSpan);
+                        }
+
+                        if (clienteTags.length > 0) {
+                            clienteTags.forEach(tag => {
+                                const tagBadge = document.createElement('span');
+                                tagBadge.className = 'tag-badge';
+                                tagBadge.textContent = tag.nome;
+                                tagBadge.style.display = 'inline-block';
+                                tagBadge.style.padding = '2px 6px';
+                                tagBadge.style.borderRadius = '9999px';
+                                tagBadge.style.fontSize = '10px';
+                                tagBadge.style.fontWeight = '600';
+                                tagBadge.style.color = 'white';
+                                tagBadge.style.backgroundColor = tagColorMap[tag.cor] || '#6B7280';
+                                tagBadge.style.whiteSpace = 'nowrap';
+                                clienteInfoDiv.appendChild(tagBadge);
+                            });
+                        }
+
+                        mainContainer.appendChild(clienteInfoDiv);
+                    }
+
+                    // Adicionar também na visualização de lista
+                    const listContainer = info.el.querySelector('.fc-list-event-title');
+                    if (listContainer && !listContainer.querySelector('.cliente-info')) {
+                        const clienteInfoDiv = document.createElement('div');
+                        clienteInfoDiv.className = 'cliente-info';
+                        clienteInfoDiv.style.marginTop = '4px';
+                        clienteInfoDiv.style.display = 'flex';
+                        clienteInfoDiv.style.flexWrap = 'wrap';
+                        clienteInfoDiv.style.gap = '4px';
+                        clienteInfoDiv.style.alignItems = 'center';
+
+                        if (clienteNome) {
+                            const nomeSpan = document.createElement('span');
+                            nomeSpan.className = 'cliente-nome';
+                            nomeSpan.textContent = `Cliente: ${clienteNome}`;
+                            nomeSpan.style.fontSize = '12px';
+                            nomeSpan.style.fontWeight = '600';
+                            nomeSpan.style.color = '#374151';
+                            clienteInfoDiv.appendChild(nomeSpan);
+                        }
+
+                        if (clienteTags.length > 0) {
+                            clienteTags.forEach(tag => {
+                                const tagBadge = document.createElement('span');
+                                tagBadge.className = 'tag-badge';
+                                tagBadge.textContent = tag.nome;
+                                tagBadge.style.display = 'inline-block';
+                                tagBadge.style.padding = '2px 8px';
+                                tagBadge.style.borderRadius = '9999px';
+                                tagBadge.style.fontSize = '11px';
+                                tagBadge.style.fontWeight = '600';
+                                tagBadge.style.color = 'white';
+                                tagBadge.style.backgroundColor = tagColorMap[tag.cor] || '#6B7280';
+                                tagBadge.style.whiteSpace = 'nowrap';
+                                clienteInfoDiv.appendChild(tagBadge);
+                            });
+                        }
+
+                        listContainer.appendChild(clienteInfoDiv);
+                    }
                 }
             }
 
@@ -297,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Clicar em evento
-        eventClick: function(info) {
+        eventClick: function (info) {
             if (info.jsEvent) {
                 info.jsEvent.preventDefault();
                 info.jsEvent.stopPropagation();
@@ -307,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Clicar em uma data (mobile-friendly)
-        dateClick: function(info) {
+        dateClick: function (info) {
             console.log('=== DATECLICK EVENT TRIGGERED ===');
             console.log('Window width:', window.innerWidth);
             console.log('Date clicked:', info.dateStr);
@@ -372,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Selecionar intervalo para criar
-        select: function(info) {
+        select: function (info) {
             console.log('=== SELECT EVENT TRIGGERED ===');
             console.log('Window width:', window.innerWidth);
 
@@ -456,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Arrastar evento
-        eventDrop: async function(info) {
+        eventDrop: async function (info) {
             const appointmentId = info.event.id;
             const newStart = info.event.start;
 
@@ -485,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Redimensionar evento
-        eventResize: async function(info) {
+        eventResize: async function (info) {
             const appointmentId = info.event.id;
             const newEnd = info.event.end;
 
@@ -514,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Responsivo
-        windowResize: function() {
+        windowResize: function () {
             calendar.changeView(getInitialView());
         }
     });
@@ -522,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calendar.render();
 
     // Salvar preferência de visualização
-    calendar.on('viewChange', function() {
+    calendar.on('viewChange', function () {
         localStorage.setItem('calendarView', calendar.view.type);
     });
 });
@@ -546,7 +686,7 @@ function getInitialView() {
 }
 
 // Função global para fechar o modal de criação de compromisso (Mobile)
-window.closeMobileAppointmentModal = function() {
+window.closeMobileAppointmentModal = function () {
     const modal = document.getElementById('mobile-appointment-modal');
     if (modal) {
         modal.style.display = 'none';
@@ -556,10 +696,10 @@ window.closeMobileAppointmentModal = function() {
 }
 
 // Também permite fechar clicando fora do modal
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('mobile-appointment-modal');
     if (modal) {
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === modal) {
                 window.closeMobileAppointmentModal();
             }

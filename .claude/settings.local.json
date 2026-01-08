@@ -9,7 +9,18 @@
       "Bash(git restore:*)",
       "Bash(php artisan:*)",
       "Bash(\"c:\\Users\\Forest\\Projetos\\Laravel\\agenda\\agenda\\resources\\views\\clientes\\index.blade.php.tmp\")",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(dir:*)",
+      "Bash(where:*)",
+      "Bash(cmd.exe /c gerar-pdf-flyer.bat)",
+      "Bash(if [ -f \"C:/Program Files/Google/Chrome/Application/chrome.exe\" ])",
+      "Bash(then echo \"Chrome encontrado\")",
+      "Bash(else echo \"Chrome nao encontrado\")",
+      "Bash(fi)",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless --disable-gpu --print-to-pdf=\"flyer-agendoo.pdf\" \"flyer-agendoo.html\")",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\":*)",
+      "Bash(start \"\" flyer-agendoo.pdf)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

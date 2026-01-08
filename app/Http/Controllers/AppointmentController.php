@@ -72,10 +72,10 @@ class AppointmentController extends Controller
         $dueReminders = $dueReminderIds->isEmpty()
             ? collect()
             : $user->appointments()
-            ->with($relations)
-            ->whereIn('id', $dueReminderIds)
-            ->orderBy('lembrar_em')
-            ->get();
+                ->with($relations)
+                ->whereIn('id', $dueReminderIds)
+                ->orderBy('lembrar_em')
+                ->get();
 
         $upcoming = $user->appointments()
             ->with($relations)
@@ -125,8 +125,12 @@ class AppointmentController extends Controller
         // Busca apenas os clientes cadastrados pela empresa logada
         $usuarios = User::where('user_id', $user->id)
             ->where('tipo', 'cliente')
+            ->with('clienteTags')
             ->orderByRaw('LOWER(name)')
             ->get(['id', 'name', 'whatsapp_number']);
+
+        // Busca as tags do usuário
+        $tags = $user->tags()->orderBy('nome')->get();
 
         $quickMessageTemplates = $user->quickMessageTemplates()
             ->latest()
@@ -143,8 +147,9 @@ class AppointmentController extends Controller
             'dueReminders' => $dueReminders,
             'defaultWhatsapp' => $user->whatsapp_number,
             'usuarios' => $usuarios,
-             'quickMessageTemplates' => $quickMessageTemplates,
-             'quickMessageTemplateLimit' => WhatsAppMessageTemplate::MAX_PER_USER,
+            'tags' => $tags,
+            'quickMessageTemplates' => $quickMessageTemplates,
+            'quickMessageTemplateLimit' => WhatsAppMessageTemplate::MAX_PER_USER,
             'quickMessageDefaults' => [
                 'destinatario' => $user->whatsapp_number ?? config('services.whatsapp.test_number'),
             ],
@@ -161,7 +166,7 @@ class AppointmentController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        if (! array_key_exists('notificar_whatsapp', $data)) {
+        if (!array_key_exists('notificar_whatsapp', $data)) {
             $data['notificar_whatsapp'] = true;
         }
 
@@ -188,7 +193,7 @@ class AppointmentController extends Controller
             $data['whatsapp_numero'] = $numero;
         }
 
-        if (! ($data['dia_inteiro'] ?? false) && empty($data['fim'])) {
+        if (!($data['dia_inteiro'] ?? false) && empty($data['fim'])) {
             $data['fim'] = null;
         }
 
@@ -236,7 +241,7 @@ class AppointmentController extends Controller
 
         $data = $request->validated();
 
-        if (! array_key_exists('notificar_whatsapp', $data)) {
+        if (!array_key_exists('notificar_whatsapp', $data)) {
             $data['notificar_whatsapp'] = true;
         }
 
@@ -408,10 +413,22 @@ class AppointmentController extends Controller
         }
 
         $events = $user->appointments()
+            ->with(['destinatario.clienteTags'])
             ->whereBetween('inicio', [$startDate, $endDate])
             ->orderBy('inicio')
             ->get()
             ->map(function (Appointment $appointment) {
+                $clienteTags = [];
+                if ($appointment->destinatario && $appointment->destinatario->clienteTags) {
+                    $clienteTags = $appointment->destinatario->clienteTags->map(function ($tag) {
+                        return [
+                            'id' => $tag->id,
+                            'nome' => $tag->nome,
+                            'cor' => $tag->cor,
+                        ];
+                    })->toArray();
+                }
+
                 return [
                     'id' => $appointment->id,
                     'title' => $appointment->titulo,
@@ -422,6 +439,8 @@ class AppointmentController extends Controller
                     'whatsapp' => $appointment->notificar_whatsapp,
                     'description' => $appointment->descricao,
                     'type' => 'appointment',
+                    'cliente_nome' => $appointment->destinatario?->name ?? $appointment->contact_name,
+                    'cliente_tags' => $clienteTags,
                 ];
             });
 
@@ -463,7 +482,7 @@ class AppointmentController extends Controller
 
     private function syncReminder(Appointment $appointment, ?int $antecedenciaMinutos): void
     {
-        if (! $appointment->notificar_whatsapp) {
+        if (!$appointment->notificar_whatsapp) {
             $appointment->lembrar_em = null;
             $appointment->antecedencia_minutos = null;
             $appointment->status_lembrete = null;
@@ -477,7 +496,7 @@ class AppointmentController extends Controller
         $appointment->status_lembrete = 'pendente';
         $appointment->lembrete_enviado_em = null;
 
-        if (! $appointment->whatsapp_mensagem) {
+        if (!$appointment->whatsapp_mensagem) {
             $appointment->whatsapp_mensagem = $this->buildDefaultReminderMessage($appointment);
         }
     }

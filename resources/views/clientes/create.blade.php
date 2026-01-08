@@ -60,6 +60,99 @@
                             <x-input-error class="mt-2" :messages="$errors->get('whatsapp_number')" />
                         </div>
 
+                        {{-- Seleção de Tags --}}
+                        <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-200"
+                            x-data="clienteTagsCreate()">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                    <label class="font-semibold text-gray-900">Tags do Cliente (Opcional)</label>
+                                </div>
+                                <button type="button" onclick="openTagModal()"
+                                    class="inline-flex items-center px-3 py-1.5 bg-gray-800 text-white rounded-lg text-xs font-medium hover:bg-gray-900 transition shadow-sm">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Nova Tag
+                                </button>
+                            </div>
+
+                            {{-- Tags selecionadas --}}
+                            <div class="mb-3">
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="tag in selectedTags" :key="tag.id">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-sm"
+                                            :style="`background-color: ${getColorHex(tag.cor)}`">
+                                            <span x-text="tag.nome"></span>
+                                            <button @click="removeTag(tag.id)" type="button"
+                                                class="hover:bg-white/20 rounded-full p-0.5 transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+
+                                    <template x-if="selectedTags.length === 0">
+                                        <span class="text-sm text-gray-500 italic">Nenhuma tag selecionada</span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- Adicionar tag --}}
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" type="button"
+                                    class="inline-flex items-center px-4 py-2 bg-white text-purple-600 border border-purple-300 rounded-lg text-sm font-medium hover:bg-purple-50 transition">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Adicionar Tag
+                                </button>
+
+                                <div x-show="open" @click.away="open = false" x-cloak
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95"
+                                    class="absolute left-0 z-50 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1 max-h-72 overflow-y-auto">
+                                    @if($tags->isEmpty())
+                                        <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                                            <p>Nenhuma tag criada ainda.</p>
+                                            <button type="button" @click="open = false; openTagModal()"
+                                                class="mt-2 text-purple-600 hover:text-purple-700 font-medium">
+                                                Criar primeira tag
+                                            </button>
+                                        </div>
+                                    @else
+                                        @foreach ($tags as $tag)
+                                            <button @click="addTag(@js($tag)); open = false" type="button"
+                                                class="w-full text-left px-4 py-2.5 flex items-center gap-3 transition"
+                                                :class="isTagSelected({{ $tag->id }}) ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'hover:bg-purple-50 cursor-pointer'"
+                                                :disabled="isTagSelected({{ $tag->id }})">
+                                                <span class="w-5 h-5 rounded-full flex-shrink-0 shadow-sm"
+                                                    style="background-color: {{ $tag->cor === 'blue' ? '#3B82F6' : ($tag->cor === 'green' ? '#10B981' : ($tag->cor === 'red' ? '#EF4444' : ($tag->cor === 'yellow' ? '#F59E0B' : ($tag->cor === 'purple' ? '#8B5CF6' : ($tag->cor === 'pink' ? '#EC4899' : ($tag->cor === 'orange' ? '#F97316' : ($tag->cor === 'gray' ? '#6B7280' : ($tag->cor === 'indigo' ? '#6366F1' : '#14B8A6')))))))) }}">
+                                                </span>
+                                                <span class="text-sm text-gray-700 font-medium">{{ $tag->nome }}</span>
+                                                <span x-show="isTagSelected({{ $tag->id }})" class="ml-auto text-xs text-green-600 font-semibold">✓ Selecionada</span>
+                                            </button>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Campo oculto com IDs das tags --}}
+                            <input type="hidden" name="tag_ids" x-model="tagIdsString">
+
+                            <p class="mt-3 text-xs text-gray-600">
+                                💡 Selecione as tags que deseja aplicar ao cliente após cadastrá-lo
+                            </p>
+                        </div>
+
                         <div class="flex items-center justify-end gap-4 pt-4 border-t">
                             <a href="{{ route('clientes.index') }}"
                                 class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -80,4 +173,63 @@
             </div>
         </div>
     </div>
+
+    {{-- Tag Management Modal --}}
+    @include('tags.manage-modal')
+
+    <script>
+        // Color mapping helper
+        const colorMap = {
+            'blue': '#3B82F6',
+            'green': '#10B981',
+            'red': '#EF4444',
+            'yellow': '#F59E0B',
+            'purple': '#8B5CF6',
+            'pink': '#EC4899',
+            'orange': '#F97316',
+            'gray': '#6B7280',
+            'indigo': '#6366F1',
+            'teal': '#14B8A6'
+        };
+
+        // Cliente tags component for create page
+        function clienteTagsCreate() {
+            return {
+                selectedTags: [],
+
+                get tagIdsString() {
+                    return this.selectedTags.map(t => t.id).join(',');
+                },
+
+                getColorHex(colorValue) {
+                    return colorMap[colorValue] || '#3B82F6';
+                },
+
+                addTag(tag) {
+                    if (!this.selectedTags.find(t => t.id === tag.id)) {
+                        this.selectedTags.push(tag);
+                    }
+                },
+
+                removeTag(tagId) {
+                    this.selectedTags = this.selectedTags.filter(t => t.id !== tagId);
+                },
+
+                isTagSelected(tagId) {
+                    return this.selectedTags.some(t => t.id === tagId);
+                }
+            }
+        }
+
+        // Helper function to open tag modal
+        function openTagModal() {
+            const modalElement = document.getElementById('tagManagerModal');
+            if (modalElement) {
+                const alpineData = Alpine.$data(modalElement);
+                if (alpineData && alpineData.openModal) {
+                    alpineData.openModal();
+                }
+            }
+        }
+    </script>
 </x-app-layout>

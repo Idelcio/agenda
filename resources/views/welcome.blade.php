@@ -306,7 +306,7 @@
             color: var(--text-primary);
         }
 
-        .pricing-section > p {
+        .pricing-section>p {
             text-align: center;
             color: var(--text-secondary);
             font-size: 1.05rem;
@@ -580,6 +580,26 @@
                     <li>Sistema 100% automatizado: você só cadastra, cria o lembrete e acompanha os resultados</li>
                 </ul>
             </div>
+        </section>
+
+        <section class="feature-card"
+            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.08)); border: 2px solid rgba(139, 92, 246, 0.2);">
+            <h3>
+                <span style="background: rgba(139, 92, 246, 0.15); color: #7c3aed;">🏷️ Tags</span>
+                Organize seus clientes com inteligência
+            </h3>
+            <ul>
+                <li><strong>Categorize seus clientes:</strong> Crie tags personalizadas como "VIP", "Premium", "Novo
+                    Cliente", "Urgente" e organize sua base de forma visual</li>
+                <li><strong>Filtragem rápida:</strong> Encontre instantaneamente grupos específicos de clientes na sua
+                    agenda e na listagem</li>
+                <li><strong>Envio em massa direcionado:</strong> Selecione uma tag e envie mensagens apenas para
+                    clientes daquele grupo - perfeito para promoções e comunicados segmentados</li>
+                <li><strong>Visualização no calendário:</strong> Veja as tags coloridas diretamente nos eventos da
+                    agenda, identificando rapidamente o tipo de cliente de cada compromisso</li>
+                <li><strong>Gestão profissional:</strong> Mantenha seu negócio organizado e tome decisões baseadas em
+                    categorias de clientes</li>
+            </ul>
         </section>
 
         <section class="steps-section">
