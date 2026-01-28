@@ -28,7 +28,7 @@ class MetaEmbeddedSignupController extends Controller
             'redirect_uri' => $redirectUri,
             'config_id' => $configId,
             'response_type' => 'code',
-            'scope' => 'business_management,whatsapp_business_management,whatsapp_business_messaging',
+            'scope' => 'whatsapp_business_management,whatsapp_business_messaging',
             'state' => csrf_token(), // Proteção CSRF
         ]);
 
