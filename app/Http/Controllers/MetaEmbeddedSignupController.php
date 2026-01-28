@@ -130,33 +130,39 @@ class MetaEmbeddedSignupController extends Controller
         try {
             Log::info('Iniciando busca de conta WhatsApp Business');
 
-            // Primeiro, busca as contas de negócio do usuário
+            // Busca diretamente as WABAs do usuário autenticado
             $response = Http::withToken($accessToken)
-                ->get('https://graph.facebook.com/v22.0/me/businesses');
+                ->get('https://graph.facebook.com/v22.0/me', [
+                    'fields' => 'id,name'
+                ]);
 
-            Log::info('Resposta /me/businesses', [
+            Log::info('Resposta /me', [
                 'status' => $response->status(),
                 'body' => $response->json()
             ]);
 
             if (!$response->successful()) {
-                Log::error('Falha ao buscar businesses', ['response' => $response->body()]);
+                Log::error('Falha ao buscar dados do usuário', ['response' => $response->body()]);
                 return null;
             }
 
-            $businesses = $response->json()['data'] ?? [];
+            $userId = $response->json()['id'];
+            Log::info('User ID encontrado', ['user_id' => $userId]);
 
-            if (empty($businesses)) {
-                Log::error('Nenhum business encontrado');
-                return null;
-            }
-
-            $businessId = $businesses[0]['id'];
-            Log::info('Business ID encontrado', ['business_id' => $businessId]);
-
-            // Busca as contas WhatsApp Business vinculadas
+            // Busca as contas WhatsApp Business do usuário
             $wabaResponse = Http::withToken($accessToken)
-                ->get("https://graph.facebook.com/v22.0/{$businessId}/client_whatsapp_business_accounts");
+                ->get("https://graph.facebook.com/v22.0/debug_token", [
+                    'input_token' => $accessToken
+                ]);
+
+            Log::info('Resposta /debug_token', [
+                'status' => $wabaResponse->status(),
+                'body' => $wabaResponse->json()
+            ]);
+
+            // Tenta buscar WABAs diretamente
+            $wabaResponse = Http::withToken($accessToken)
+                ->get("https://graph.facebook.com/v22.0/{$userId}/client_whatsapp_business_accounts");
 
             Log::info('Resposta /client_whatsapp_business_accounts', [
                 'status' => $wabaResponse->status(),
@@ -200,13 +206,12 @@ class MetaEmbeddedSignupController extends Controller
             }
 
             Log::info('Sucesso! Dados encontrados', [
-                'business_id' => $businessId,
                 'waba_id' => $wabaId,
                 'phone_number_id' => $phones[0]['id']
             ]);
 
             return [
-                'business_id' => $businessId,
+                'business_id' => $userId, // Usa o user ID como business ID
                 'waba_id' => $wabaId,
                 'phone_number_id' => $phones[0]['id'],
                 'display_phone_number' => $phones[0]['display_phone_number'] ?? null,
