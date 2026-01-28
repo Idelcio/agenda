@@ -40,6 +40,13 @@ class User extends Authenticatable
         'apibrasil_device_id',
         'apibrasil_qrcode_status',
         'apibrasil_setup_completed',
+        // Meta WhatsApp Cloud API fields
+        'whatsapp_driver',
+        'meta_phone_id',
+        'meta_access_token',
+        'meta_business_id',
+        'quota_limit',
+        'quota_usage',
     ];
 
     /**

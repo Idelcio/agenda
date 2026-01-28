@@ -734,8 +734,10 @@
 
         <footer>
             <p>Desenvolvido por <strong>Forest Desenvolvimento</strong></p>
-            <p style="margin-top: 0.5rem;">
-                <a href="{{ route('terms') }}">Termos de Uso e Política de Privacidade</a>
+            <p style="margin-top: 0.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ route('privacy') }}">Política de Privacidade</a>
+                <span style="color: var(--text-secondary);">•</span>
+                <a href="{{ route('data-deletion') }}">Exclusão de Dados</a>
             </p>
         </footer>
     </div>

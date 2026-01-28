@@ -24,6 +24,15 @@ Route::get('/teste-whatsapp', function (WhatsAppService $whatsApp) {
     dd($resposta);
 });
 
+// Páginas obrigatórias para Meta App
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/data-deletion', function () {
+    return view('data-deletion');
+})->name('data-deletion');
+
 /*
 |--------------------------------------------------------------------------
 | Lembretes pendentes (rota autenticada)
@@ -57,6 +66,28 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/setup-whatsapp/check-connection', [WhatsAppSetupController::class, 'checkConnection'])->name('setup-whatsapp.check-connection');
     Route::post('/setup-whatsapp/complete', [WhatsAppSetupController::class, 'completeSetup'])->name('setup-whatsapp.complete');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/setup-meta', [App\Http\Controllers\FacebookSetupController::class, 'index'])->name('setup-meta.index');
+    Route::post('/setup-meta/save', [App\Http\Controllers\FacebookSetupController::class, 'store'])->name('setup-meta.store');
+
+    // Embedded Signup OAuth Flow
+    Route::get('/auth/meta/redirect', [App\Http\Controllers\MetaEmbeddedSignupController::class, 'redirect'])->name('meta.oauth.redirect');
+    Route::get('/auth/meta/callback', [App\Http\Controllers\MetaEmbeddedSignupController::class, 'callback'])->name('meta.oauth.callback');
+    Route::post('/auth/meta/disconnect', [App\Http\Controllers\MetaEmbeddedSignupController::class, 'disconnect'])->name('meta.oauth.disconnect');
+
+    Route::get('/meta/chat', [App\Http\Controllers\MetaChatController::class, 'index'])->name('meta.chat.index');
+    Route::get('/meta/chat/{phone}/messages', [App\Http\Controllers\MetaChatController::class, 'fetchMessages'])->name('meta.chat.messages');
+    Route::post('/meta/chat/send', [App\Http\Controllers\MetaChatController::class, 'sendMessage'])->name('meta.chat.send');
+    Route::post('/meta/chat/send-template', [App\Http\Controllers\MetaChatController::class, 'sendTemplate'])->name('meta.chat.send-template');
+    Route::get('/meta/webhook-monitor', function () {
+        return view('meta.webhook-monitor');
+    })->name('meta.webhook-monitor');
+});
+
+// Webhook da Meta (sem autenticação - a Meta precisa acessar publicamente)
+Route::get('/webhooks/meta', [App\Http\Controllers\MetaWebhookController::class, 'verify'])->name('webhooks.meta.verify');
+Route::post('/webhooks/meta', [App\Http\Controllers\MetaWebhookController::class, 'handle'])->name('webhooks.meta.handle');
 
 /*
 |--------------------------------------------------------------------------
