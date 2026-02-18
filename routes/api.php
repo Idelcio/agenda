@@ -52,3 +52,134 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Webhook do Mercado Pago (não requer autenticação)
 Route::post('/webhook/mercadopago', [WebhookController::class, 'mercadopago']);
+
+/*
+|--------------------------------------------------------------------------
+| Webhook do WhatsApp (API Brasil)
+|--------------------------------------------------------------------------
+| Aceita GET (verificação/validação da URL) e POST (recebimento de mensagens).
+*/
+Route::match(['get', 'post'], '/webhooks/whatsapp', function (Request $request) {
+    // GET = verificação do webhook pelo painel
+    if ($request->isMethod('get')) {
+        return response()->json(['status' => 'ok', 'message' => 'Webhook ativo']);
+    }
+
+    // POST = mensagem recebida → delega ao controller
+    return app(\App\Http\Controllers\Webhook\WhatsAppWebhookController::class)($request, app(\App\Services\WhatsAppService::class));
+})->name('api.webhooks.whatsapp');
+
+/*
+|--------------------------------------------------------------------------
+| Webhook: Atualização de QR Code (API Brasil)
+|--------------------------------------------------------------------------
+| Recebe notificação quando um novo QR Code é gerado para o dispositivo.
+| URL para configurar na API Brasil: https://agendoo.tech/api/webhooks/qrcode
+*/
+Route::match(['get', 'post'], '/webhooks/qrcode', function (Request $request) {
+    if ($request->isMethod('get')) {
+        return response()->json(['status' => 'ok', 'message' => 'Webhook QR Code ativo']);
+    }
+
+    \Log::info('📱 Webhook QR Code recebido', $request->all());
+
+    $deviceId = data_get($request, 'device_id')
+        ?? data_get($request, 'data.device_id')
+        ?? data_get($request, 'session')
+        ?? data_get($request, 'data.session')
+        ?? null;
+
+    $qrcode = data_get($request, 'qrcode')
+        ?? data_get($request, 'data.qrcode')
+        ?? data_get($request, 'data.data.qrcode')
+        ?? null;
+
+    if ($deviceId) {
+        $empresa = \App\Models\User::where('tipo', 'empresa')
+            ->where(function ($q) use ($deviceId) {
+                $q->where('apibrasil_device_id', $deviceId)
+                    ->orWhere('apibrasil_device_token', $deviceId);
+            })
+            ->first();
+
+        if ($empresa) {
+            $empresa->update([
+                'apibrasil_qrcode_status' => 'pending',
+            ]);
+
+            \Log::info('📱 QR Code atualizado para empresa', [
+                'empresa_id' => $empresa->id,
+                'empresa_nome' => $empresa->name,
+                'has_qrcode' => !empty($qrcode),
+            ]);
+        } else {
+            \Log::warning('📱 QR Code webhook: nenhuma empresa encontrada', [
+                'device_id' => $deviceId,
+            ]);
+        }
+    }
+
+    return response()->json(['status' => 'ok']);
+})->name('api.webhooks.qrcode');
+
+/*
+|--------------------------------------------------------------------------
+| Webhook: Status do Dispositivo (API Brasil)
+|--------------------------------------------------------------------------
+| Recebe notificação quando o status do dispositivo muda (online/offline).
+| URL para configurar na API Brasil: https://agendoo.tech/api/webhooks/device-status
+*/
+Route::match(['get', 'post'], '/webhooks/device-status', function (Request $request) {
+    if ($request->isMethod('get')) {
+        return response()->json(['status' => 'ok', 'message' => 'Webhook Device Status ativo']);
+    }
+
+    \Log::info('📡 Webhook Status do Dispositivo recebido', $request->all());
+
+    $deviceId = data_get($request, 'device_id')
+        ?? data_get($request, 'data.device_id')
+        ?? data_get($request, 'session')
+        ?? data_get($request, 'data.session')
+        ?? null;
+
+    $status = data_get($request, 'status')
+        ?? data_get($request, 'data.status')
+        ?? data_get($request, 'state')
+        ?? data_get($request, 'data.state')
+        ?? null;
+
+    if ($deviceId) {
+        $empresa = \App\Models\User::where('tipo', 'empresa')
+            ->where(function ($q) use ($deviceId) {
+                $q->where('apibrasil_device_id', $deviceId)
+                    ->orWhere('apibrasil_device_token', $deviceId);
+            })
+            ->first();
+
+        if ($empresa) {
+            // Mapeia status da API Brasil para o nosso enum
+            $mappedStatus = match (strtolower((string) $status)) {
+                'connected', 'online', 'open' => 'connected',
+                'disconnected', 'offline', 'close', 'closed' => 'disconnected',
+                default => 'pending',
+            };
+
+            $empresa->update([
+                'apibrasil_qrcode_status' => $mappedStatus,
+            ]);
+
+            \Log::info('📡 Status do dispositivo atualizado', [
+                'empresa_id' => $empresa->id,
+                'empresa_nome' => $empresa->name,
+                'status_original' => $status,
+                'status_mapeado' => $mappedStatus,
+            ]);
+        } else {
+            \Log::warning('📡 Device Status webhook: nenhuma empresa encontrada', [
+                'device_id' => $deviceId,
+            ]);
+        }
+    }
+
+    return response()->json(['status' => 'ok']);
+})->name('api.webhooks.device-status');
