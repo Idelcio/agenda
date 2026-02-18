@@ -62,10 +62,10 @@ class SuperAdminController extends Controller
             ->get();
 
         $mensagensPorEmpresa = Appointment::select(
-                'users.id',
-                'users.name',
-                DB::raw('COUNT(appointments.id) as total')
-            )
+            'users.id',
+            'users.name',
+            DB::raw('COUNT(appointments.id) as total')
+        )
             ->join('users', 'appointments.user_id', '=', 'users.id')
             ->where('users.tipo', 'empresa')
             ->where('appointments.status_lembrete', 'enviado')
@@ -99,7 +99,7 @@ class SuperAdminController extends Controller
         if ($request->filled('status')) {
             if ($request->status === 'ativas') {
                 $query->where('acesso_ativo', true)
-                    ->where(function($q) {
+                    ->where(function ($q) {
                         $q->whereNull('acesso_liberado_ate')
                             ->orWhere('acesso_liberado_ate', '>=', now());
                     });
@@ -116,7 +116,7 @@ class SuperAdminController extends Controller
         }
 
         if ($request->filled('busca')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->busca}%")
                     ->orWhere('email', 'like', "%{$request->busca}%")
                     ->orWhere('whatsapp_number', 'like', "%{$request->busca}%");
@@ -240,12 +240,19 @@ class SuperAdminController extends Controller
             'limite_requisicoes_mes' => 'required|integer|min:0',
             'valor_pago' => 'nullable|numeric|min:0',
             'observacoes_admin' => 'nullable|string',
+            'apibrasil_device_name' => 'nullable|string|max:255',
             'apibrasil_device_id' => 'nullable|string|max:255',
             'apibrasil_device_token' => 'nullable|string|max:255',
         ]);
 
         // Garante que acesso_ativo seja boolean
         $validated['acesso_ativo'] = (bool) $request->input('acesso_ativo', false);
+
+        if ($request->has('apibrasil_device_name')) {
+            $validated['apibrasil_device_name'] = $request->filled('apibrasil_device_name')
+                ? trim($request->input('apibrasil_device_name'))
+                : null;
+        }
 
         if ($request->has('apibrasil_device_id')) {
             $validated['apibrasil_device_id'] = $request->filled('apibrasil_device_id')
