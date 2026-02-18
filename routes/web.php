@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/setup-whatsapp/check-connection', [WhatsAppSetupController::class, 'checkConnection'])->name('setup-whatsapp.check-connection');
     Route::post('/setup-whatsapp/complete', [WhatsAppSetupController::class, 'completeSetup'])->name('setup-whatsapp.complete');
     Route::post('/setup-whatsapp/generate-qrcode', [WhatsAppSetupController::class, 'generateQrCode'])->name('setup-whatsapp.generate-qrcode');
+    Route::get('/whatsapp-reconnect', [WhatsAppSetupController::class, 'reconnect'])->name('whatsapp.reconnect');
 });
 
 Route::middleware(['auth'])->group(function () {

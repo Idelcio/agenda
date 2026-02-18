@@ -18,6 +18,21 @@ class WhatsAppSetupController extends Controller
     }
 
     /**
+     * Página de reconexão — gera QR Code usando credenciais já salvas
+     */
+    public function reconnect()
+    {
+        $user = Auth::user();
+
+        if (!$user->apibrasil_device_id || !$user->apibrasil_device_token) {
+            return redirect()->route('setup-whatsapp.index')
+                ->with('error', 'Você precisa configurar as credenciais do dispositivo primeiro.');
+        }
+
+        return view('whatsapp-setup.reconnect', compact('user'));
+    }
+
+    /**
      * Exibe a página de setup do WhatsApp
      */
     public function index()
