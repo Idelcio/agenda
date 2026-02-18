@@ -128,25 +128,37 @@ class WhatsAppSetupController extends Controller
 
             \Log::info('Resultado do start', ['result' => $startResult]);
 
-            // 2) Aguarda um pouco e busca o QR Code
-            sleep(2);
+            // 2) Tenta buscar o QR Code com retry (API demora para gerar)
+            $qrcode = null;
+            $delays = [3, 5, 8]; // segundos para cada tentativa
 
-            $qrResult = $this->whatsappService->getQrCode($deviceName);
+            foreach ($delays as $attempt => $delay) {
+                sleep($delay);
 
-            \Log::info('Resultado do qrcode', ['result' => $qrResult]);
+                $qrResult = $this->whatsappService->getQrCode($deviceName);
 
-            // Tenta extrair o QR Code da resposta
-            $qrcode = data_get($qrResult, 'qrcode')
-                ?? data_get($qrResult, 'data.qrcode')
-                ?? data_get($qrResult, 'response.qrcode')
-                ?? data_get($qrResult, 'result.qrcode')
-                ?? null;
+                \Log::info('Resultado do qrcode (tentativa ' . ($attempt + 1) . ')', ['result' => $qrResult]);
+
+                // Tenta extrair o QR Code da resposta
+                $candidate = data_get($qrResult, 'qrcode')
+                    ?? data_get($qrResult, 'response.qrcode')
+                    ?? data_get($qrResult, 'data.qrcode')
+                    ?? data_get($qrResult, 'result.qrcode')
+                    ?? null;
+
+                // Valida que não é vazio (a API às vezes retorna "data:image/png;base64," sem conteúdo)
+                if ($candidate && strlen($candidate) > 30) {
+                    $qrcode = $candidate;
+                    break;
+                }
+
+                \Log::info('QR Code vazio na tentativa ' . ($attempt + 1) . ', aguardando...');
+            }
 
             if (!$qrcode) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'QR Code não disponível ainda. Tente novamente em alguns segundos.',
-                    'debug' => $qrResult,
+                    'message' => 'O QR Code ainda não foi gerado pela API. Clique em "Atualizar QR Code" para tentar novamente.',
                 ], 200);
             }
 
