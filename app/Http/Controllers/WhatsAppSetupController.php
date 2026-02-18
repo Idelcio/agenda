@@ -95,6 +95,79 @@ class WhatsAppSetupController extends Controller
     }
 
     /**
+     * Gera QR Code via API Brasil (start + qrcode)
+     * O usuário só precisa informar device_name (senha) e device_id/token.
+     */
+    public function generateQrCode(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            // Usa credenciais já salvas ou recebidas no request
+            $deviceName = $request->input('device_name', $user->apibrasil_device_name);
+            $deviceToken = $request->input('device_token', $user->apibrasil_device_token);
+            $deviceId = $request->input('device_id', $user->apibrasil_device_id);
+
+            if (!$deviceToken || !$deviceId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Device ID e Token são obrigatórios. Salve as credenciais primeiro.',
+                ], 400);
+            }
+
+            // Configura as credenciais no service
+            $this->whatsappService->setDeviceCredentials($deviceToken, $deviceId);
+
+            // 1) Chama start para iniciar a sessão
+            \Log::info('Iniciando sessão WhatsApp para QR Code', [
+                'user_id' => $user->id,
+                'device_name' => $deviceName,
+            ]);
+
+            $startResult = $this->whatsappService->startSession($deviceName);
+
+            \Log::info('Resultado do start', ['result' => $startResult]);
+
+            // 2) Aguarda um pouco e busca o QR Code
+            sleep(2);
+
+            $qrResult = $this->whatsappService->getQrCode($deviceName);
+
+            \Log::info('Resultado do qrcode', ['result' => $qrResult]);
+
+            // Tenta extrair o QR Code da resposta
+            $qrcode = data_get($qrResult, 'qrcode')
+                ?? data_get($qrResult, 'data.qrcode')
+                ?? data_get($qrResult, 'response.qrcode')
+                ?? data_get($qrResult, 'result.qrcode')
+                ?? null;
+
+            if (!$qrcode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR Code não disponível ainda. Tente novamente em alguns segundos.',
+                    'debug' => $qrResult,
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'qrcode' => $qrcode,
+                'message' => 'Escaneie o QR Code com seu WhatsApp',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao gerar QR Code: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao gerar QR Code: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Retorna o QR Code do device
      */
     public function getQrCode(Request $request)

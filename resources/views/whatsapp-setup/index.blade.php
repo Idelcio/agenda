@@ -15,7 +15,7 @@
                         </h3>
                         <p class="text-sm text-gray-600">
                             Para usar o sistema de agenda, você precisa conectar seu número do WhatsApp.
-                            Siga os passos abaixo:
+                            Insira as credenciais do dispositivo e gere o QR Code direto aqui.
                         </p>
                     </div>
 
@@ -24,9 +24,9 @@
                         <div class="flex items-center mb-4" id="step-1">
                             <div
                                 class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white font-bold mr-3">
-                                ✓
+                                1
                             </div>
-                            <p class="text-gray-700">Inserir credenciais do dispositivo</p>
+                            <p class="text-gray-700">Inserir credenciais e gerar QR Code</p>
                         </div>
                     </div>
 
@@ -46,8 +46,9 @@
                                     <div class="ml-3">
                                         <p class="text-sm text-blue-700">
                                             <strong>Instruções:</strong> Acesse o painel da API Brasil, crie um novo
-                                            dispositivo, escaneie o QR Code pelo notebook e depois copie as credenciais
-                                            abaixo.
+                                            dispositivo, copie as credenciais abaixo e clique em <strong>"Gerar QR
+                                                Code"</strong>.
+                                            O QR Code aparecerá aqui mesmo — não precisa escanear lá.
                                         </p>
                                     </div>
                                 </div>
@@ -56,9 +57,10 @@
                             <form id="form-credentials" class="space-y-4">
                                 <div>
                                     <label for="device_name" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Senha Dispositivo (device_name)
+                                        Senha do Dispositivo (device_name)
                                     </label>
                                     <input type="text" id="device_name" name="device_name" required
+                                        value="{{ Auth::user()->apibrasil_device_name }}"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Ex: v9demxaa">
                                 </div>
@@ -68,6 +70,7 @@
                                         Device ID
                                     </label>
                                     <input type="text" id="device_id" name="device_id" required
+                                        value="{{ Auth::user()->apibrasil_device_id }}"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Ex: 4db434ed-222d-4a5f-b4e6-63d73e45aa50">
                                 </div>
@@ -77,14 +80,19 @@
                                         DeviceToken
                                     </label>
                                     <input type="text" id="device_token" name="device_token"
+                                        value="{{ Auth::user()->apibrasil_device_token }}"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Ex: 14edb6cf-1398-41c7-9109-af9b584b40ab">
                                 </div>
 
-                                <div class="pt-4">
+                                <div class="pt-4 flex gap-3">
                                     <button type="submit" id="btn-save-credentials"
-                                        class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
-                                        Salvar e Continuar
+                                        class="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                                        Salvar Credenciais
+                                    </button>
+                                    <button type="button" id="btn-generate-qr"
+                                        class="flex-1 bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                                        📱 Gerar QR Code
                                     </button>
                                 </div>
                             </form>
@@ -93,7 +101,33 @@
                         <!-- Loading -->
                         <div id="loading-step" class="hidden text-center">
                             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                            <p class="mt-4 text-gray-600">Salvando credenciais...</p>
+                            <p class="mt-4 text-gray-600" id="loading-message">Salvando credenciais...</p>
+                        </div>
+
+                        <!-- QR Code -->
+                        <div id="qrcode-step" class="hidden text-center">
+                            <h4 class="text-lg font-medium text-gray-900 mb-4">
+                                📱 Escaneie o QR Code com seu WhatsApp
+                            </h4>
+                            <div class="mb-4 inline-block p-4 bg-white border-2 border-gray-200 rounded-xl shadow-lg">
+                                <img id="qrcode-image" src="" alt="QR Code" class="mx-auto"
+                                    style="max-width: 300px; max-height: 300px;">
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">
+                                Abra o WhatsApp no celular → <strong>Dispositivos conectados</strong> → <strong>Conectar
+                                    dispositivo</strong>
+                            </p>
+                            <p class="text-xs text-gray-400 mb-4" id="qr-timer">O QR Code expira em 60 segundos</p>
+                            <div class="flex gap-3 justify-center">
+                                <button id="btn-refresh-qr"
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                    🔄 Atualizar QR Code
+                                </button>
+                                <button id="btn-check-after-qr"
+                                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                                    ✅ Já escaneei
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Verificando Conexão -->
@@ -107,10 +141,6 @@
                             </h4>
                             <p class="text-sm text-gray-600 mb-4">
                                 Aguarde enquanto verificamos se o WhatsApp está conectado...
-                            </p>
-                            <p class="text-xs text-gray-500">
-                                Certifique-se de que escaneou o QR Code no painel da API Brasil antes de salvar as
-                                credenciais.
                             </p>
                         </div>
 
@@ -167,15 +197,20 @@
     <script>
         const formCredentials = document.getElementById('form-credentials');
         const btnRetry = document.getElementById('btn-retry');
+        const btnGenerateQr = document.getElementById('btn-generate-qr');
+        const btnRefreshQr = document.getElementById('btn-refresh-qr');
+        const btnCheckAfterQr = document.getElementById('btn-check-after-qr');
 
         const initialStep = document.getElementById('initial-step');
         const loadingStep = document.getElementById('loading-step');
+        const qrcodeStep = document.getElementById('qrcode-step');
+        const checkingStep = document.getElementById('checking-step');
+        const connectedStep = document.getElementById('connected-step');
         const errorStep = document.getElementById('error-step');
 
         function showStep(step) {
-            initialStep.classList.add('hidden');
-            loadingStep.classList.add('hidden');
-            errorStep.classList.add('hidden');
+            [initialStep, loadingStep, qrcodeStep, checkingStep, connectedStep, errorStep]
+                .forEach(s => s.classList.add('hidden'));
             step.classList.remove('hidden');
         }
 
@@ -184,42 +219,19 @@
             showStep(errorStep);
         }
 
-        /**
-         * 🟩 Sincronização automática entre Device ID → Device Token
-         * Sempre que o usuário digitar ou colar o device_id, o campo device_token é preenchido automaticamente.
-         * Se o token já tiver valor, o sistema não sobrescreve.
-         */
+        // Sincronização Device ID → Device Token
         document.getElementById('device_id').addEventListener('input', (e) => {
             const idValue = e.target.value.trim();
             const tokenInput = document.getElementById('device_token');
-
-            // Só copia se o token estiver vazio ou muito curto
             if (!tokenInput.value || tokenInput.value.length < 5) {
                 tokenInput.value = idValue;
             }
         });
 
-        /**
-         * 🔁 (Opcional) Sincronização reversa — Device Token → Device ID
-         * Se quiser deixar o formulário totalmente automático nos dois sentidos, descomente o bloco abaixo.
-         */
-        /*
-        document.getElementById('device_token').addEventListener('input', (e) => {
-            const tokenValue = e.target.value.trim();
-            const idInput = document.getElementById('device_id');
-
-            if (!idInput.value || idInput.value.length < 5) {
-                idInput.value = tokenValue;
-            }
-        });
-        */
-
-        /**
-         * 📨 Envio do formulário
-         * Faz POST para a rota Laravel setup-whatsapp.save-credentials e exibe o estado de carregamento/erro.
-         */
+        // Salvar credenciais
         formCredentials.addEventListener('submit', async (e) => {
             e.preventDefault();
+            document.getElementById('loading-message').textContent = 'Salvando credenciais...';
             showStep(loadingStep);
 
             const deviceName = document.getElementById('device_name').value;
@@ -243,7 +255,6 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Credenciais salvas com sucesso → redireciona para a agenda
                     window.location.href = data.redirect;
                 } else {
                     showError(data.message || 'Erro ao salvar credenciais');
@@ -253,9 +264,112 @@
             }
         });
 
-        /**
-         * 🔄 Botão de tentar novamente
-         */
+        // Gerar QR Code
+        async function generateQrCode() {
+            document.getElementById('loading-message').textContent = 'Gerando QR Code... Aguarde até 15 segundos.';
+            showStep(loadingStep);
+
+            const deviceName = document.getElementById('device_name').value;
+            const deviceId = document.getElementById('device_id').value;
+            const deviceToken = document.getElementById('device_token').value;
+
+            if (!deviceName || !deviceId) {
+                showError('Preencha a Senha do Dispositivo e o Device ID.');
+                return;
+            }
+
+            try {
+                // Primeiro salva as credenciais
+                await fetch('{{ route('setup-whatsapp.save-credentials') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        device_name: deviceName,
+                        device_id: deviceId,
+                        device_token: deviceToken || deviceId
+                    })
+                });
+
+                // Depois gera o QR Code
+                const response = await fetch('{{ route('setup-whatsapp.generate-qrcode') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        device_name: deviceName,
+                        device_id: deviceId,
+                        device_token: deviceToken || deviceId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.qrcode) {
+                    const img = document.getElementById('qrcode-image');
+                    // Se já for base64 com prefixo ou URL
+                    if (data.qrcode.startsWith('data:') || data.qrcode.startsWith('http')) {
+                        img.src = data.qrcode;
+                    } else {
+                        img.src = 'data:image/png;base64,' + data.qrcode;
+                    }
+                    showStep(qrcodeStep);
+                } else {
+                    showError(data.message || 'Não foi possível gerar o QR Code. Tente novamente.');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showError('Erro de conexão ao gerar QR Code.');
+            }
+        }
+
+        btnGenerateQr.addEventListener('click', generateQrCode);
+        btnRefreshQr.addEventListener('click', generateQrCode);
+
+        // Verificar conexão após escanear QR Code
+        btnCheckAfterQr.addEventListener('click', async () => {
+            showStep(checkingStep);
+
+            try {
+                const response = await fetch('{{ route('setup-whatsapp.check-connection') }}');
+                const data = await response.json();
+
+                if (data.success && data.connected) {
+                    showStep(connectedStep);
+                } else {
+                    showError('WhatsApp ainda não está conectado. Escaneie o QR Code e tente novamente.');
+                }
+            } catch (error) {
+                showError('Erro ao verificar conexão.');
+            }
+        });
+
+        // Completar setup
+        document.getElementById('btn-complete-setup')?.addEventListener('click', async () => {
+            try {
+                const response = await fetch('{{ route('setup-whatsapp.complete') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                const data = await response.json();
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    window.location.href = '{{ route('agenda.index') }}';
+                }
+            } catch (error) {
+                window.location.href = '{{ route('agenda.index') }}';
+            }
+        });
+
+        // Tentar novamente
         btnRetry.addEventListener('click', () => {
             showStep(initialStep);
         });

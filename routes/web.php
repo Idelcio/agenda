@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/setup-whatsapp/save-credentials', [WhatsAppSetupController::class, 'saveDeviceCredentials'])->name('setup-whatsapp.save-credentials');
     Route::get('/setup-whatsapp/check-connection', [WhatsAppSetupController::class, 'checkConnection'])->name('setup-whatsapp.check-connection');
     Route::post('/setup-whatsapp/complete', [WhatsAppSetupController::class, 'completeSetup'])->name('setup-whatsapp.complete');
+    Route::post('/setup-whatsapp/generate-qrcode', [WhatsAppSetupController::class, 'generateQrCode'])->name('setup-whatsapp.generate-qrcode');
 });
 
 Route::middleware(['auth'])->group(function () {
